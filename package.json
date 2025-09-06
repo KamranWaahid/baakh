@@ -1,0 +1,17 @@
+{
+  "name": "baakh",
+  "private": true,
+  "scripts": {
+    "dev:frontend": "npm --prefix baakh-nextjs run dev",
+    "dev:backend": "npm --prefix backend run dev",
+    "dev": "concurrently -k -n frontend,backend -c auto \"npm:dev:frontend\" \"npm:dev:backend\"",
+    "build": "npm --prefix baakh-nextjs run build",
+    "start": "npm --prefix baakh-nextjs run start"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.1"
+  },
+  "dependencies": {
+    "next-intl": "^4.3.4"
+  }
+}

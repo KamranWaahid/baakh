@@ -1,0 +1,58 @@
+{
+  "Navigation": {
+    "home": "Home",
+    "poets": "Poets",
+    "poetry": "Poetry",
+    "search": "Search",
+    "backToPoets": "Back to Poets",
+    "backToHome": "Back to Home"
+  },
+  "Common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "notFound": "Not Found",
+    "search": "Search",
+    "searchPlaceholder": "Search for poets, poetry, or topics...",
+    "viewAll": "View All",
+    "readMore": "Read More",
+    "madeWith": "Made with",
+    "forSindhiPoetry": "for Sindhi poetry"
+  },
+  "Home": {
+    "title": "Welcome",
+    "subtitle": "to the world of Sindhi poetry",
+    "heroTitle": "Discover the rich heritage of Sindhi poetry",
+    "heroSubtitle": "Explore centuries of spiritual and literary tradition",
+    "searchPlaceholder": "Search for poets, poetry, or topics...",
+    "featuredPoets": "Featured Poets",
+    "popularCategories": "Popular Categories",
+    "trendingTags": "Trending Tags"
+  },
+  "Poets": {
+    "title": "Poets",
+    "subtitle": "Great poets of Sindhi poetry",
+    "famousCouplets": "Famous Couplets",
+    "viewAllCouplets": "View all couplets",
+    "works": "Works",
+    "couplets": "Couplets",
+    "period": "Period",
+    "location": "Location"
+  },
+  "Poetry": {
+    "title": "Poetry",
+    "subtitle": "Different forms of Sindhi poetry",
+    "ghazal": "Ghazal",
+    "nazm": "Nazm",
+    "couplet": "Couplet",
+    "readingTime": "Reading time",
+    "minRead": "min read"
+  },
+  "Search": {
+    "title": "Search",
+    "subtitle": "Search in Sindhi poetry",
+    "noResults": "No results found",
+    "searchFor": "Search for",
+    "resultsFor": "results for"
+  }
+}
+

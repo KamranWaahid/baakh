@@ -1,0 +1,778 @@
+/* stylelint-disable */
+/* Modern Font System - Minimal & Clean */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@custom-variant dark (&:is(.dark *));
+
+/* Modern Color System - Minimal & Clean */
+:root {
+  /* Light theme colors - Minimal palette */
+  --background: 0 0% 100%;
+  --foreground: 0 0% 9%;
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 9%;
+  --primary: 0 0% 9%;
+  --primary-foreground: 0 0% 98%;
+  --secondary: 0 0% 96.1%;
+  --secondary-foreground: 0 0% 9%;
+  --muted: 0 0% 96.1%;
+  --muted-foreground: 0 0% 45.1%;
+  --accent: 0 0% 96.1%;
+  --accent-foreground: 0 0% 9%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 0 0% 89.8%;
+  --input: 0 0% 89.8%;
+  --ring: 0 0% 9%;
+
+  /* Typography hierarchy colors - Clean & Modern */
+  --text-primary: 0 0% 9%;      /* Main headings - very dark */
+  --text-secondary: 0 0% 25%;   /* Subheadings - dark gray */
+  --text-body: 0 0% 35%;        /* Body text - medium gray */
+  --text-muted: 0 0% 45%;       /* Muted text - lighter gray */
+  --text-caption: 0 0% 55%;     /* Captions - even lighter */
+  --text-link: 0 0% 25%;        /* Links - dark gray */
+  --text-accent: 0 0% 9%;       /* Accent text - very dark */
+
+  /* Modern Font System - Only Inter & MB Lateefi 2.0 */
+  --font-inter: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-sindhi: 'MB Lateefi SK 2.0', 'Noto Naskh Arabic', serif;
+  
+  /* Spacing System - Modern & Minimal */
+  --spacing-xs: 0.25rem;    /* 4px */
+  --spacing-sm: 0.5rem;     /* 8px */
+  --spacing-md: 1rem;       /* 16px */
+  --spacing-lg: 1.5rem;     /* 24px */
+  --spacing-xl: 2rem;       /* 32px */
+  --spacing-2xl: 3rem;      /* 48px */
+  --spacing-3xl: 4rem;      /* 64px */
+  --sidebar: hsl(0 0% 98%);
+  --sidebar-foreground: hsl(240 5.3% 26.1%);
+  --sidebar-primary: hsl(240 5.9% 10%);
+  --sidebar-primary-foreground: hsl(0 0% 98%);
+  --sidebar-accent: hsl(240 4.8% 95.9%);
+  --sidebar-accent-foreground: hsl(240 5.9% 10%);
+  --sidebar-border: hsl(220 13% 91%);
+  --sidebar-ring: hsl(217.2 91.2% 59.8%);
+}
+
+.dark {
+  /* Dark theme colors */
+  --background: 0 0% 9%;
+  --foreground: 0 0% 98%;
+  --card: 0 0% 9%;
+  --card-foreground: 0 0% 98%;
+  --popover: 0 0% 9%;
+  --popover-foreground: 0 0% 98%;
+  --primary: 0 0% 98%;
+  --primary-foreground: 0 0% 9%;
+  --secondary: 0 0% 14.9%;
+  --secondary-foreground: 0 0% 98%;
+  --muted: 0 0% 14.9%;
+  --muted-foreground: 0 0% 63.9%;
+  --accent: 0 0% 14.9%;
+  --accent-foreground: 0 0% 98%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 0 0% 14.9%;
+  --input: 0 0% 14.9%;
+  --ring: 0 0% 83.1%;
+
+  /* Typography hierarchy colors for dark theme */
+  --text-primary: 0 0% 98%;     /* Main headings - very light */
+  --text-secondary: 0 0% 85%;   /* Subheadings - light gray */
+  --text-body: 0 0% 75%;        /* Body text - medium light */
+  --text-muted: 0 0% 65%;       /* Muted text - darker gray */
+  --text-caption: 0 0% 55%;     /* Captions - even darker */
+  --text-link: 0 0% 85%;        /* Links - light gray */
+  --text-accent: 0 0% 98%;      /* Accent text - very light */
+  --sidebar: hsl(240 5.9% 10%);
+  --sidebar-foreground: hsl(240 4.8% 95.9%);
+  --sidebar-primary: hsl(224.3 76.3% 48%);
+  --sidebar-primary-foreground: hsl(0 0% 100%);
+  --sidebar-accent: hsl(240 3.7% 15.9%);
+  --sidebar-accent-foreground: hsl(240 4.8% 95.9%);
+  --sidebar-border: hsl(240 3.7% 15.9%);
+  --sidebar-ring: hsl(217.2 91.2% 59.8%);
+}
+
+@tailwind base;
+@tailwind components;
+
+/* Force light mode - disable all dark mode styles */
+.dark, [class*="dark:"] {
+  /* Override all dark mode styles to use light mode equivalents */
+  background-color: white !important;
+  color: #111827 !important;
+  border-color: #e5e7eb !important;
+}
+
+/* Override specific Tailwind dark mode classes */
+.dark\\:bg-neutral-900 { background-color: white !important; }
+.dark\\:bg-neutral-800 { background-color: white !important; }
+.dark\\:text-neutral-100 { color: #111827 !important; }
+.dark\\:text-neutral-300 { color: #374151 !important; }
+.dark\\:text-neutral-400 { color: #6b7280 !important; }
+.dark\\:border-neutral-800 { border-color: #e5e7eb !important; }
+.dark\\:border-neutral-700 { border-color: #e5e7eb !important; }
+.dark\\:hover\\:bg-neutral-800:hover { background-color: #f9fafb !important; }
+.dark\\:hover\\:text-neutral-100:hover { color: #111827 !important; }
+.dark\\:brightness-0 { filter: none !important; }
+.dark\\:invert { filter: none !important; }
+
+/* Override dark mode CSS variables */
+:root.dark {
+  --background: 0 0% 100% !important;
+  --foreground: 0 0% 9% !important;
+  --card: 0 0% 100% !important;
+  --card-foreground: 0 0% 9% !important;
+  --popover: 0 0% 100% !important;
+  --popover-foreground: 0 0% 9% !important;
+  --primary: 0 0% 9% !important;
+  --primary-foreground: 0 0% 98% !important;
+  --secondary: 0 0% 96.1% !important;
+  --secondary-foreground: 0 0% 9% !important;
+  --muted: 0 0% 96.1% !important;
+  --muted-foreground: 0 0% 45.1% !important;
+  --accent: 0 0% 96.1% !important;
+  --accent-foreground: 0 0% 9% !important;
+  --destructive: 0 84.2% 60.2% !important;
+  --destructive-foreground: 0 0% 98% !important;
+  --border: 0 0% 89.8% !important;
+  --input: 0 0% 89.8% !important;
+  --ring: 0 0% 9% !important;
+}
+
+/* Shimmer animation for skeleton loading */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+@tailwind utilities;
+
+/* Base Styles */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 80px; /* Account for fixed header */
+  }
+
+  body {
+    font-family: var(--font-inter);
+    line-height: 1.6;
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* RTL/LTR Layout Support */
+  [dir="rtl"] {
+    direction: rtl;
+    text-align: right;
+  }
+
+  [dir="ltr"] {
+    direction: ltr;
+    text-align: left;
+  }
+
+  /* RTL-specific adjustments */
+  [dir="rtl"] .rtl-flip {
+    transform: scaleX(-1);
+  }
+
+  [dir="rtl"] .rtl-margin {
+    margin-left: 0;
+    margin-right: auto;
+  }
+
+  [dir="rtl"] .rtl-padding {
+    padding-left: 0;
+    padding-right: 1rem;
+  }
+
+  /* LTR-specific adjustments */
+  [dir="ltr"] .ltr-margin {
+    margin-right: 0;
+    margin-left: auto;
+  }
+
+  [dir="ltr"] .ltr-padding {
+    padding-right: 0;
+    padding-left: 1rem;
+  }
+
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--muted));
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground));
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.8);
+  }
+}
+
+/* Modern Component Styles */
+@layer components {
+  /* Modern Font System - Clean & Minimal */
+  
+  /* English Font (Inter) */
+  .font-english {
+    font-family: var(--font-inter);
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Sindhi Font (MB Lateefi 2.0) */
+  .font-sindhi {
+    font-family: var(--font-sindhi);
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: 'kern' 1, 'liga' 1;
+  }
+
+  /* ===== MODERN TYPOGRAPHY SYSTEM ===== */
+  
+  /* Modern Typography Scale - Clean & Consistent */
+  .text-display {
+    font-size: clamp(2.5rem, 5vw, 3.5rem);
+    line-height: 1.1;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+
+  .text-h1 {
+    font-size: clamp(2rem, 4vw, 2.75rem);
+    line-height: 1.2;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .text-h2 {
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    line-height: 1.3;
+    font-weight: 500;
+    letter-spacing: -0.005em;
+  }
+
+  .text-h3 {
+    font-size: clamp(1.25rem, 2.5vw, 1.5rem);
+    line-height: 1.4;
+    font-weight: 500;
+  }
+
+  .text-h4 {
+    font-size: clamp(1.125rem, 2vw, 1.25rem);
+    line-height: 1.4;
+    font-weight: 500;
+  }
+
+  .text-body {
+    font-size: 1rem;
+    line-height: 1.6;
+    font-weight: 400;
+  }
+
+  .text-body-lg {
+    font-size: 1.125rem;
+    line-height: 1.7;
+    font-weight: 400;
+  }
+
+  .text-caption {
+    font-size: 0.875rem;
+    line-height: 1.5;
+    font-weight: 400;
+  }
+
+  .text-small {
+    font-size: 0.75rem;
+    line-height: 1.4;
+    font-weight: 400;
+  }
+
+  /* ===== MODERN SPACING SYSTEM ===== */
+  
+  /* Modern Spacing Utilities - Clean & Consistent */
+  .space-xs { margin: var(--spacing-xs); }
+  .space-sm { margin: var(--spacing-sm); }
+  .space-md { margin: var(--spacing-md); }
+  .space-lg { margin: var(--spacing-lg); }
+  .space-xl { margin: var(--spacing-xl); }
+  .space-2xl { margin: var(--spacing-2xl); }
+  .space-3xl { margin: var(--spacing-3xl); }
+
+  .p-xs { padding: var(--spacing-xs); }
+  .p-sm { padding: var(--spacing-sm); }
+  .p-md { padding: var(--spacing-md); }
+  .p-lg { padding: var(--spacing-lg); }
+  .p-xl { padding: var(--spacing-xl); }
+  .p-2xl { padding: var(--spacing-2xl); }
+  .p-3xl { padding: var(--spacing-3xl); }
+
+  /* Modern Font Weight System */
+  .font-light { font-weight: 300; }
+  .font-normal { font-weight: 400; }
+  .font-medium { font-weight: 500; }
+  .font-semibold { font-weight: 600; }
+  .font-bold { font-weight: 700; }
+
+  /* Modern Text Alignment */
+  .text-left { text-align: left; }
+  .text-center { text-align: center; }
+  .text-right { text-align: right; }
+  .text-justify { text-align: justify; }
+
+  /* Modern Line Heights */
+  .leading-tight { line-height: 1.2; }
+  .leading-snug { line-height: 1.3; }
+  .leading-normal { line-height: 1.5; }
+  .leading-relaxed { line-height: 1.6; }
+  .leading-loose { line-height: 1.8; }
+
+  /* Modern Letter Spacing */
+  .tracking-tight { letter-spacing: -0.02em; }
+  .tracking-normal { letter-spacing: 0; }
+  .tracking-wide { letter-spacing: 0.01em; }
+
+  /* Modern Color Utilities */
+  .text-primary { color: hsl(var(--text-primary)); }
+  .text-secondary { color: hsl(var(--text-secondary)); }
+  .text-body { color: hsl(var(--text-body)); }
+  .text-muted { color: hsl(var(--text-muted)); }
+  .text-caption { color: hsl(var(--text-caption)); }
+
+  /* RTL Support - Modern */
+  .rtl {
+    direction: rtl;
+    text-align: right;
+  }
+
+  .ltr {
+    direction: ltr;
+    text-align: left;
+  }
+
+  /* ===== LANGUAGE-SPECIFIC TYPOGRAPHY ===== */
+  
+  /* Sindhi Typography - Modern & Clean */
+  [lang="sd"] h1,
+  [dir="rtl"] h1 {
+    font-family: var(--font-sindhi) !important;
+    font-size: clamp(2rem, 4vw, 2.75rem) !important;
+    line-height: 1.2 !important;
+    font-weight: 600 !important;
+    letter-spacing: -0.01em !important;
+  }
+
+  [lang="sd"] h2,
+  [dir="rtl"] h2 {
+    font-family: var(--font-sindhi) !important;
+    font-size: clamp(1.5rem, 3vw, 2rem) !important;
+    line-height: 1.3 !important;
+    font-weight: 500 !important;
+    letter-spacing: -0.005em !important;
+  }
+
+  [lang="sd"] h3,
+  [dir="rtl"] h3 {
+    font-family: var(--font-sindhi) !important;
+    font-size: clamp(1.25rem, 2.5vw, 1.5rem) !important;
+    line-height: 1.4 !important;
+    font-weight: 500 !important;
+  }
+
+  [lang="sd"] h4,
+  [dir="rtl"] h4 {
+    font-family: var(--font-sindhi) !important;
+    font-size: clamp(1.125rem, 2vw, 1.25rem) !important;
+    line-height: 1.4 !important;
+    font-weight: 500 !important;
+  }
+
+  [lang="sd"] p,
+  [dir="rtl"] p {
+    font-family: var(--font-sindhi) !important;
+    font-size: 1rem !important;
+    line-height: 1.6 !important;
+    font-weight: 400 !important;
+  }
+
+  /* English Typography - Modern & Clean */
+  [lang="en"] h1,
+  [dir="ltr"] h1 {
+    font-family: var(--font-inter) !important;
+    font-size: clamp(2rem, 4vw, 2.75rem) !important;
+    line-height: 1.2 !important;
+    font-weight: 600 !important;
+    letter-spacing: -0.01em !important;
+  }
+
+  [lang="en"] h2,
+  [dir="ltr"] h2 {
+    font-family: var(--font-inter) !important;
+    font-size: clamp(1.5rem, 3vw, 2rem) !important;
+    line-height: 1.3 !important;
+    font-weight: 500 !important;
+    letter-spacing: -0.005em !important;
+  }
+
+  [lang="en"] h3,
+  [dir="ltr"] h3 {
+    font-family: var(--font-inter) !important;
+    font-size: clamp(1.25rem, 2.5vw, 1.5rem) !important;
+    line-height: 1.4 !important;
+    font-weight: 500 !important;
+  }
+
+  [lang="en"] h4,
+  [dir="ltr"] h4 {
+    font-family: var(--font-inter) !important;
+    font-size: clamp(1.125rem, 2vw, 1.25rem) !important;
+    line-height: 1.4 !important;
+    font-weight: 500 !important;
+  }
+
+  [lang="en"] p,
+  [dir="ltr"] p {
+    font-family: var(--font-inter) !important;
+    font-size: 1rem !important;
+    line-height: 1.6 !important;
+    font-weight: 400 !important;
+  }
+
+  /* Modern Text Size Utilities - Language Specific */
+  [lang="sd"] .text-sm,
+  [dir="rtl"] .text-sm {
+    font-family: var(--font-sindhi) !important;
+    font-size: 0.875rem !important;
+    line-height: 1.5 !important;
+  }
+
+  [lang="sd"] .text-lg,
+  [dir="rtl"] .text-lg {
+    font-family: var(--font-sindhi) !important;
+    font-size: 1.125rem !important;
+    line-height: 1.7 !important;
+  }
+
+  [lang="sd"] .text-xl,
+  [dir="rtl"] .text-xl {
+    font-family: var(--font-sindhi) !important;
+    font-size: 1.25rem !important;
+    line-height: 1.8 !important;
+  }
+
+  [lang="sd"] .text-2xl,
+  [dir="rtl"] .text-2xl {
+    font-family: var(--font-sindhi) !important;
+    font-size: 1.5rem !important;
+    line-height: 1.9 !important;
+  }
+
+  [lang="en"] .text-sm,
+  [dir="ltr"] .text-sm {
+    font-family: var(--font-inter) !important;
+    font-size: 0.875rem !important;
+    line-height: 1.5 !important;
+  }
+
+  [lang="en"] .text-lg,
+  [dir="ltr"] .text-lg {
+    font-family: var(--font-inter) !important;
+    font-size: 1.125rem !important;
+    line-height: 1.7 !important;
+  }
+
+  [lang="en"] .text-xl,
+  [dir="ltr"] .text-xl {
+    font-family: var(--font-inter) !important;
+    font-size: 1.25rem !important;
+    line-height: 1.8 !important;
+  }
+
+  [lang="en"] .text-2xl,
+  [dir="ltr"] .text-2xl {
+    font-family: var(--font-inter) !important;
+    font-size: 1.5rem !important;
+    line-height: 1.9 !important;
+  }
+
+  /* Modern Component Classes - Clean & Minimal */
+  [lang="sd"] .title,
+  [dir="rtl"] .title {
+    font-family: var(--font-sindhi) !important;
+    font-size: clamp(1.25rem, 2.5vw, 1.5rem) !important;
+    line-height: 1.4 !important;
+    font-weight: 500 !important;
+  }
+
+  [lang="sd"] .subtitle,
+  [dir="rtl"] .subtitle {
+    font-family: var(--font-sindhi) !important;
+    font-size: 1rem !important;
+    line-height: 1.6 !important;
+    font-weight: 400 !important;
+  }
+
+  [lang="en"] .title,
+  [dir="ltr"] .title {
+    font-family: var(--font-inter) !important;
+    font-size: clamp(1.25rem, 2.5vw, 1.5rem) !important;
+    line-height: 1.4 !important;
+    font-weight: 500 !important;
+  }
+
+  [lang="en"] .subtitle,
+  [dir="ltr"] .subtitle {
+    font-family: var(--font-inter) !important;
+    font-size: 1rem !important;
+    line-height: 1.6 !important;
+    font-weight: 400 !important;
+  }
+
+  /* ===== MODERN NUMBER SYSTEM ===== */
+  
+  /* Modern Number Typography - Clean & Consistent */
+  .number {
+    font-family: var(--font-inter) !important;
+    font-variant-numeric: tabular-nums;
+    font-weight: 500;
+  }
+
+  /* Force Inter font for numbers in Sindhi locale */
+  [lang="sd"] .number,
+  [dir="rtl"] .number,
+  [lang="sd"] [data-number="true"],
+  [dir="rtl"] [data-number="true"] {
+    font-family: var(--font-inter) !important;
+    font-variant-numeric: tabular-nums;
+    font-weight: 500;
+  }
+
+  /* Force Inter font for English characters in Sindhi locale */
+  [lang="sd"] .font-inter,
+  [dir="rtl"] .font-inter {
+    font-family: var(--font-inter) !important;
+  }
+
+  /* Ensure numbers and English characters never use Sindhi font */
+  [lang="sd"] .font-sindhi:has(.number),
+  [dir="rtl"] .font-sindhi:has(.number),
+  [lang="sd"] .font-sindhi:has([data-number="true"]),
+  [dir="rtl"] .font-sindhi:has([data-number="true"]) {
+    font-family: var(--font-inter) !important;
+  }
+
+  [lang="en"] .number,
+  [dir="ltr"] .number {
+    font-family: var(--font-inter) !important;
+    font-variant-numeric: tabular-nums;
+    font-weight: 500;
+  }
+
+  /* ===== MODERN ANIMATIONS & INTERACTIONS ===== */
+  
+  /* Modern Dropdown Animations */
+  .dropdown-menu-enter {
+    opacity: 0;
+    transform: scale(0.95) translateY(-10px);
+  }
+
+  .dropdown-menu-enter-active {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .dropdown-menu-exit {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+
+  .dropdown-menu-exit-active {
+    opacity: 0;
+    transform: scale(0.95) translateY(-10px);
+    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Modern Button Interactions */
+  .button {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Modern Responsive Typography */
+  @media (max-width: 640px) {
+    .text-display { font-size: 2rem; }
+    .text-h1 { font-size: 1.75rem; }
+    .text-h2 { font-size: 1.5rem; }
+    .text-h3 { font-size: 1.25rem; }
+    .text-h4 { font-size: 1.125rem; }
+  }
+
+  @media (min-width: 1024px) {
+    .text-display { font-size: 3.5rem; }
+    .text-h1 { font-size: 2.75rem; }
+    .text-h2 { font-size: 2rem; }
+    .text-h3 { font-size: 1.5rem; }
+    .text-h4 { font-size: 1.25rem; }
+  }
+
+  /* Custom range input styling */
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  input[type="range"]::-webkit-slider-track {
+    background: hsl(var(--muted-foreground) / 0.2);
+    height: 4px;
+    border-radius: 2px;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    background: hsl(var(--foreground));
+    height: 12px;
+    width: 12px;
+    border-radius: 50%;
+    border: 2px solid hsl(var(--background));
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+
+  input[type="range"]::-moz-range-track {
+    background: hsl(var(--muted-foreground) / 0.2);
+    height: 4px;
+    border-radius: 2px;
+    border: none;
+  }
+
+  input[type="range"]::-moz-range-thumb {
+    background: hsl(var(--foreground));
+    height: 12px;
+    width: 12px;
+    border-radius: 50%;
+    border: 2px solid hsl(var(--background));
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+  }
+}
+
+/* Utility Classes */
+@layer utilities {
+  /* Content width utilities */
+  .content-reading {
+    max-width: 680px;
+    margin: 0 auto;
+  }
+
+  .content-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  @media (min-width: 768px) {
+    .content-page {
+      padding: 0 32px;
+    }
+  }
+
+  /* Custom border utilities for reduced thickness */
+  .border-thin {
+    border-width: 0.5px;
+  }
+
+  .border-subtle {
+    border-color: hsl(var(--border) / 0.15);
+  }
+
+  /* Typography hierarchy utilities */
+  .text-primary {
+    color: hsl(var(--text-primary));
+  }
+
+  .text-secondary {
+    color: hsl(var(--text-secondary));
+  }
+
+  .text-body {
+    color: hsl(var(--text-body));
+  }
+
+  .text-muted {
+    color: hsl(var(--text-muted));
+  }
+
+  .text-caption {
+    color: hsl(var(--text-caption));
+  }
+
+  .text-link {
+    color: hsl(var(--text-link));
+  }
+
+  .text-accent {
+    color: hsl(var(--text-accent));
+  }
+
+  /* RTL/LTR utility classes */
+  .rtl-text {
+    direction: rtl;
+    text-align: right;
+  }
+
+  .ltr-text {
+    direction: ltr;
+    text-align: left;
+  }
+}
+
+@theme inline {
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+

@@ -1,0 +1,58 @@
+{
+  "Navigation": {
+    "home": "گھر",
+    "poets": "شاعر",
+    "poetry": "شاعري",
+    "search": "ڳولھا ڪريو",
+    "backToPoets": "شاعرن ڏانهن واپسي",
+    "backToHome": "گھر ڏانهن واپس"
+  },
+  "Common": {
+    "loading": "لوڊ ٿي رهيو آهي...",
+    "error": "خطا",
+    "notFound": "ملي نه سگهيو",
+    "search": "ڳولھا ڪريو",
+    "searchPlaceholder": "شاعر، شاعري، يا موضوع ڳوليو...",
+    "viewAll": "سڀ ڏسو",
+    "readMore": "وڌيڪ پڙهو",
+    "madeWith": "ساڻ سان ٺاهيو",
+    "forSindhiPoetry": "سنڌي شاعري لاءِ"
+  },
+  "Home": {
+    "title": "ڀليڪار",
+    "subtitle": "سنڌي شاعريءَ جي دنيا ۾",
+    "heroTitle": "سنڌي شاعريءَ جي عظيم ورثي کي ڳولي",
+    "heroSubtitle": "صدين جي روحاني ۽ ادبي رويات کي ڄاڻيو",
+    "searchPlaceholder": "شاعر، شاعري، يا موضوع ڳوليو...",
+    "featuredPoets": "نموني شاعر",
+    "popularCategories": "مشهور قسمون",
+    "trendingTags": "مشهور ٽيگ"
+  },
+  "Poets": {
+    "title": "شاعر",
+    "subtitle": "سنڌي شاعريءَ جا عظيم شاعر",
+    "famousCouplets": "مشهور شعر",
+    "viewAllCouplets": "سڀ شعر ڏسو",
+    "works": "ڪم",
+    "couplets": "شعر",
+    "period": "دور",
+    "location": "مقام"
+  },
+  "Poetry": {
+    "title": "شاعري",
+    "subtitle": "سنڌي شاعريءَ جا مختلف قسم",
+    "ghazal": "غزل",
+    "nazm": "نظم",
+    "couplet": "شعر",
+    "readingTime": "پڙهڻ جو وقت",
+    "minRead": "منٽ پڙهيو"
+  },
+  "Search": {
+    "title": "ڳول",
+    "subtitle": "سنڌي شاعريءَ ۾ ڳوليو",
+    "noResults": "ڪوئي نتيجو نه مليو",
+    "searchFor": "ڳوليو",
+    "resultsFor": "جي لاءِ نتيجا"
+  }
+}
+

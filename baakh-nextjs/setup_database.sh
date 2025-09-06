@@ -1,0 +1,60 @@
+#!/bin/bash
+
+# Database setup script for Baakh NextJS
+# This script will help you set up the required database tables
+
+echo "🚀 Setting up Baakh database tables..."
+
+# Check if psql is available
+if ! command -v psql &> /dev/null; then
+    echo "❌ Error: psql is not installed or not in PATH"
+    echo "Please install PostgreSQL client tools first"
+    exit 1
+fi
+
+# Check if environment variables are set
+if [ -z "$DATABASE_URL" ] && [ -z "$NEXT_PUBLIC_SUPABASE_URL" ]; then
+    echo "❌ Error: Database connection details not found"
+    echo "Please set DATABASE_URL or NEXT_PUBLIC_SUPABASE_URL environment variable"
+    echo ""
+    echo "Example:"
+    echo "export DATABASE_URL='postgresql://username:password@host:port/database'"
+    echo "export NEXT_PUBLIC_SUPABASE_URL='https://your-project.supabase.co'"
+    exit 1
+fi
+
+# Use DATABASE_URL if available, otherwise construct from Supabase URL
+if [ -n "$DATABASE_URL" ]; then
+    DB_URL="$DATABASE_URL"
+else
+    # Extract database details from Supabase URL
+    SUPABASE_URL="$NEXT_PUBLIC_SUPABASE_URL"
+    DB_HOST=$(echo "$SUPABASE_URL" | sed 's|https://||' | sed 's|\.supabase\.co.*||')
+    DB_URL="postgresql://postgres:[YOUR-PASSWORD]@db.$DB_HOST.supabase.co:5432/postgres"
+    echo "⚠️  Please update the password in the script or set DATABASE_URL"
+    echo "Database URL: $DB_URL"
+    echo "Replace [YOUR-PASSWORD] with your actual database password"
+    exit 1
+fi
+
+echo "📊 Running database setup..."
+
+# Run the SQL setup script
+if psql "$DB_URL" -f setup_tags_database.sql; then
+    echo "✅ Database setup completed successfully!"
+    echo ""
+    echo "🎉 Your tags system is now ready!"
+    echo "You can now:"
+    echo "  - Create new tags"
+    echo "  - Add translations in Sindhi and English"
+    echo "  - Manage tag types and categories"
+    echo ""
+    echo "🌐 Visit /admin/tags to start managing your tags"
+else
+    echo "❌ Database setup failed!"
+    echo "Please check the error messages above and ensure:"
+    echo "  - Database connection is correct"
+    echo "  - User has sufficient permissions"
+    echo "  - PostgreSQL is running"
+    exit 1
+fi
