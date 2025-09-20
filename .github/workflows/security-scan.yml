@@ -22,11 +22,20 @@ jobs:
         with:
           node-version: '18'
           cache: 'npm'
+          
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8
 
       - name: Install dependencies
         run: |
           cd baakh-nextjs
-          npm install --legacy-peer-deps
+          if [ -f "pnpm-lock.yaml" ]; then
+            pnpm install --frozen-lockfile
+          else
+            pnpm install --no-frozen-lockfile
+          fi
           cd ../backend
           npm install --legacy-peer-deps
 
@@ -57,11 +66,20 @@ jobs:
         with:
           node-version: '18'
           cache: 'npm'
+          
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8
 
       - name: Install dependencies
         run: |
           cd baakh-nextjs
-          npm install --legacy-peer-deps
+          if [ -f "pnpm-lock.yaml" ]; then
+            pnpm install --frozen-lockfile
+          else
+            pnpm install --no-frozen-lockfile
+          fi
 
       - name: Run ESLint security rules
         run: |
@@ -154,11 +172,20 @@ jobs:
         with:
           node-version: '18'
           cache: 'npm'
+          
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8
 
       - name: Install dependencies
         run: |
           cd baakh-nextjs
-          npm install --legacy-peer-deps
+          if [ -f "pnpm-lock.yaml" ]; then
+            pnpm install --frozen-lockfile
+          else
+            pnpm install --no-frozen-lockfile
+          fi
 
       - name: Run security tests
         run: |

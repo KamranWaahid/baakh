@@ -45,7 +45,11 @@ jobs:
     - name: Install frontend dependencies
       run: |
         cd baakh-nextjs
-        pnpm install --frozen-lockfile
+        if [ -f "pnpm-lock.yaml" ]; then
+          pnpm install --frozen-lockfile
+        else
+          pnpm install --no-frozen-lockfile
+        fi
         
     - name: Run linting
       run: |
