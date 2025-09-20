@@ -82,8 +82,8 @@ CSRF_SECRET=your_strong_csrf_secret_here
 SUPABASE_JWT_SECRET=your_strong_jwt_secret_here
 
 # Redis (for rate limiting)
-UPSTASH_REDIS_REST_URL=your_upstash_redis_rest_url
-UPSTASH_REDIS_REST_TOKEN=your_upstash_redis_rest_token
+UPSTASH_REDIS_REST_URL="https://accurate-eagle-7290.upstash.io"
+UPSTASH_REDIS_REST_TOKEN="ARx6AAImcDJlYjhkZmVlMGRjNDM0OTQ5OGM1Y2ZlMTIyNjQ1ZDA0ZXAyNzI5MA"
 
 # Test Credentials
 TEST_USERNAME=testuser
