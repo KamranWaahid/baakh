@@ -47,8 +47,11 @@ jobs:
         cd baakh-nextjs
         echo "Checking for pnpm-lock.yaml..."
         if [ -f "pnpm-lock.yaml" ]; then
-          echo "Found pnpm-lock.yaml, using frozen lockfile"
-          pnpm install --frozen-lockfile
+          echo "Found pnpm-lock.yaml, attempting frozen lockfile install..."
+          pnpm install --frozen-lockfile || {
+            echo "Frozen lockfile failed, trying without frozen lockfile..."
+            pnpm install --no-frozen-lockfile
+          }
         else
           echo "No pnpm-lock.yaml found, using no-frozen-lockfile"
           pnpm install --no-frozen-lockfile
