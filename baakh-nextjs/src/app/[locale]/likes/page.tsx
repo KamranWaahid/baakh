@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
+import CoupletCard from '@/components/CoupletCard';
 
 export default function LikesPage() {
   const { user, isAuthenticated, isLoading: authLoading } = useE2EEAuth();
@@ -52,13 +53,13 @@ export default function LikesPage() {
     }
   };
 
-  const getBackLink = () => `/${language}/profile`;
+  const getBackLink = () => `/${language}/dashboard`;
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-orange-600" />
+          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-gray-600" />
           <p className="text-gray-600">Loading...</p>
         </div>
       </div>
@@ -70,7 +71,7 @@ export default function LikesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-red-50" dir={isRTL ? 'rtl' : 'ltr'}>
+    <div className="min-h-screen bg-white" dir={isRTL ? 'rtl' : 'ltr'}>
       <div className="bg-white shadow-sm border-b border-gray-200/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
@@ -78,13 +79,15 @@ export default function LikesPage() {
               <Link href={getBackLink()}>
                 <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900">
                   <ArrowLeft className="w-4 h-4 mr-2" />
-                  Back to Profile
+                  {language === 'sd' ? 'ڊش بورڊ تي واپس' : 'Back to Dashboard'}
                 </Button>
               </Link>
             </div>
             <div className="flex items-center gap-3">
-              <Heart className="w-6 h-6 text-red-500" />
-              <h1 className="text-xl font-semibold text-gray-900">My Liked Content</h1>
+              <Heart className="w-6 h-6 text-gray-600" />
+              <h1 className="text-xl font-semibold text-gray-900">
+                {language === 'sd' ? 'مون جا پسنديده شعر' : 'My Liked Couplets'}
+              </h1>
             </div>
           </div>
         </div>
@@ -93,14 +96,14 @@ export default function LikesPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {isLoading ? (
           <div className="text-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-orange-600" />
+            <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-gray-600" />
             <p className="text-gray-600">Loading your likes...</p>
           </div>
         ) : error ? (
           <div className="text-center py-12">
-            <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md mx-auto">
-              <p className="text-red-800 mb-4">{error}</p>
-              <Button onClick={fetchLikes} variant="outline" className="text-red-700 border-red-300 hover:bg-red-50">
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 max-w-md mx-auto">
+              <p className="text-gray-800 mb-4">{error}</p>
+              <Button onClick={fetchLikes} variant="outline" className="text-gray-700 border-gray-300 hover:bg-gray-50">
                 Retry
               </Button>
             </div>
@@ -108,48 +111,51 @@ export default function LikesPage() {
         ) : content.length === 0 ? (
           <div className="text-center py-12">
             <Heart className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h2 className="text-2xl font-semibold text-gray-900 mb-2">You haven't liked any content yet</h2>
-            <p className="text-gray-600 mb-6">Start exploring and like some content</p>
+            <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+              {language === 'sd' ? 'توهان اڃان ڪا به شعر پسند نه ڪيا آهن' : "You haven't liked any couplets yet"}
+            </h2>
+            <p className="text-gray-600 mb-6">
+              {language === 'sd' 
+                ? 'شروع ڪريو ۽ ڪجهه شعر پسند ڪريو'
+                : 'Start exploring and like some couplets'
+              }
+            </p>
             <Link href={`/${language}`}>
-              <Button className="bg-orange-600 hover:bg-orange-700">
-                Explore Content
+              <Button className="bg-gray-900 hover:bg-gray-800 text-white">
+                {language === 'sd' ? 'شعر ڳوليو' : 'Explore Couplets'}
               </Button>
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {content.map((item, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
-                className="bg-white rounded-xl shadow-sm border border-gray-200/50 overflow-hidden hover:shadow-md transition-shadow"
-              >
-                <div className="p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                      <Heart className="w-4 h-4" />
-                      <span>Liked Item</span>
-                    </div>
-                    <Heart className="w-5 h-5 text-red-500 fill-current" />
-                  </div>
-                  
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    Liked Content {index + 1}
-                  </h3>
-                  
-                  <p className="text-gray-600 text-sm mb-4">
-                    This is content that you have liked.
-                  </p>
-                  
-                  <div className="flex items-center justify-between text-sm text-gray-500">
-                    <span>1 like</span>
-                    <span>{new Date().toLocaleDateString()}</span>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
+          <div className="space-y-6">
+            <div className="text-center mb-8">
+              <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+                {language === 'sd' ? 'توهان جا پسنديده شعر' : 'Your Liked Couplets'}
+              </h2>
+              <p className="text-gray-600">
+                {language === 'sd' 
+                  ? `${content.length} شعر پسند ڪيا ويا`
+                  : `${content.length} couplets liked`
+                }
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {content.map((couplet, index) => (
+                <motion.div
+                  key={`liked-couplet-${couplet.id}-${index}`}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: index * 0.1 }}
+                >
+                  <CoupletCard
+                    couplet={couplet}
+                    isSindhi={language === 'sd'}
+                    index={index}
+                  />
+                </motion.div>
+              ))}
+            </div>
           </div>
         )}
       </div>

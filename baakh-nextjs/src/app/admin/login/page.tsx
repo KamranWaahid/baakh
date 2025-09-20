@@ -27,6 +27,7 @@ import {
   Sparkles
 } from "lucide-react";
 import { supabase } from "@/lib/supabase/client";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -46,55 +47,64 @@ export default function AdminLoginPage() {
     }
   }, [searchParams]);
 
-  // Simple local lockout after repeated failures
-  const LOCK_KEY = "admin_login_lock_until";
-  const ATTEMPTS_KEY = "admin_login_attempts";
-  const MAX_ATTEMPTS = 5;
-  const LOCK_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
-
-  const [isLocked, setIsLocked] = useState(false);
+  // Server-side lockout status
+  const [lockoutStatus, setLockoutStatus] = useState({
+    isLocked: false,
+    attemptsRemaining: 5,
+    lockedUntil: undefined as number | undefined,
+    resetTime: undefined as number | undefined
+  });
   
-  // Check lockout status on mount and periodically (client-side only)
+  // Check lockout status on mount
   useEffect(() => {
-    const checkLockStatus = () => {
-      const lockedUntil = localStorage.getItem(LOCK_KEY);
-      if (lockedUntil) {
-        const isCurrentlyLocked = Date.now() < Number(lockedUntil);
-        setIsLocked(isCurrentlyLocked);
+    const checkLockoutStatus = async () => {
+      try {
+        const response = await fetch('/api/auth/lockout-status', {
+          credentials: 'include'
+        });
         
-        // If still locked, check again in 1 minute
-        if (isCurrentlyLocked) {
-          setTimeout(checkLockStatus, 60000);
+        if (response.ok) {
+          const status = await response.json();
+          setLockoutStatus(status);
+        } else {
+          console.warn('⚠️ Failed to check lockout status:', response.status);
+          // Set default status if check fails
+          setLockoutStatus({ isLocked: false, attemptsRemaining: 5, lockedUntil: undefined, resetTime: undefined });
         }
+      } catch (error) {
+        console.warn('⚠️ Failed to check lockout status:', error);
+        // Set default status if check fails
+        setLockoutStatus({ isLocked: false, attemptsRemaining: 5, lockedUntil: undefined, resetTime: undefined });
       }
     };
     
-    checkLockStatus();
+    checkLockoutStatus();
   }, []);
-
-  useEffect(() => {
-    if (isLocked) {
-      const lockedUntil = localStorage.getItem(LOCK_KEY);
-      if (lockedUntil) {
-        const remaining = Math.max(0, Number(lockedUntil) - Date.now());
-        setInfo(`Too many attempts. Try again in ${Math.ceil(remaining/60000)} min.`);
-      }
-    }
-  }, [isLocked]);
 
   // Check if user is already authenticated
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        // Check if Supabase is configured
+        if ((supabase as any).supabaseUrl === 'dummy.supabase.co') {
+          console.log('⚠️ Supabase not configured, skipping auth check');
+          return;
+        }
+        
+        const { data: { user } } = await (supabase as SupabaseClient).auth.getUser();
         if (user) {
           // Check if user has admin access
-          const response = await fetch('/api/auth/me');
-          if (response.ok) {
-            const profileData = await response.json();
-            if (profileData.allowed) {
-              router.replace('/admin');
+          try {
+            const response = await fetch('/api/auth/me');
+            if (response.ok) {
+              const profileData = await response.json();
+              if (profileData.allowed) {
+                router.replace('/admin');
+              }
             }
+          } catch (error) {
+            console.warn('⚠️ Failed to check admin access during initial load:', error);
+            // Don't redirect on error, let user try to login
           }
         }
       } catch (error) {
@@ -107,7 +117,7 @@ export default function AdminLoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isLocked) return;
+    if (lockoutStatus.isLocked) return;
     
     setLoading(true);
     setError(null);
@@ -115,8 +125,15 @@ export default function AdminLoginPage() {
     
     try {
       console.log('🔐 Attempting sign in with email:', email);
+      console.log('🔧 Supabase client URL:', (supabase as any).supabaseUrl);
+      console.log('🔧 Supabase client key:', (supabase as any).supabaseKey ? 'Set' : 'Missing');
       
-      const { data, error: signErr } = await supabase.auth.signInWithPassword({ email, password });
+      // Check if Supabase is configured
+      if ((supabase as any).supabaseUrl === 'dummy.supabase.co') {
+        throw new Error('Supabase is not configured. Please contact an administrator to set up the authentication system.');
+      }
+      
+      const { data, error: signErr } = await (supabase as SupabaseClient).auth.signInWithPassword({ email, password });
       if (signErr) {
         console.error('❌ Sign in error:', signErr);
         throw signErr;
@@ -142,7 +159,14 @@ export default function AdminLoginPage() {
       if (!resp.ok) {
         const errorText = await resp.text();
         console.error('❌ API error response:', errorText);
-        throw new Error(errorText || 'Failed to verify access');
+        
+        if (resp.status === 503) {
+          throw new Error('Supabase is not configured. Please contact an administrator to set up the system.');
+        } else if (resp.status === 403) {
+          throw new Error('Access denied. Please check your credentials and try again.');
+        } else {
+          throw new Error(errorText || 'Failed to verify access. Please try again.');
+        }
       }
       
       const api = await resp.json();
@@ -153,16 +177,22 @@ export default function AdminLoginPage() {
       
       if (!allowed) {
         console.error('❌ Access denied for user');
-        await supabase.auth.signOut();
+        await (supabase as SupabaseClient).auth.signOut();
         throw new Error("You do not have permission to access the admin area. Please contact an administrator.");
       }
       
       console.log('✅ Admin access verified, redirecting...');
       
-      // Clear any stored error messages
-      localStorage.removeItem(ATTEMPTS_KEY);
-      localStorage.removeItem(LOCK_KEY);
-      setIsLocked(false);
+      // Clear server-side lockout on successful login
+      try {
+        await fetch('/api/auth/clear-lockout', {
+          method: 'POST',
+          credentials: 'include'
+        });
+      } catch (clearError) {
+        console.warn('⚠️ Failed to clear lockout (non-critical):', clearError);
+        // Don't throw here as this is not critical for login success
+      }
       
       router.replace('/admin');
     } catch (err: any) {
@@ -170,18 +200,33 @@ export default function AdminLoginPage() {
       const errorMessage = err?.message || 'Sign in failed';
       setError(errorMessage);
       
+      // Record failed attempt on server
       try {
-        const raw = localStorage.getItem(ATTEMPTS_KEY);
-        const attempts = raw ? Number(raw) + 1 : 1;
-        localStorage.setItem(ATTEMPTS_KEY, String(attempts));
+        const response = await fetch('/api/auth/record-failed-attempt', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({ email })
+        });
         
-        if (attempts >= MAX_ATTEMPTS) {
-          const lockUntil = Date.now() + LOCK_WINDOW_MS;
-          localStorage.setItem(LOCK_KEY, String(lockUntil));
-          setIsLocked(true);
-          setInfo('Too many failed attempts. Account locked for 15 minutes.');
+        if (response.ok) {
+          const lockoutData = await response.json();
+          setLockoutStatus(lockoutData);
+          
+          if (lockoutData.isLocked) {
+            const remainingMinutes = Math.ceil((lockoutData.lockedUntil - Date.now()) / 60000);
+            setInfo(`Too many failed attempts. Account locked for ${remainingMinutes} minutes.`);
+          } else if (lockoutData.attemptsRemaining < 5) {
+            setInfo(`${lockoutData.attemptsRemaining} attempts remaining.`);
+          }
+        } else {
+          console.warn('⚠️ Failed to record failed attempt:', response.status);
         }
-      } catch {}
+      } catch (lockoutError) {
+        console.warn('⚠️ Failed to record failed attempt:', lockoutError);
+      }
     } finally {
       setLoading(false);
     }
@@ -198,7 +243,12 @@ export default function AdminLoginPage() {
       setError(null);
       setInfo(null);
       
-      await supabase.auth.resetPasswordForEmail(email, { 
+      // Check if Supabase is configured
+      if ((supabase as any).supabaseUrl === 'dummy.supabase.co') {
+        throw new Error('Supabase is not configured. Password reset is not available.');
+      }
+      
+      await (supabase as SupabaseClient).auth.resetPasswordForEmail(email, { 
         redirectTo: `${window.location.origin}/login/reset` 
       });
       
@@ -307,7 +357,7 @@ export default function AdminLoginPage() {
                 {/* Submit Button */}
                 <Button
                   type="submit"
-                  disabled={loading || isLocked}
+                  disabled={loading || lockoutStatus.isLocked}
                   className="w-full h-12 rounded-2xl bg-black hover:bg-gray-800 text-white font-semibold text-base transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:transform-none"
                 >
                   {loading ? (

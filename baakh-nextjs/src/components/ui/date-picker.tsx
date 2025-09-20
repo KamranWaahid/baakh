@@ -36,30 +36,7 @@ export function DatePicker({
   const resolvedMaxYear = maxYear ?? today.getFullYear() + 5
   const current = date ?? today
 
-  const jumpYears = (delta: number) => {
-    const d = new Date(current)
-    d.setFullYear(d.getFullYear() + delta)
-    if (onDateChange) onDateChange(d)
-  }
-
-  const jumpToCentury = (century: number) => {
-    // e.g., 17 -> 1601-1700, pick middle year for safety
-    const startYear = (century - 1) * 100 + 1
-    const midYear = startYear + 50
-    const d = new Date(current)
-    d.setFullYear(midYear, 0, 1)
-    if (onDateChange) onDateChange(d)
-  }
-
-  const handleYearInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const y = parseInt(e.target.value, 10)
-    if (!isNaN(y)) {
-      const clamped = Math.max(minYear, Math.min(resolvedMaxYear, y))
-      const d = new Date(current)
-      d.setFullYear(clamped)
-      if (onDateChange) onDateChange(d)
-    }
-  }
+  // Minimal design: rely on month/year dropdowns in Calendar caption
 
   return (
     <div className="relative w-full">
@@ -68,70 +45,41 @@ export function DatePicker({
           <Button
             variant={"outline"}
             className={cn(
-              "w-full justify-start text-left font-normal pr-8 border-[#E5E5E5] focus:border-[#1F1F1F] focus:ring-[#1F1F1F] bg-white hover:bg-[#F4F4F5] transition-colors h-10 min-w-[200px]",
+              "w-full justify-start text-left font-normal pr-3 border-[#E5E5E5] bg-white hover:bg-muted transition-colors h-10 focus:outline-none focus:ring-0 focus-visible:ring-0 focus:border-[#E5E5E5]",
               !date && "text-muted-foreground",
               className
             )}
             disabled={disabled}
           >
-            <CalendarIcon className="mr-2 h-4 w-4" />
+            <CalendarIcon className="mr-2 h-4 w-4 text-muted-foreground" />
             {date ? format(date, "PPP") : <span>{placeholder}</span>}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0 bg-white border-[#E5E5E5] shadow-lg" align="start" side="bottom">
-          <div className="p-3 border-b border-[#E5E5E5] bg-white flex items-center gap-2">
-            <select
-              className="h-8 px-2 rounded border border-input text-sm"
-              onChange={(e) => jumpToCentury(parseInt(e.target.value, 10))}
-              value={Math.floor((current.getFullYear() - 1) / 100) + 1}
-            >
-              {Array.from({ length: Math.floor((resolvedMaxYear - minYear) / 100) + 1 }).map((_, i) => {
-                const c = Math.floor(minYear / 100) + i + 1
-                const start = (c - 1) * 100 + 1
-                const end = c * 100
-                return (
-                  <option key={c} value={c}>{c}th ({start}-{end})</option>
-                )
-              })}
-            </select>
-            <div className="flex items-center gap-1">
-              <Button variant="outline" size="sm" onClick={() => jumpYears(-100)}>−100y</Button>
-              <Button variant="outline" size="sm" onClick={() => jumpYears(-10)}>−10y</Button>
-              <Button variant="outline" size="sm" onClick={() => { if (onDateChange) onDateChange(today) }}>Today</Button>
-              <Button variant="outline" size="sm" onClick={() => jumpYears(10)}>+10y</Button>
-              <Button variant="outline" size="sm" onClick={() => jumpYears(100)}>+100y</Button>
-            </div>
-            <div className="ml-auto flex items-center gap-2">
-              <input
-                type="number"
-                className="h-8 w-24 px-2 rounded border border-input text-sm"
-                defaultValue={current.getFullYear()}
-                onBlur={handleYearInput}
-              />
+        <PopoverContent className="w-[360px] p-0 bg-white border border-[#E5E5E5] shadow-sm rounded-lg" align="start" side="bottom">
+          <div className="p-2">
+            <Calendar
+              mode="single"
+              selected={date}
+              onSelect={(d) => { if (onDateChange) onDateChange(d) }}
+              initialFocus
+              captionLayout="dropdown"
+              fromYear={minYear}
+              toYear={resolvedMaxYear}
+              className="w-full [--cell-size:2.25rem]"
+              classNames={{ root: "w-full" }}
+            />
+            <div className="flex items-center justify-between pt-2">
+              <Button variant="ghost" size="sm" className="h-8 px-2 text-foreground/70 hover:bg-muted" onClick={() => { if (onDateChange) onDateChange(today) }}>Today</Button>
+              {date && (
+                <Button variant="ghost" size="sm" className="h-8 px-2 text-foreground/70 hover:bg-muted" onClick={() => onDateChange && onDateChange(undefined)}>
+                  Clear
+                </Button>
+              )}
             </div>
           </div>
-          <Calendar
-            mode="single"
-            selected={date}
-            onSelect={(d) => { if (onDateChange) onDateChange(d) }}
-            initialFocus
-            captionLayout="dropdown"
-            fromYear={minYear}
-            toYear={resolvedMaxYear}
-          />
         </PopoverContent>
       </Popover>
-      {date && onDateChange && (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={() => onDateChange && onDateChange(undefined)}
-          className="absolute right-1 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0 hover:bg-[#F1F1F1]"
-        >
-          <X className="w-3 h-3" />
-        </Button>
-      )}
+      {/* Clear button moved inside popover footer for minimal layout */}
     </div>
   )
 }

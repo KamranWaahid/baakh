@@ -6,14 +6,14 @@
 
 /**
  * Modern number font class - Clean & Minimal
- * Uses Inter font for consistent number display across all locales
+ * Uses Helvetica Now Text Regular font for consistent number display across all locales
  */
 export const NUMBER_FONT_CLASS = 'number';
 
 /**
- * Modern number font family - Inter for consistency
+ * Modern number font family - Helvetica Now Text Regular for consistency
  */
-export const NUMBER_FONT_FAMILY = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+export const NUMBER_FONT_FAMILY = "'Helvetica Now Text Regular','Helvetica Now Text Regular Placeholder',sans-serif";
 
 /**
  * Checks if text contains only numbers

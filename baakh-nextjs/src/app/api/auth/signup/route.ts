@@ -8,7 +8,25 @@ const supabase = createClient(
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    console.log('📝 Signup API called at:', new Date().toISOString());
+    
+    let body;
+    try {
+      body = await request.json();
+      console.log('📝 Request body parsed successfully:', { 
+        username: body.username, 
+        hasPassword: !!body.password,
+        hasProfile: !!body.profile,
+        hasEncryptedData: !!body.encryptedData
+      });
+    } catch (parseError) {
+      console.error('❌ Failed to parse signup request body:', parseError);
+      return NextResponse.json(
+        { error: 'Invalid JSON in request body' },
+        { status: 400 }
+      );
+    }
+    
     const { username, password, profile, encryptedData } = body;
 
     if (!username || !password || !profile || !encryptedData) {
@@ -70,11 +88,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    return NextResponse.json({
+    const responseData = {
       success: true,
       userId: user.user_id,
       message: 'User created successfully'
-    });
+    };
+    
+    console.log('📤 Signup response data being sent:', responseData);
+    return NextResponse.json(responseData);
 
   } catch (error) {
     console.error('Signup error:', error);

@@ -82,9 +82,27 @@ export default function EditPoetPage() {
             </div>
           </div>
           <div className="max-w-7xl mx-auto px-6 py-8">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1F1F1F] mx-auto"></div>
-              <p className="mt-4 text-[#6B6B6B] text-lg">Loading poet data...</p>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-2">
+                <div className="bg-white border border-[#E5E5E5] rounded-lg p-6 shadow-sm min-h-[400px]">
+                  <div className="h-6 w-40 bg-[#F1F1F1] rounded animate-pulse mb-4"></div>
+                  <div className="space-y-3">
+                    {Array.from({ length: 6 }).map((_, i) => (
+                      <div key={i} className="h-10 bg-[#F7F7F7] border border-[#EFEFEF] rounded animate-pulse"></div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <div>
+                <div className="bg-white border border-[#E5E5E5] rounded-lg p-6 shadow-sm min-h-[200px]">
+                  <div className="h-6 w-32 bg-[#F1F1F1] rounded animate-pulse mb-4"></div>
+                  <div className="space-y-2">
+                    {Array.from({ length: 4 }).map((_, i) => (
+                      <div key={i} className="h-6 bg-[#F7F7F7] border border-[#EFEFEF] rounded animate-pulse"></div>
+                    ))}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>

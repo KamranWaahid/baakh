@@ -1,81 +1,63 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createAdminClient } from '@/lib/supabase/admin';
+import { createClient } from '@supabase/supabase-js';
 
-export async function GET(req: NextRequest) {
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+export async function GET(request: NextRequest) {
   try {
-    const supabase = createAdminClient();
-
-    // Test basic table queries
+    console.log('Testing database connection...');
+    console.log('Supabase URL:', supabaseUrl);
+    console.log('Service key exists:', !!supabaseServiceKey);
+    
+    // Test basic connection
+    const { data, error } = await supabase
+      .from('poets')
+      .select('count')
+      .limit(1);
+    
+    if (error) {
+      console.error('Database connection error:', error);
+      return NextResponse.json({
+        success: false,
+        error: 'Database connection failed',
+        details: error.message,
+        supabaseUrl: supabaseUrl,
+        hasServiceKey: !!supabaseServiceKey
+      });
+    }
+    
+    // Get a few poets to see what's in the database
     const { data: poets, error: poetsError } = await supabase
       .from('poets')
-      .select('poet_id, sindhi_name, english_name, poet_slug')
+      .select('poet_id, poet_slug, sindhi_name, english_name')
       .limit(5);
-
-    const { data: poetry, error: poetryError } = await supabase
-      .from('poetry_translations')
-      .select('poetry_id, title, lang')
-      .limit(5);
-
-    const { data: couplets, error: coupletsError } = await supabase
-      .from('couplets')
-      .select('id, couplet_text, lang, poetry_id')
-      .limit(5);
-
-    const { data: tags, error: tagsError } = await supabase
-      .from('tags')
-      .select('id, slug, label')
-      .limit(5);
-
-    // Test if our custom functions exist
-    const { data: poetsSearch, error: poetsSearchError } = await supabase
-      .rpc('search_poets_sindhi', { q: 'test' });
-
-    const { data: simpleSearch, error: simpleSearchError } = await supabase
-      .rpc('search_simple_ilike', { q: 'test', lang: 'sd' });
-
+    
+    if (poetsError) {
+      console.error('Error fetching poets:', poetsError);
+      return NextResponse.json({
+        success: false,
+        error: 'Failed to fetch poets',
+        details: poetsError.message
+      });
+    }
+    
     return NextResponse.json({
       success: true,
-      tables: {
-        poets: {
-          data: poets,
-          error: poetsError,
-          count: poets?.length || 0
-        },
-        poetry: {
-          data: poetry,
-          error: poetryError,
-          count: poetry?.length || 0
-        },
-        couplets: {
-          data: couplets,
-          error: coupletsError,
-          count: couplets?.length || 0
-        },
-        tags: {
-          data: tags,
-          error: tagsError,
-          count: tags?.length || 0
-        }
-      },
-      functions: {
-        poetsSearch: {
-          data: poetsSearch,
-          error: poetsSearchError,
-          count: poetsSearch?.length || 0
-        },
-        simpleSearch: {
-          data: simpleSearch,
-          error: simpleSearchError,
-          count: simpleSearch?.length || 0
-        }
-      }
+      message: 'Database connection successful',
+      poetsCount: poets?.length || 0,
+      poets: poets || [],
+      samplePoetSlugs: poets?.map(p => p.poet_slug) || []
     });
-  } catch (e) {
-    console.error('Database test error', e);
-    return NextResponse.json({ 
-      success: false, 
-      error: 'Database test failed', 
-      details: e 
-    }, { status: 500 });
+    
+  } catch (error) {
+    console.error('Test DB error:', error);
+    return NextResponse.json({
+      success: false,
+      error: 'Internal server error',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
   }
 }

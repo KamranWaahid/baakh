@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import jwt from 'jsonwebtoken'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -75,10 +76,26 @@ export async function POST(request: NextRequest) {
     
     console.log('All operations completed successfully')
     
+    // Generate JWT token for automatic login
+    const token = jwt.sign(
+      {
+        sub: userId,
+        username: userId, // Using userId as username for now
+        role: 'e2ee_user',
+        iat: Math.floor(Date.now() / 1000),
+        exp: Math.floor(Date.now() / 1000) + (60 * 60 * 24) // 24 hours
+      },
+      process.env.SUPABASE_JWT_SECRET!,
+      { algorithm: 'HS256' }
+    )
+    
+    console.log('JWT token generated for user:', userId)
+    
     return NextResponse.json({
       success: true,
       message: language === 'sd' ? 'سندي نالو محفوظ ٿي ويو' : 'Sindhi name saved successfully',
-      sindhiName
+      sindhiName,
+      token
     })
     
   } catch (error) {

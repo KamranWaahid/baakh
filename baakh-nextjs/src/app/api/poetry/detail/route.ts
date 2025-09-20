@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
     console.log('Looking for poet with slug:', poetSlug);
     const { data: poet, error: poetError } = await supabase
       .from('poets')
-      .select('poet_id, sindhi_name, english_name, sindhi_laqab, english_laqab, file_url, sindhi_tagline, english_tagline')
+      .select('poet_id, sindhi_name, english_name, sindhi_laqab, english_laqab, file_url, sindhi_tagline, english_tagline, birth_date, death_date, birth_place, death_place, sindhi_details, english_details, tags')
       .eq('poet_slug', poetSlug)
       .single();
 
@@ -124,7 +124,14 @@ export async function GET(request: NextRequest) {
         english_laqab: poet.english_laqab,
         file_url: poet.file_url,
         sindhi_tagline: poet.sindhi_tagline,
-        english_tagline: poet.english_tagline
+        english_tagline: poet.english_tagline,
+        birth_date: poet.birth_date,
+        death_date: poet.death_date,
+        birth_place: poet.birth_place,
+        death_place: poet.death_place,
+        sindhi_details: poet.sindhi_details,
+        english_details: poet.english_details,
+        tags: poet.tags
       },
       categories: {
         id: category.id,

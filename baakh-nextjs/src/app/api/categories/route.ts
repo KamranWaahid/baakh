@@ -35,7 +35,13 @@ export async function GET(req: Request) {
     
     let query = admin
       .from('categories')
-      .select('id, slug, content_style, deleted_at, category_details:category_details(cat_name, cat_name_plural, cat_detail, lang)')
+      .select(`
+        id, 
+        slug, 
+        content_style, 
+        deleted_at, 
+        category_details:category_details(cat_name, cat_name_plural, cat_detail, lang)
+      `)
       .is('deleted_at', null);
 
     // Apply search filter if provided
@@ -88,6 +94,29 @@ export async function GET(req: Request) {
     
     console.log('Categories API - Processing data, count:', data?.length);
     
+    // Get poetry counts for each category
+    const categoryIds = data?.map((c: any) => c.id) || [];
+    let poetryCounts: { [key: number]: number } = {};
+    
+    if (categoryIds.length > 0) {
+      const { data: countData, error: countError } = await admin
+        .from('poetry_main')
+        .select('category_id')
+        .in('category_id', categoryIds)
+        .eq('visibility', true)
+        .is('deleted_at', null);
+      
+      if (countError) {
+        console.error('Categories API - Error fetching poetry counts:', countError);
+      } else {
+        // Count poetry entries per category
+        countData?.forEach((poem: any) => {
+          const categoryId = poem.category_id;
+          poetryCounts[categoryId] = (poetryCounts[categoryId] || 0) + 1;
+        });
+      }
+    }
+    
     let items = (data || []).map((c: any) => {
       console.log('Categories API - Processing category:', c);
       
@@ -128,6 +157,7 @@ export async function GET(req: Request) {
         sindhiDetails,
         languages,
         summary,
+        count: poetryCounts[c.id] || 0,
       };
       
       console.log('Categories API - Processed category:', processed);

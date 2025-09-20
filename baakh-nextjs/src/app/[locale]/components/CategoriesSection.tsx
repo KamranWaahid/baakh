@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { ArrowRight, BookOpen } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import SmartPagination from '@/components/ui/SmartPagination';
 
 interface CategoriesSectionProps {
   isSindhi: boolean;
@@ -44,7 +45,24 @@ export default function CategoriesSection({ isSindhi, categories: categoriesProp
     count?: number;
   }>>([]);
   const [page, setPage] = useState<number>(1);
-  const perPage = 4;
+  const [perPage, setPerPage] = useState<number>(4);
+
+  // Handle responsive perPage
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        setPerPage(1); // Mobile: 1 card
+      } else if (window.innerWidth < 1024) {
+        setPerPage(2); // Tablet: 2 cards
+      } else {
+        setPerPage(4); // Desktop: 4 cards
+      }
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Fetch all categories; if a small prop list is provided, still fetch full list
   useEffect(() => {
@@ -97,7 +115,7 @@ export default function CategoriesSection({ isSindhi, categories: categoriesProp
           </p>
         </motion.div>
         
-        <div className="grid grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {categories
             .slice((page - 1) * perPage, page * perPage)
             .map((category, index) => {
@@ -156,37 +174,13 @@ export default function CategoriesSection({ isSindhi, categories: categoriesProp
           })}
         </div>
         {categories.length > perPage && (
-          <div className="mt-12 flex justify-center gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page === 1}
-              className="h-9 border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-300 rounded-full px-3 disabled:opacity-50"
-            >
-              ←
-            </Button>
-            {Array.from({ length: Math.ceil(categories.length / perPage) }, (_, i) => i + 1).map((num) => (
-              <Button
-                key={`cat-page-${num}`}
-                variant={num === page ? 'default' : 'outline'}
-                onClick={() => setPage(num)}
-                className={`h-9 min-w-9 px-3 rounded-full font-normal text-sm ${
-                  num === page
-                    ? 'bg-black hover:bg-gray-800 text-white'
-                    : 'border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-300'
-                }`}
-              >
-                {num}
-              </Button>
-            ))}
-            <Button
-              variant="outline"
-              onClick={() => setPage((p) => Math.min(Math.ceil(categories.length / perPage), p + 1))}
-              disabled={page === Math.ceil(categories.length / perPage)}
-              className="h-9 border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-300 rounded-full px-3 disabled:opacity-50"
-            >
-              →
-            </Button>
+          <div className="mt-12">
+            <SmartPagination
+              currentPage={page}
+              totalPages={Math.ceil(categories.length / perPage)}
+              onPageChange={setPage}
+              isRTL={isSindhi}
+            />
           </div>
         )}
       </div>

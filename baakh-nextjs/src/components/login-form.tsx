@@ -1,3 +1,5 @@
+"use client"
+
 import { GalleryVerticalEnd } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -144,10 +146,16 @@ export function LoginForm({
             
             // Redirect to signup-name page
             setTimeout(() => {
-              const redirectUrl = isSindhi 
-                ? `/sd/signup-name?userId=${result.userId}`
-                : `/signup-name?userId=${result.userId}`;
-              window.location.href = redirectUrl;
+              try {
+                const redirectUrl = isSindhi 
+                  ? `/sd/signup-name?userId=${result.userId}`
+                  : `/signup-name?userId=${result.userId}`;
+                window.location.href = redirectUrl;
+              } catch (redirectError) {
+                console.error('Redirect error:', redirectError);
+                // Fallback redirect
+                window.location.href = isSindhi ? '/sd' : '/en';
+              }
             }, 1500);
                 return;
               }
@@ -184,7 +192,15 @@ export function LoginForm({
             setErrorMsg(successMsg);
             
             // Redirect immediately to home page
-            window.location.href = isSindhi ? '/sd' : '/en';
+            try {
+              window.location.href = isSindhi ? '/sd' : '/en';
+            } catch (redirectError) {
+              console.error('Redirect error:', redirectError);
+              // Fallback - try to navigate using Next.js router if available
+              if (typeof window !== 'undefined') {
+                window.location.href = '/';
+              }
+            }
           } catch (err: any) {
             console.error('Auth error', err);
             
@@ -421,33 +437,68 @@ export function LoginForm({
               </div>
             )}
           </div>
-          <Button type="submit" disabled={submitting} className="w-full h-9 rounded-full border border-gray-200 bg-black text-white hover:bg-gray-800 disabled:opacity-60 disabled:cursor-not-allowed">
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.span
-                key={isSignup ? 'cta-signup' : 'cta-login'}
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -6 }}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                transition={{ 
-                  duration: 0.18,
-                  type: "spring", 
-                  stiffness: 300, 
-                  damping: 20 
-                }}
-              >
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            transition={{ duration: 0.2 }}
+          >
+            <Button 
+              type="submit" 
+              disabled={submitting} 
+              className="w-full h-9 rounded-full border border-gray-200 bg-black text-white hover:bg-gray-800 disabled:opacity-60 disabled:cursor-not-allowed relative overflow-hidden"
+            >
+              <AnimatePresence mode="wait" initial={false}>
                 {submitting ? (
-                  <div className="flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    {isSindhi ? 'جي رهيو آهي...' : 'Processing...'}
-                  </div>
+                  <motion.div
+                    key="loading"
+                    className="flex items-center justify-center"
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                  >
+                    <motion.div
+                      className="w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    />
+                    <motion.span
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.1 }}
+                    >
+                      {isSindhi ? 'جي رهيو آهي...' : 'Processing...'}
+                    </motion.span>
+                  </motion.div>
                 ) : (
-                  isSignup ? content.signup : content.login
+                  <motion.span
+                    key={isSignup ? 'cta-signup' : 'cta-login'}
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                    transition={{ 
+                      duration: 0.2,
+                      type: "spring", 
+                      stiffness: 300, 
+                      damping: 20 
+                    }}
+                  >
+                    {isSignup ? content.signup : content.login}
+                  </motion.span>
                 )}
-              </motion.span>
-            </AnimatePresence>
-          </Button>
+              </AnimatePresence>
+              
+              {/* Loading background animation */}
+              {submitting && (
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"
+                  initial={{ x: '-100%' }}
+                  animate={{ x: '100%' }}
+                  transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                />
+              )}
+            </Button>
+          </motion.div>
           {errorMsg && (
             <div className={`text-center text-xs ${isSindhi ? 'auto-sindhi-font' : ''} ${errorMsg.includes('✅') ? 'text-green-600' : 'text-red-600'}`} dir={isSindhi ? 'rtl' : 'ltr'}>
               {errorMsg}
@@ -462,20 +513,75 @@ export function LoginForm({
         </div>
 
         <div className="grid gap-2 sm:grid-cols-2">
-          <Button type="button" variant="outline" className="w-full h-10 rounded-full border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 flex items-center justify-center px-3 py-2">
-            {/* Apple icon */}
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="mr-2 h-4 w-4 flex-shrink-0" fill="currentColor" aria-hidden="true">
-              <path d="M16.365 1.43c.06.78-.29 1.56-.8 2.2-.55.68-1.5 1.2-2.43 1.13-.07-.76.3-1.55.82-2.12.57-.66 1.56-1.14 2.41-1.21.03.01-.01 0 0 0zM20.5 17.07c-.38.88-.84 1.7-1.39 2.48-.74 1.07-1.61 2.28-2.82 2.31-1.23.02-1.63-.75-3.03-.75-1.4 0-1.85.73-3.02.77-1.22.05-2.15-1.16-2.9-2.23-1.58-2.25-2.79-6.36-1.16-9.15.8-1.37 2.22-2.24 3.8-2.26 1.19-.02 2.31.82 3.03.82.71 0 2.08-1.01 3.51-.86.6.03 2.28.24 3.36 1.84-.09.06-2 1.17-1.88 3.5.14 2.64 2.32 3.52 2.4 3.53z"/>
-            </svg>
-            <span className="text-sm truncate">{content.continueWithApple}</span>
-          </Button>
-          <Button type="button" variant="outline" className="w-full h-10 rounded-full border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 flex items-center justify-center px-3 py-2">
-            {/* Google icon (monochrome) */}
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="mr-2 h-4 w-4 flex-shrink-0" fill="currentColor" aria-hidden="true">
-              <path d="M12 10.2v3.6h5.06c-.22 1.26-1.65 3.6-5.06 3.6-3.18 0-5.76-2.58-5.76-5.76S8.82 6 12 6c1.86 0 3.02.78 3.68 1.5l2.46-2.4C16.82 3.9 14.6 3 12 3 6.9 3 2.7 7.2 2.7 12.3S6.9 21.6 12 21.6c5.7 0 9.3-4 9.3-9.6 0-.54-.06-1.02-.18-1.5H12z"/>
-            </svg>
-            <span className="text-sm truncate">{content.continueWithGoogle}</span>
-          </Button>
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            transition={{ duration: 0.2 }}
+          >
+            <Button type="button" variant="outline" className="w-full h-10 rounded-full border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 flex items-center justify-center px-3 py-2">
+              <motion.div
+                className="flex items-center justify-center"
+                whileHover={{ scale: 1.05 }}
+                transition={{ duration: 0.2 }}
+              >
+                {/* Apple icon */}
+                <motion.svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  viewBox="0 0 24 24" 
+                  className="mr-2 h-4 w-4 flex-shrink-0" 
+                  fill="currentColor" 
+                  aria-hidden="true"
+                  whileHover={{ rotate: 5 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <path d="M16.365 1.43c.06.78-.29 1.56-.8 2.2-.55.68-1.5 1.2-2.43 1.13-.07-.76.3-1.55.82-2.12.57-.66 1.56-1.14 2.41-1.21.03.01-.01 0 0 0zM20.5 17.07c-.38.88-.84 1.7-1.39 2.48-.74 1.07-1.61 2.28-2.82 2.31-1.23.02-1.63-.75-3.03-.75-1.4 0-1.85.73-3.02.77-1.22.05-2.15-1.16-2.9-2.23-1.58-2.25-2.79-6.36-1.16-9.15.8-1.37 2.22-2.24 3.8-2.26 1.19-.02 2.31.82 3.03.82.71 0 2.08-1.01 3.51-.86.6.03 2.28.24 3.36 1.84-.09.06-2 1.17-1.88 3.5.14 2.64 2.32 3.52 2.4 3.53z"/>
+                </motion.svg>
+                <motion.span 
+                  className="text-sm truncate"
+                  initial={{ opacity: 0.8 }}
+                  whileHover={{ opacity: 1 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  {content.continueWithApple}
+                </motion.span>
+              </motion.div>
+            </Button>
+          </motion.div>
+          
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            transition={{ duration: 0.2 }}
+          >
+            <Button type="button" variant="outline" className="w-full h-10 rounded-full border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 flex items-center justify-center px-3 py-2">
+              <motion.div
+                className="flex items-center justify-center"
+                whileHover={{ scale: 1.05 }}
+                transition={{ duration: 0.2 }}
+              >
+                {/* Google icon (monochrome) */}
+                <motion.svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  viewBox="0 0 24 24" 
+                  className="mr-2 h-4 w-4 flex-shrink-0" 
+                  fill="currentColor" 
+                  aria-hidden="true"
+                  whileHover={{ rotate: 5 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <path d="M12 10.2v3.6h5.06c-.22 1.26-1.65 3.6-5.06 3.6-3.18 0-5.76-2.58-5.76-5.76S8.82 6 12 6c1.86 0 3.02.78 3.68 1.5l2.46-2.4C16.82 3.9 14.6 3 12 3 6.9 3 2.7 7.2 2.7 12.3S6.9 21.6 12 21.6c5.7 0 9.3-4 9.3-9.6 0-.54-.06-1.02-.18-1.5H12z"/>
+                </motion.svg>
+                <motion.span 
+                  className="text-sm truncate"
+                  initial={{ opacity: 0.8 }}
+                  whileHover={{ opacity: 1 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  {content.continueWithGoogle}
+                </motion.span>
+              </motion.div>
+            </Button>
+          </motion.div>
         </div>
 
         <div className="text-gray-400 text-center leading-tight text-balance" dir={isSindhi ? 'rtl' : 'ltr'}>

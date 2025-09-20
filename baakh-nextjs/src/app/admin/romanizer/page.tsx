@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import AdminLayout from "@/components/layouts/AdminLayout";
+import AdminPageHeader from "@/components/ui/AdminPageHeader";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -458,26 +459,35 @@ export default function RomanizerAdminPage() {
 
   return (
     <AdminLayout>
-      <div className="container mx-auto px-4 py-10 space-y-10">
-        {/* Header */}
-        <div className="bg-white border-b border-[#E5E5E5] px-6 py-6 mb-8">
-          <div className="max-w-7xl mx-auto">
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <Badge variant="secondary" className="rounded-full px-3 py-1 text-xs font-medium bg-[#F4F4F5] text-[#1F1F1F] border border-[#E5E5E5]">
-                  <Database className="w-4 h-4 mr-2" />
-                  Romanizer Management
-                </Badge>
-              </div>
-              <div className="space-y-2">
-                <h1 className="text-3xl font-bold text-[#1F1F1F]">Romanizer Management</h1>
-                <p className="text-lg text-[#6B6B6B] max-w-2xl">
-                  Manage hesudhar corrections and roman word mappings with comprehensive tools
-                </p>
-              </div>
+      <div className="min-h-screen bg-[#F9F9F9]">
+        <AdminPageHeader
+          title="Romanizer Management"
+          subtitle="Romanizer Management"
+          subtitleIcon={<Database className="w-4 h-4" />}
+          description="Manage hesudhar corrections and roman word mappings with comprehensive tools. Organize content with structured classification system."
+          action={
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+              <Button 
+                variant="outline" 
+                className="h-10 px-6 rounded-lg border-[#E5E5E5] text-[#1F1F1F] hover:bg-[#F4F4F5] hover:border-[#D4D4D8] transition-colors"
+                onClick={() => setActiveTab("hesudhar")}
+              >
+                <BookOpen className="w-4 h-4 mr-2" />
+                Hesudhar Dictionary
+              </Button>
+              <Button 
+                variant="outline" 
+                className="h-10 px-6 rounded-lg border-[#E5E5E5] text-[#1F1F1F] hover:bg-[#F4F4F5] hover:border-[#D4D4D8] transition-colors"
+                onClick={() => setActiveTab("roman-words")}
+              >
+                <Type className="w-4 h-4 mr-2" />
+                Roman Dictionary
+              </Button>
             </div>
-          </div>
-        </div>
+          }
+        />
+
+        <div className="max-w-7xl mx-auto px-6 py-8 space-y-10">
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
@@ -866,6 +876,7 @@ export default function RomanizerAdminPage() {
             )}
           </TabsContent>
         </Tabs>
+        </div>
       </div>
     </AdminLayout>
   );

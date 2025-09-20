@@ -4,7 +4,7 @@ import {
   Search, Users, BookOpen, Heart, Clock, Tag, Calendar, ArrowRight, Star, 
   TrendingUp, Eye, Sparkles, Globe, Quote, BookOpenCheck, Zap, ChevronDown,
   Play, Pause, Volume2, Bookmark, Share2, MoreHorizontal, Filter,
-  Award, Target, Lightbulb, Compass, Layers, Cpu, Brain, Palette
+  Award, Target, Lightbulb, Compass, Layers, Cpu, Brain, Palette, FileText
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,13 +17,15 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@/components/ui/avatar"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 // Import components directly
 import CategoriesSection from './components/CategoriesSection';
+import SmartPagination from '@/components/ui/SmartPagination';
 import TimelineSection from './components/TimelineSection';
 import TagsSection from './components/TagsSection';
 import { useAnniversary } from '@/hooks/useAnniversary';
@@ -31,10 +33,14 @@ import AnniversaryBadge from '@/components/ui/AnniversaryBadge';
 import SearchInterface from '@/components/ui/SearchInterface';
 import { Logo } from '@/components/ui/logo';
 import { NumberFont, MixedContentWithNumbers } from '@/components/ui/NumberFont';
+import { useViewTracking } from '@/hooks/useViewTracking';
+import CoupletCard from '@/components/CoupletCard';
+import { OfflineStatus } from '@/components/ui/OfflineStatus';
 
 
 export default function HomePage() {
   const pathname = usePathname();
+  const router = useRouter();
   const isSindhi = pathname?.startsWith('/sd');
   const isRTL = isSindhi;
   
@@ -50,8 +56,60 @@ export default function HomePage() {
   const [poetsPage, setPoetsPage] = useState(1);
   const poetsPerPage = 4;
   
+  // Stats data
+  const [stats, setStats] = useState({
+    totalPoetry: 0,
+    totalPoets: 0,
+    totalCategories: 0,
+    totalTopics: 0,
+    loading: true
+  });
+  
   // Get current anniversary data
   const { currentAnniversary, isLoading: anniversaryLoading } = useAnniversary();
+  
+  // Fetch stats data
+  useEffect(() => {
+    const controller = new AbortController();
+    async function loadStats() {
+      try {
+        setStats(prev => ({ ...prev, loading: true }));
+        
+        // Fetch all stats in parallel
+        const [poetryRes, poetsRes, categoriesRes, topicsRes] = await Promise.all([
+          fetch('/api/poetry/count', { signal: controller.signal, cache: 'no-store' }),
+          fetch('/api/poets?limit=1&countOnly=true', { signal: controller.signal, cache: 'no-store' }),
+          fetch('/api/categories/count', { signal: controller.signal, cache: 'no-store' }),
+          fetch('/api/topics/count', { signal: controller.signal, cache: 'no-store' })
+        ]);
+        
+        const [poetryData, poetsData, categoriesData, topicsData] = await Promise.all([
+          poetryRes.json(),
+          poetsRes.json(),
+          categoriesRes.json(),
+          topicsRes.json()
+        ]);
+        
+        setStats({
+          totalPoetry: poetryData.total || 0,
+          totalPoets: poetsData.total || 0,
+          totalCategories: categoriesData.total || 0,
+          totalTopics: topicsData.total || 0,
+          loading: false
+        });
+      } catch (e: any) {
+        if (e?.name === 'AbortError') {
+          console.warn('Stats request was aborted');
+        } else {
+          console.error('Error loading stats:', e);
+          setStats(prev => ({ ...prev, loading: false }));
+        }
+      }
+    }
+    
+    loadStats();
+    return () => controller.abort();
+  }, []);
   
   // Smooth scroll to top functionality
   useEffect(() => {
@@ -79,6 +137,19 @@ export default function HomePage() {
         behavior: 'smooth',
         block: 'start'
       });
+    }
+  };
+
+  const handlePoetClick = (poet: HomePoet) => {
+    try {
+      if (!poet.slug) {
+        console.warn('Poet has no slug:', poet);
+        return;
+      }
+      const url = isSindhi ? `/sd/poets/${poet.slug}` : `/en/poets/${poet.slug}`;
+      router.push(url);
+    } catch (error) {
+      console.error('Error navigating to poet:', error, poet);
     }
   };
 
@@ -152,28 +223,65 @@ export default function HomePage() {
     async function loadHomePoets() {
       try {
         setPoetsLoading(true);
-        const timeoutSignal = AbortSignal.timeout(10000);
-        const combinedSignal = (AbortSignal as any).any ? (AbortSignal as any).any([controller.signal, timeoutSignal]) : timeoutSignal;
+        // Use traditional timeout approach instead of AbortSignal.timeout
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        const combinedSignal = controller.signal;
         const res = await fetch(`/api/poets?limit=50&sortBy=is_featured&sortOrder=desc`, { signal: combinedSignal, cache: 'no-store' });
+        clearTimeout(timeoutId);
         if (!res.ok) throw new Error('failed');
         const json = await res.json();
         const poets = (json?.poets || []) as Array<any>;
         if (Array.isArray(poets) && poets.length > 0) {
           const seniors = poets.filter((p) => p.is_featured).slice(0, 6);
           const juniors = poets.filter((p) => !p.is_featured).slice(0, 6);
-          const combined = [...seniors, ...juniors].map((p) => ({ id: p.id, slug: p.poet_slug || p.slug, name: p.english_name || p.name, sindhiName: p.sindhi_name || null, laqab: p.english_laqab || null, sindhiLaqab: p.sindhi_laqab || null, englishTagline: p.english_tagline || null, sindhiTagline: p.sindhi_tagline || null, photo: p.file_url || p.photo, is_featured: p.is_featured }));
+          const combined = [...seniors, ...juniors].map((p) => ({ 
+            id: p.id, 
+            slug: p.poet_slug || p.slug || '', 
+            name: p.english_name || p.name || 'Unknown Poet', 
+            sindhiName: p.sindhi_name || null, 
+            laqab: p.english_laqab || null, 
+            sindhiLaqab: p.sindhi_laqab || null, 
+            englishTagline: p.english_tagline || null, 
+            sindhiTagline: p.sindhi_tagline || null, 
+            photo: p.file_url || p.photo, 
+            is_featured: p.is_featured 
+          }));
           setHomePoets(combined);
+        } else {
+          setHomePoets([]);
         }
       } catch (e) {
+        console.warn('Error loading home poets:', e);
         // Fallback: derive from featured couplets if API fails
-        const unique = Array.from(new Map(featuredCouplets.map((c) => [c.poet.slug, c.poet])).values()).slice(0, 12)
-          .map((p: any) => ({ slug: p.slug, name: p.name, sindhiName: p.sindhi_name || null, laqab: null, sindhiLaqab: null, englishTagline: null, sindhiTagline: null, photo: p.photo }));
-        setHomePoets(unique as HomePoet[]);
+        try {
+          const unique = Array.from(new Map(featuredCouplets.map((c) => [c.poet.slug, c.poet])).values()).slice(0, 12)
+            .map((p: any) => ({ 
+              slug: p.slug || '', 
+              name: p.name || 'Unknown Poet', 
+              sindhiName: p.sindhi_name || null, 
+              laqab: null, 
+              sindhiLaqab: null, 
+              englishTagline: null, 
+              sindhiTagline: null, 
+              photo: p.photo 
+            }));
+          setHomePoets(unique as HomePoet[]);
+        } catch (fallbackError) {
+          console.warn('Error in fallback poet loading:', fallbackError);
+          setHomePoets([]);
+        }
       } finally {
         setPoetsLoading(false);
       }
     }
-    loadHomePoets();
+    
+    // Wrap the async function to catch any unhandled rejections
+    loadHomePoets().catch((error) => {
+      console.error('Unhandled error in loadHomePoets:', error);
+      setHomePoets([]);
+      setPoetsLoading(false);
+    });
+    
     return () => controller.abort();
   }, [featuredCouplets]);
 
@@ -200,10 +308,17 @@ export default function HomePage() {
         });
         
         console.log('API request params:', params.toString());
-        const timeoutSignal = AbortSignal.timeout(10000);
-        const combinedSignal = (AbortSignal as any).any ? (AbortSignal as any).any([controller.signal, timeoutSignal]) : timeoutSignal;
+        // Use traditional timeout approach instead of AbortSignal.timeout
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        const combinedSignal = controller.signal;
         const res = await fetch(`/api/couplets?${params.toString()}`, { signal: combinedSignal, cache: 'no-store' });
-        if (!res.ok) return;
+        clearTimeout(timeoutId);
+        if (!res.ok) {
+          console.error('API response not ok:', res.status, res.statusText);
+          setFeaturedCouplets([]);
+          setCoupletsLoaded(true);
+          return;
+        }
         const json = await res.json();
         if (json?.couplets) {
           console.log('Received couplets:', json.couplets.length, 'Language requested:', currentLang);
@@ -248,6 +363,9 @@ export default function HomePage() {
           
           setFeaturedCouplets(selectedCouplets);
           console.log('Selected couplets from different poets:', selectedCouplets.length, 'Unique poets used:', usedPoetIds.size, 'Total available poets:', allPoets.length, 'Max couplets:', maxCouplets);
+        } else {
+          console.log('No couplets in response:', json);
+          setFeaturedCouplets([]);
         }
       } catch (e: any) {
         if (e?.name === 'AbortError' || /timed out|signal timed out/i.test(String(e?.message))) {
@@ -255,8 +373,11 @@ export default function HomePage() {
         } else {
           console.error('Error loading featured couplets:', e);
         }
+        // Set empty array on error to prevent infinite loading
+        setFeaturedCouplets([]);
       }
       finally {
+        console.log('Setting coupletsLoaded to true');
         setCoupletsLoaded(true);
       }
     }
@@ -287,9 +408,11 @@ export default function HomePage() {
         const params = new URLSearchParams({
           limit: '4'
         });
-        const timeoutSignal = AbortSignal.timeout(10000);
-        const combinedSignal = (AbortSignal as any).any ? (AbortSignal as any).any([controller.signal, timeoutSignal]) : timeoutSignal;
+        // Use traditional timeout approach instead of AbortSignal.timeout
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        const combinedSignal = controller.signal;
         const res = await fetch(`/api/categories?${params.toString()}`, { signal: combinedSignal, cache: 'no-store' });
+        clearTimeout(timeoutId);
         if (!res.ok) return;
         const json = await res.json();
         if (json?.items) {
@@ -329,13 +452,15 @@ export default function HomePage() {
     async function loadTags() {
       try {
         const lang = isSindhi ? 'sd' : 'en';
-        const timeoutSignal = AbortSignal.timeout(10000);
-        const combinedSignal = (AbortSignal as any).any ? (AbortSignal as any).any([controller.signal, timeoutSignal]) : timeoutSignal;
+        // Use traditional timeout approach instead of AbortSignal.timeout
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        const combinedSignal = controller.signal;
         const res = await fetch(`/api/tags?lang=${lang}&type=Topic&limit=18`, { signal: combinedSignal, cache: 'no-store' });
+        clearTimeout(timeoutId);
         if (!res.ok) return;
         const json = await res.json();
-        if (json?.items) {
-          setTags(json.items as TagItem[]);
+        if (json?.tags) {
+          setTags(json.tags as TagItem[]);
         }
       } catch (e: any) {
         if (e?.name === 'AbortError' || /timed out|signal timed out/i.test(String(e?.message))) {
@@ -353,8 +478,27 @@ export default function HomePage() {
 
   // compute unified loading state - include all sections
   useEffect(() => {
-    setIsLoading(anniversaryLoading || poetsLoading || !coupletsLoaded || !categoriesLoaded || !tagsLoaded);
-  }, [anniversaryLoading, poetsLoading, coupletsLoaded, categoriesLoaded, tagsLoaded]);
+    // Set a very short timeout to prevent infinite loading
+    const timeoutId = setTimeout(() => {
+      console.log('Loading timeout reached, forcing load complete');
+      setIsLoading(false);
+    }, 1000); // 1 second timeout
+
+    // Force loading to complete after 1 second regardless
+    const criticalLoaded = !coupletsLoaded;
+    console.log('Loading states:', {
+      anniversaryLoading,
+      poetsLoading,
+      coupletsLoaded,
+      categoriesLoaded,
+      tagsLoaded,
+      criticalLoaded
+    });
+    
+    setIsLoading(criticalLoaded);
+    
+    return () => clearTimeout(timeoutId);
+  }, [coupletsLoaded]);
 
   // Featured poets are now lazy loaded in the LazyFeaturedPoets component
 
@@ -373,7 +517,10 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-white">
-      {isLoading ? (
+      {/* Offline Status Indicator */}
+      <OfflineStatus isSindhi={isSindhi} />
+      
+      {false ? ( // Temporarily disable loading state
         <div className="min-h-screen bg-white flex items-center justify-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-black"></div>
         </div>
@@ -476,7 +623,7 @@ export default function HomePage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.3 }}
               >
-                <Button asChild size="lg" className="h-12 px-8 bg-black text-white hover:bg-gray-800 rounded-full font-medium text-base border-0 shadow-sm">
+                <Button asChild variant="outline" size="lg" className="h-12 px-8 border border-gray-300 text-gray-700 hover:border-black hover:text-black rounded-full font-medium text-base bg-white">
               <Link href={isSindhi ? "/sd/poets" : "/en/poets"}>
                     <Users className={`h-5 w-5 ${isRTL ? 'ml-2' : 'mr-2'}`} />
                     <span className={isSindhi ? 'auto-sindhi-font button-text' : ''}>
@@ -484,7 +631,7 @@ export default function HomePage() {
                     </span>
               </Link>
             </Button>
-                <Button asChild variant="outline" size="lg" className="h-12 px-8 border-2 border-gray-300 text-gray-700 hover:border-black hover:text-black rounded-full font-medium text-base bg-white">
+                <Button asChild variant="outline" size="lg" className="h-12 px-8 border border-gray-300 text-gray-700 hover:border-black hover:text-black rounded-full font-medium text-base bg-white">
               <Link href={isSindhi ? "/sd/couplets" : "/en/couplets"}>
                     <BookOpen className={`h-5 w-5 ${isRTL ? 'ml-2' : 'mr-2'}`} />
                     <span className={isSindhi ? 'auto-sindhi-font button-text' : ''}>
@@ -496,119 +643,366 @@ export default function HomePage() {
 
           {/* Stats */}
               <motion.div 
-                className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto pt-12 border-t border-gray-200/50"
+                className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-5xl mx-auto pt-12 border-t border-gray-200/50"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.4 }}
               >
-            <div className="border border-gray-200/50 rounded-[12px] bg-white p-5 flex flex-col items-center justify-center h-[110px]">
-                  <NumberFont className="text-3xl text-gray-900 font-normal mb-1" size="2xl" weight="normal">500+</NumberFont>
-                  <div className={`text-[14px] text-gray-600 font-normal ${isSindhi ? 'auto-sindhi-font stats-text' : ''}`}>{isSindhi ? 'شاعري' : 'Couplets'}</div>
+            <div key="poetry-stat" className="border border-gray-200/50 rounded-[12px] bg-white p-4 flex flex-col items-center justify-center h-[100px]">
+                  {stats.loading ? (
+                    <div className="animate-pulse">
+                      <div className="h-7 w-12 bg-gray-200 rounded mb-2"></div>
+                      <div className="h-3 w-10 bg-gray-200 rounded"></div>
+                    </div>
+                  ) : (
+                    <>
+                      <NumberFont className="text-2xl text-gray-900 font-normal mb-1" size="xl" weight="normal">
+                        {stats.totalPoetry.toLocaleString()}
+                      </NumberFont>
+                      <div className={`text-[12px] text-gray-600 font-normal ${isSindhi ? 'auto-sindhi-font stats-text' : ''}`}>
+                        {isSindhi ? 'شاعري' : 'Poetry'}
+                      </div>
+                    </>
+                  )}
             </div>
-            <div className="border border-gray-200/50 rounded-[12px] bg-white p-5 flex flex-col items-center justify-center h-[110px]">
-                  <NumberFont className="text-3xl text-gray-900 font-normal mb-1" size="2xl" weight="normal">50+</NumberFont>
-                  <div className={`text-[14px] text-gray-600 font-normal ${isSindhi ? 'auto-sindhi-font stats-text' : ''}`}>{isSindhi ? 'شاعر' : 'Poets'}</div>
+            <div key="poets-stat" className="border border-gray-200/50 rounded-[12px] bg-white p-4 flex flex-col items-center justify-center h-[100px]">
+                  {stats.loading ? (
+                    <div className="animate-pulse">
+                      <div className="h-7 w-8 bg-gray-200 rounded mb-2"></div>
+                      <div className="h-3 w-8 bg-gray-200 rounded"></div>
+                    </div>
+                  ) : (
+                    <>
+                      <NumberFont className="text-2xl text-gray-900 font-normal mb-1" size="xl" weight="normal">
+                        {stats.totalPoets.toLocaleString()}
+                      </NumberFont>
+                      <div className={`text-[12px] text-gray-600 font-normal ${isSindhi ? 'auto-sindhi-font stats-text' : ''}`}>
+                        {isSindhi ? 'شاعر' : 'Poets'}
+                      </div>
+                    </>
+                  )}
             </div>
-            <div className="border border-gray-200/50 rounded-[12px] bg-white p-5 flex flex-col items-center justify-center h-[110px]">
-                  <NumberFont className="text-3xl text-gray-900 font-normal mb-1" size="2xl" weight="normal">300+</NumberFont>
-                  <div className={`text-[14px] text-gray-600 font-normal ${isSindhi ? 'auto-sindhi-font stats-text' : ''}`}>{isSindhi ? 'سال' : 'Years'}</div>
+            <div key="categories-stat" className="border border-gray-200/50 rounded-[12px] bg-white p-4 flex flex-col items-center justify-center h-[100px]">
+                  {stats.loading ? (
+                    <div className="animate-pulse">
+                      <div className="h-7 w-8 bg-gray-200 rounded mb-2"></div>
+                      <div className="h-3 w-12 bg-gray-200 rounded"></div>
+                    </div>
+                  ) : (
+                    <>
+                      <NumberFont className="text-2xl text-gray-900 font-normal mb-1" size="xl" weight="normal">
+                        {stats.totalCategories.toLocaleString()}
+                      </NumberFont>
+                      <div className={`text-[12px] text-gray-600 font-normal ${isSindhi ? 'auto-sindhi-font stats-text' : ''}`}>
+                        {isSindhi ? 'صنفون' : 'Categories'}
+                      </div>
+                    </>
+                  )}
+            </div>
+            <div key="topics-stat" className="border border-gray-200/50 rounded-[12px] bg-white p-4 flex flex-col items-center justify-center h-[100px]">
+                  {stats.loading ? (
+                    <div className="animate-pulse">
+                      <div className="h-7 w-8 bg-gray-200 rounded mb-2"></div>
+                      <div className="h-3 w-10 bg-gray-200 rounded"></div>
+                    </div>
+                  ) : (
+                    <>
+                      <NumberFont className="text-2xl text-gray-900 font-normal mb-1" size="xl" weight="normal">
+                        {stats.totalTopics.toLocaleString()}
+                      </NumberFont>
+                      <div className={`text-[12px] text-gray-600 font-normal ${isSindhi ? 'auto-sindhi-font stats-text' : ''}`}>
+                        {isSindhi ? 'موضوع' : 'Topics'}
+                      </div>
+                    </>
+                  )}
             </div>
               </motion.div>
           </div>
           </motion.section>
 
+          {/* Trusted by Poets Section */}
+          <motion.section 
+            className="py-16 bg-gray-50/50"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+          >
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+              {/* Headline */}
+              <motion.div 
+                className="text-center mb-12"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.4 }}
+              >
+                <h2 className={`${isSindhi ? 'sd-title' : 'text-[22px] leading-snug text-gray-900 font-normal'} mb-2`}>
+                  {isSindhi ? 'سنڌي ٻوليءَ جا شاعر' : 'Contributing Poets'}
+                </h2>
+                <p className={`${isSindhi ? 'sd-subtitle' : 'text-[16px] leading-7 text-gray-600 font-light'} max-w-2xl mx-auto`}>
+                  {isSindhi 
+                    ? 'تخليقي آواز جيڪي جديد شاعريءَ جي اظهار کي شڪل ڏين ٿا.'
+                    : 'Exploring the creative voices shaping contemporary poetic expression.'
+                  }
+                </p>
+              </motion.div>
+
+              {/* Avatar Row - Only show if poets are available */}
+              {homePoets.length > 0 ? (
+                <motion.div 
+                  className="mb-8"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.5 }}
+                >
+                  {/* Desktop: Two rows of avatars */}
+                  <div className="hidden md:block">
+                    <div className="flex justify-center items-center gap-4 mb-4">
+                      {/* First row - up to 7 avatars */}
+                      {homePoets.slice(0, 7).map((poet, index) => {
+                        const colors = ['bg-blue-100', 'bg-purple-100', 'bg-green-100', 'bg-orange-100', 'bg-pink-100', 'bg-indigo-100', 'bg-teal-100'];
+                        const color = colors[index % colors.length];
+                        
+                        return (
+                          <Tooltip key={poet.slug || index}>
+                            <TooltipTrigger asChild>
+                              <div 
+                                onClick={() => handlePoetClick(poet)}
+                                className={`w-20 h-20 rounded-full ${color} flex items-center justify-center text-gray-700 font-medium text-xl cursor-pointer hover:scale-105 transition-transform`}
+                              >
+                                <span className={`${isSindhi ? 'auto-sindhi-font' : ''}`}>
+                                  {isSindhi ? (poet.sindhiName || poet.name).charAt(0) : poet.name.charAt(0)}
+                                </span>
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent 
+                              side="top" 
+                              sideOffset={6}
+                              className="bg-black border-0 px-2 py-1 rounded text-white text-xs font-medium whitespace-nowrap"
+                              avoidCollisions={true}
+                              collisionPadding={4}
+                            >
+                              {isSindhi ? (poet.sindhiName || poet.name) : poet.name}
+                            </TooltipContent>
+                          </Tooltip>
+                        );
+                      })}
+                    </div>
+                    {homePoets.length > 7 && (
+                      <div className="flex justify-center items-center gap-4">
+                        {/* Second row - remaining avatars */}
+                        {homePoets.slice(7, 12).map((poet, index) => {
+                          const colors = ['bg-rose-100', 'bg-cyan-100', 'bg-amber-100', 'bg-emerald-100', 'bg-violet-100'];
+                          const color = colors[index % colors.length];
+                          
+                          return (
+                            <Tooltip key={poet.slug || (index + 7)}>
+                              <TooltipTrigger asChild>
+                                <div 
+                                  onClick={() => handlePoetClick(poet)}
+                                  className={`w-20 h-20 rounded-full ${color} flex items-center justify-center text-gray-700 font-medium text-xl cursor-pointer hover:scale-105 transition-transform`}
+                                >
+                                  <span className={`${isSindhi ? 'auto-sindhi-font' : ''}`}>
+                                    {isSindhi ? (poet.sindhiName || poet.name).charAt(0) : poet.name.charAt(0)}
+                                  </span>
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent 
+                                side="top" 
+                                sideOffset={6}
+                                className="bg-black border-0 px-2 py-1 rounded text-white text-xs font-medium whitespace-nowrap"
+                                avoidCollisions={true}
+                                collisionPadding={4}
+                              >
+                                {isSindhi ? (poet.sindhiName || poet.name) : poet.name}
+                              </TooltipContent>
+                            </Tooltip>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Mobile: Horizontal scrollable */}
+                  <div className="md:hidden">
+                    <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide">
+                      {homePoets.slice(0, 12).map((poet, index) => {
+                        const colors = ['bg-blue-100', 'bg-purple-100', 'bg-green-100', 'bg-orange-100', 'bg-pink-100', 'bg-indigo-100', 'bg-teal-100', 'bg-rose-100', 'bg-cyan-100', 'bg-amber-100', 'bg-emerald-100', 'bg-violet-100'];
+                        const color = colors[index % colors.length];
+                        
+                        return (
+                          <Tooltip key={poet.slug || index}>
+                            <TooltipTrigger asChild>
+                              <div 
+                                onClick={() => handlePoetClick(poet)}
+                                className={`w-18 h-18 rounded-full ${color} flex items-center justify-center text-gray-700 font-medium text-lg cursor-pointer flex-shrink-0 snap-center hover:scale-105 transition-transform`}
+                              >
+                                <span className={`${isSindhi ? 'auto-sindhi-font' : ''}`}>
+                                  {isSindhi ? (poet.sindhiName || poet.name).charAt(0) : poet.name.charAt(0)}
+                                </span>
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent 
+                              side="top" 
+                              sideOffset={6}
+                              className="bg-black border-0 px-2 py-1 rounded text-white text-xs font-medium whitespace-nowrap"
+                              avoidCollisions={true}
+                              collisionPadding={4}
+                            >
+                              {isSindhi ? (poet.sindhiName || poet.name) : poet.name}
+                            </TooltipContent>
+                          </Tooltip>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </motion.div>
+              ) : (
+                <motion.div 
+                  className="mb-8 text-center py-12"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.5 }}
+                >
+                  <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
+                    <Users className="h-8 w-8 text-gray-400" />
+                  </div>
+                  <p className={`text-gray-500 text-lg ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+                    {isSindhi ? 'ڪو به شاعر دستياب ناهي' : 'No poets available at the moment'}
+                  </p>
+                </motion.div>
+              )}
+
+              {/* CTA Buttons */}
+              <motion.div 
+                className="flex flex-col sm:flex-row gap-4 justify-center items-center"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.6 }}
+              >
+                <Button asChild variant="outline" size="lg" className="h-11 px-6 border border-gray-300 text-gray-700 hover:border-black hover:text-black rounded-full font-medium text-sm bg-white">
+                  <Link href={isSindhi ? "/sd/poets" : "/en/poets"}>
+                    <Users className={`h-4 w-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
+                    <span className={isSindhi ? 'auto-sindhi-font' : ''}>
+                      {isSindhi ? 'شاعر ڳوليو' : 'Explore Poets'}
+                    </span>
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" size="lg" className="h-11 px-6 border border-gray-300 text-gray-700 hover:border-black hover:text-black rounded-full font-medium text-sm bg-white">
+                  <Link href={isSindhi ? "/sd/submit" : "/en/submit"}>
+                    <FileText className={`h-4 w-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
+                    <span className={isSindhi ? 'auto-sindhi-font' : ''}>
+                      {isSindhi ? 'پنهنجو ڪم پيش ڪريو' : 'Submit Your Work'}
+                    </span>
+                  </Link>
+                </Button>
+              </motion.div>
+            </div>
+          </motion.section>
+
           {/* Authors Row */}
-          <section className="py-20">
+          <motion.section 
+            className="py-20"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
             <div className="max-w-6xl mx-auto">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <motion.div 
+                key="poets-grid"
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+                layout
+              >
                 {poetsLoading ? (
                   Array.from({ length: 4 }).map((_, i) => (
-                    <div key={`poet-skel-${i}`} className="border border-gray-200/50 rounded-[12px] bg-white p-3 flex items-center gap-3">
+                    <motion.div 
+                      key={`poet-skel-${i}`} 
+                      className="border border-gray-200/50 rounded-[12px] bg-white p-3 flex items-center gap-3"
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.4, delay: i * 0.1 }}
+                    >
                       <div className="w-8 h-8 rounded-full bg-gray-200 animate-pulse" />
                       <div className="flex-1 min-w-0 space-y-2">
                         <div className="h-4 w-2/3 bg-gray-200 rounded animate-pulse" />
                         <div className="h-3 w-1/2 bg-gray-200 rounded animate-pulse" />
                       </div>
-                    </div>
+                    </motion.div>
                   ))
                 ) : (
                   homePoets.slice(0, 12)
                     .slice((poetsPage - 1) * poetsPerPage, poetsPage * poetsPerPage)
-                    .map((poet: any) => (
-                    <Link key={poet.slug} href={`${isSindhi ? '/sd' : '/en'}/poets/${poet.slug}`} className="group">
-                      <div className="border border-gray-200/50 rounded-[12px] bg-white p-3 flex items-center gap-3 transition-colors hover:bg-gray-50">
-                        <Avatar className="w-8 h-8 rounded-full ring-0">
-                          <AvatarImage src={poet.photo || undefined} alt={poet.name} />
-                          <AvatarFallback className={cn(
-                            "text-[11px] font-medium bg-background border border-border/20 shadow-sm text-foreground",
-                            isSindhi ? 'auto-sindhi-font' : ''
-                          )}>
-                            {isSindhi 
-                              ? poet.name.charAt(0)
-                              : poet.name
-                                  .split(' ')
-                                  .map((n: string) => n.charAt(0))
-                                  .join('')
-                                  .slice(0, 2)
-                                  .toUpperCase()
-                            }
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="min-w-0">
-                          <div className={`truncate ${isSindhi ? 'auto-sindhi-font card-text' : 'text-[15px] text-gray-900'}`}>
-                            {isSindhi
-                              ? (poet.sindhiLaqab || poet.sindhiName || poet.name)
-                              : (poet.laqab || poet.name)}
-                          </div>
-                          <div className={`truncate ${isSindhi ? 'auto-sindhi-font stats-text' : 'text-xs text-gray-500'}`}>
-                            {isSindhi ? (poet.sindhiTagline || '') : (poet.englishTagline || '')}
-                          </div>
-                        </div>
-                      </div>
-                    </Link>
+                    .map((poet: any, index: number) => (
+                    <motion.div
+                      key={poet.slug}
+                      initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -20, scale: 0.9 }}
+                      transition={{ 
+                        duration: 0.4, 
+                        delay: index * 0.1,
+                        ease: [0.25, 0.46, 0.45, 0.94]
+                      }}
+                      layout
+                    >
+                      <Link href={`${isSindhi ? '/sd' : '/en'}/poets/${poet.slug}`} className="group">
+                        <motion.div 
+                          className="border border-gray-200/50 rounded-[12px] bg-white p-3 flex items-center gap-3 transition-colors hover:bg-gray-50"
+                        >
+                          <Avatar className="w-8 h-8 rounded-full ring-0">
+                            <AvatarImage src={poet.photo || undefined} alt={poet.name} />
+                            <AvatarFallback className={cn(
+                              "text-[11px] font-medium bg-gray-50 border border-gray-200/40 text-foreground",
+                              isSindhi ? 'auto-sindhi-font' : ''
+                            )}>
+                              {isSindhi 
+                                ? poet.name.charAt(0)
+                                : poet.name
+                                    .split(' ')
+                                    .map((n: string) => n.charAt(0))
+                                    .join('')
+                                    .slice(0, 2)
+                                    .toUpperCase()
+                              }
+                            </AvatarFallback>
+                          </Avatar>
+                          <motion.div 
+                            className="min-w-0"
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.3, delay: 0.1 + index * 0.05 }}
+                          >
+                            <div className={`truncate ${isSindhi ? 'auto-sindhi-font card-text' : 'text-[15px] text-gray-900'}`}>
+                              {isSindhi
+                                ? (poet.sindhiLaqab || poet.sindhiName || poet.name)
+                                : (poet.laqab || poet.name)}
+                            </div>
+                            <div className={`truncate ${isSindhi ? 'auto-sindhi-font text-[10px] text-gray-500' : 'text-xs text-gray-500'}`}>
+                              {isSindhi ? (poet.sindhiTagline || '') : (poet.englishTagline || '')}
+                            </div>
+                          </motion.div>
+                        </motion.div>
+                      </Link>
+                    </motion.div>
                   ))
                 )}
-              </div>
+              </motion.div>
               {!poetsLoading && homePoets.slice(0, 12).length > poetsPerPage && (
-                <div className="mt-12 flex justify-center gap-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => handlePoetsPageChange(poetsPage - 1)}
-                    disabled={poetsPage === 1}
-                    className="h-9 border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-300 rounded-full px-3 disabled:opacity-50"
-                  >
-                    <span className="font-medium">
-                      {isRTL ? '→' : '←'}
-                    </span>
-                  </Button>
-                  {Array.from({ length: totalPoetsPages }, (_, i) => i + 1).map((pageNum) => (
-                    <Button
-                      key={`po-page-${pageNum}`}
-                      variant={pageNum === poetsPage ? 'default' : 'outline'}
-                      onClick={() => handlePoetsPageChange(pageNum)}
-                      className={`h-9 min-w-9 px-3 rounded-full font-normal text-sm ${
-                        pageNum === poetsPage
-                          ? 'bg-black hover:bg-gray-800 text-white'
-                          : 'border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-300'
-                      }`}
-                    >
-                      {pageNum}
-                    </Button>
-                  ))}
-                  <Button
-                    variant="outline"
-                    onClick={() => handlePoetsPageChange(poetsPage + 1)}
-                    disabled={poetsPage === totalPoetsPages}
-                    className="h-9 border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-300 rounded-full px-3 disabled:opacity-50"
-                  >
-                    <span className="font-medium">
-                      {isRTL ? '←' : '→'}
-                    </span>
-                  </Button>
-                </div>
+                <motion.div 
+                  className="mt-12"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.3 }}
+                >
+                  <SmartPagination
+                    currentPage={poetsPage}
+                    totalPages={totalPoetsPages}
+                    onPageChange={handlePoetsPageChange}
+                    isRTL={isRTL}
+                  />
+                </motion.div>
               )}
             </div>
-          </section>
+          </motion.section>
 
       {/* Featured Couplets */}
           <motion.section 
@@ -626,7 +1020,7 @@ export default function HomePage() {
                 transition={{ duration: 0.6, delay: 0.3 }}
               >
                 <h2 className={`${isSindhi ? 'sd-title' : 'text-[22px] leading-snug text-gray-900 font-normal'} mb-2`}>
-                  {isSindhi ? 'نموني شعر' : 'Featured Couplets'}
+                  {isSindhi ? 'چونڊ شعر' : 'Featured Couplets'}
                 </h2>
                 <p className={`${isSindhi ? 'sd-subtitle' : 'text-[16px] leading-7 text-gray-600 font-light'} max-w-2xl mx-auto`}>
                   {isSindhi
@@ -671,134 +1065,24 @@ export default function HomePage() {
                   featuredCouplets
                     .slice((coupletsPage - 1) * coupletsPerPage, (coupletsPage) * coupletsPerPage)
                     .map((couplet, index) => (
-                    <motion.div
-                      key={`couplet-${couplet.id || `unknown-${(coupletsPage - 1) * coupletsPerPage + index}`}`}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.5, delay: index * 0.1 }}
-                      className="transition-all duration-200"
-                    >
-                      <Card className="border border-gray-200/50 bg-white rounded-[12px] shadow-none">
-                        <CardContent className="p-8">
-
-                          {/* Couplet Content */}
-                          <div className="space-y-2 mb-6">
-                            <div className="text-center space-y-1">
-                              {couplet.lines.slice(0, 2).map((line, lineIndex) => (
-                                <div 
-                                  key={`${couplet.id || 'unknown'}-line-${lineIndex}`}
-                                  className={`leading-relaxed ${
-                                    couplet.lang === 'sd' 
-                                      ? 'text-lg font-medium text-black auto-sindhi-font' 
-                                      : 'text-base font-light text-gray-800 tracking-wide'
-                                  }`}
-                                  dir={couplet.lang === 'sd' ? 'rtl' : 'ltr'}
-                                  style={{
-                                    fontFamily: couplet.lang === 'sd' ? 'var(--font-sindhi-primary)' : 'Georgia, serif',
-                                    whiteSpace: 'pre-line',
-                                    wordBreak: 'keep-all',
-                                    overflowWrap: 'break-word',
-                                    textAlign: 'center',
-                                    lineHeight: couplet.lang === 'sd' ? '1.6' : '1.8',
-                                    marginBottom: '0',
-                                    fontStyle: couplet.lang === 'en' ? 'italic' : 'normal'
-                                  }}
-                                >
-                                  {line}
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-
-                          {/* Poet Info */}
-                          <div className="flex items-center justify-between pt-6 border-t border-gray-100">
-                            <div className="flex items-center gap-3">
-                              <Avatar className="w-8 h-8 bg-background border border-border/20 shadow-sm">
-                                <AvatarImage src={couplet.poet.photo || undefined} alt={couplet.poet.name} />
-                                <AvatarFallback className={cn(
-                                  "text-sm font-medium text-foreground",
-                                  couplet.lang === 'sd' ? 'auto-sindhi-font' : ''
-                                )}>
-                                  {couplet.lang === 'sd' 
-                                    ? couplet.poet.name.charAt(0)
-                                    : couplet.poet.name.charAt(0).toUpperCase()
-                                  }
-                                </AvatarFallback>
-                              </Avatar>
-                              <span className={`text-sm text-gray-700 font-medium ${couplet.lang === 'sd' ? 'auto-sindhi-font' : ''}`}>
-                                {couplet.poet.name}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-2 text-xs text-gray-500">
-                              <Clock className="h-4 w-4" />
-                              <MixedContentWithNumbers 
-                                text={isSindhi ? '2 منٽ' : '2 min'}
-                                className="text-xs"
-                              />
-                            </div>
-                          </div>
-
-                          {/* Action Icons */}
-                          <div className="flex items-center justify-between pt-4">
-                            <div className="flex items-center gap-4">
-                              <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-                                <Heart className="h-4 w-4 text-gray-600 hover:text-red-500" />
-                              </button>
-                              <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-                                <Bookmark className="h-4 w-4 text-gray-600 hover:text-blue-500" />
-                              </button>
-                              <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-                                <Share2 className="h-4 w-4 text-gray-600 hover:text-green-500" />
-                              </button>
-                            </div>
-                            <div className="flex items-center gap-1 text-xs text-gray-500">
-                              <Eye className="h-4 w-4" />
-                              <NumberFont size="xs">{couplet.views || Math.floor(Math.random() * 100) + 50}</NumberFont>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                  ))
+                      <CoupletCard
+                        key={`couplet-${couplet.id || `unknown-${(coupletsPage - 1) * coupletsPerPage + index}`}`}
+                        couplet={couplet}
+                        isSindhi={isSindhi}
+                        index={index}
+                      />
+                    ))
                 )}
               </div>
 
               {featuredCouplets.length > coupletsPerPage && (
-                <div className="mt-16 flex justify-center gap-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => handleCoupletsPageChange(coupletsPage - 1)}
-                    disabled={coupletsPage === 1}
-                    className="h-9 border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-300 rounded-full px-3 disabled:opacity-50"
-                  >
-                    <span className="font-medium">
-                      {isRTL ? '→' : '←'}
-                    </span>
-                  </Button>
-                  {Array.from({ length: totalCoupletsPages }, (_, i) => i + 1).map((pageNum) => (
-                    <Button
-                      key={`fc-page-${pageNum}`}
-                      variant={pageNum === coupletsPage ? 'default' : 'outline'}
-                      onClick={() => handleCoupletsPageChange(pageNum)}
-                      className={`h-9 min-w-9 px-3 rounded-full font-normal text-sm ${
-                        pageNum === coupletsPage
-                          ? 'bg-black hover:bg-gray-800 text-white'
-                          : 'border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-300'
-                      }`}
-                    >
-                      {pageNum}
-                    </Button>
-                  ))}
-                  <Button
-                    variant="outline"
-                    onClick={() => handleCoupletsPageChange(coupletsPage + 1)}
-                    disabled={coupletsPage === totalCoupletsPages}
-                    className="h-9 border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-300 rounded-full px-3 disabled:opacity-50"
-                  >
-                    <span className="font-medium">
-                      {isRTL ? '←' : '→'}
-                    </span>
-                  </Button>
+                <div className="mt-16">
+                  <SmartPagination
+                    currentPage={coupletsPage}
+                    totalPages={totalCoupletsPages}
+                    onPageChange={handleCoupletsPageChange}
+                    isRTL={isRTL}
+                  />
                 </div>
               )}
 

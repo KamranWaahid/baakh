@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Font Loading Test - MB Lateefi</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=MB+Lateefi:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 40px;
+            line-height: 1.6;
+        }
+        
+        .test-section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+        }
+        
+        .sindhi-text {
+            font-family: 'MB Lateefi', 'Noto Naskh Arabic', serif;
+            font-size: 1.2rem;
+            line-height: 1.8;
+            direction: rtl;
+            text-align: right;
+        }
+        
+        .font-info {
+            background: #f3f4f6;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 10px 0;
+            font-family: 'Inter', monospace;
+            font-size: 0.9rem;
+        }
+        
+        .loading-status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        
+        .success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+        
+        .error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+        }
+    </style>
+</head>
+<body>
+    <h1>Font Loading Test - MB Lateefi</h1>
+    
+    <div class="test-section">
+        <h2>Font Loading Status</h2>
+        <div id="loading-status" class="loading-status">
+            Checking font loading status...
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Sindhi Text Test</h2>
+        <div class="sindhi-text">
+            <p>هيءُ MB Lateefi فونٽ جو ٽيسٽ آهي. اها فونٽ آن لائن لوڊ ٿي رهي آهي ۽ هن جي ڪارڪردگي بهتر آهي.</p>
+            <p>سندي ٻولي ۾ لکيل شاعري ۽ ادب کي بهترين انداز ۾ ڏيکاريو وڃي.</p>
+            <p>فونٽ جي لوڊنگ وقت گهٽ آهي ۽ استعمال آسان آهي.</p>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Font Information</h2>
+        <div class="font-info">
+            <strong>Font Family:</strong> 'MB Lateefi', 'Noto Naskh Arabic', serif<br>
+            <strong>Source:</strong> Google Fonts (Online)<br>
+            <strong>Weights:</strong> 400, 500, 600<br>
+            <strong>Display:</strong> swap (for better performance)<br>
+            <strong>Fallback:</strong> Noto Naskh Arabic, serif
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Performance Benefits</h2>
+        <ul>
+            <li>✅ Faster loading (no local font files)</li>
+            <li>✅ Better caching (Google Fonts CDN)</li>
+            <li>✅ Automatic optimization</li>
+            <li>✅ Reduced bundle size</li>
+            <li>✅ Better font display strategy</li>
+        </ul>
+    </div>
+
+    <script>
+        // Check if font is loaded
+        function checkFontLoading() {
+            const statusDiv = document.getElementById('loading-status');
+            
+            // Check if MB Lateefi is available
+            if (document.fonts && document.fonts.check) {
+                if (document.fonts.check('1em "MB Lateefi"')) {
+                    statusDiv.className = 'loading-status success';
+                    statusDiv.textContent = '✅ MB Lateefi font loaded successfully!';
+                } else {
+                    statusDiv.className = 'loading-status error';
+                    statusDiv.textContent = '❌ MB Lateefi font not loaded. Using fallback.';
+                }
+            } else {
+                // Fallback check
+                const testElement = document.createElement('div');
+                testElement.style.fontFamily = '"MB Lateefi", serif';
+                testElement.style.position = 'absolute';
+                testElement.style.visibility = 'hidden';
+                testElement.textContent = 'Test';
+                document.body.appendChild(testElement);
+                
+                const computedStyle = window.getComputedStyle(testElement);
+                const fontFamily = computedStyle.fontFamily;
+                
+                if (fontFamily.includes('MB Lateefi')) {
+                    statusDiv.className = 'loading-status success';
+                    statusDiv.textContent = '✅ MB Lateefi font loaded successfully!';
+                } else {
+                    statusDiv.className = 'loading-status error';
+                    statusDiv.textContent = '❌ MB Lateefi font not loaded. Using fallback.';
+                }
+                
+                document.body.removeChild(testElement);
+            }
+        }
+        
+        // Check font loading when page loads
+        if (document.fonts && document.fonts.ready) {
+            document.fonts.ready.then(checkFontLoading);
+        } else {
+            // Fallback: check after a short delay
+            setTimeout(checkFontLoading, 1000);
+        }
+        
+        // Also check immediately
+        checkFontLoading();
+    </script>
+</body>
+</html>

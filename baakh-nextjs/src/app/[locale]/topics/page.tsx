@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { NumberFont } from '@/components/ui/NumberFont';
 import { 
   Search, 
   ChevronDown,
@@ -197,7 +198,7 @@ export default function TopicsPage() {
   const uniqueTypesCount = new Set(topics.map(t => t.tag_type)).size;
 
   // Fetch topics from API
-  const fetchTopics = async () => {
+  const fetchTopics = useCallback(async () => {
     console.log('fetchTopics called, isSindhi:', isSindhi);
     try {
       setLoading(true);
@@ -211,22 +212,26 @@ export default function TopicsPage() {
       console.log('Fetching with params:', Object.fromEntries(params));
       const response = await fetch(`/api/tags?${params}`);
       console.log('Response status:', response.status);
+      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
       
       if (response.ok) {
         const data = await response.json();
         console.log('API response:', data);
-        const rawTopicsData = data.items || [];
+        const rawTopicsData = data.tags || [];
         console.log('Raw topics data:', rawTopicsData);
         
         // Process topics data to extract translations
         const topicsData = rawTopicsData.map((topic: any) => {
+          // The API now returns the proper translated title in the 'title' field
+          // and the language-specific detail in the 'detail' field
           const englishTranslation = topic.tags_translations?.find((t: any) => t.lang_code === 'en');
           const sindhiTranslation = topic.tags_translations?.find((t: any) => t.lang_code === 'sd');
           
           return {
             ...topic,
-            englishTitle: englishTranslation?.title || topic.label,
-            sindhiTitle: sindhiTranslation?.title || topic.label,
+            // Use the API's title field which already has the proper translation
+            englishTitle: topic.lang_code === 'en' ? topic.title : (englishTranslation?.title || topic.label),
+            sindhiTitle: topic.lang_code === 'sd' ? topic.title : (sindhiTranslation?.title || topic.label),
             englishDetail: englishTranslation?.detail || '',
             sindhiDetail: sindhiTranslation?.detail || ''
           };
@@ -246,13 +251,13 @@ export default function TopicsPage() {
       console.log('Setting loading to false');
       setLoading(false);
     }
-  };
+  }, [isSindhi]);
 
   // Initial fetch
   useEffect(() => {
-    console.log('useEffect running, calling fetchTopics');
+    console.log('useEffect running, calling fetchTopics, isSindhi:', isSindhi);
     fetchTopics();
-  }, [isSindhi]);
+  }, [fetchTopics]);
 
   // Debug state changes
   useEffect(() => {
@@ -314,13 +319,13 @@ export default function TopicsPage() {
           {/* Statistics */}
           <div className="flex flex-wrap justify-center gap-8 mb-6">
             <div className="text-center">
-              <div className="text-3xl font-bold text-gray-900">{topics.length}</div>
+              <NumberFont className="text-3xl font-bold text-gray-900" size="2xl" weight="bold">{topics.length}</NumberFont>
               <div className={`text-sm text-gray-600 ${isSindhi ? 'auto-sindhi-font' : ''}`}>
                 {content.totalTopics[isSindhi ? 'sd' : 'en']}
               </div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-gray-900">{uniqueTypesCount}</div>
+              <NumberFont className="text-3xl font-bold text-gray-900" size="2xl" weight="bold">{uniqueTypesCount}</NumberFont>
               <div className={`text-sm text-gray-600 ${isSindhi ? 'auto-sindhi-font' : ''}`}>
                 {content.uniqueTypes[isSindhi ? 'sd' : 'en']}
               </div>
@@ -419,7 +424,7 @@ export default function TopicsPage() {
         <div className="mb-8 text-center">
           <div className="bg-white rounded-2xl border border-gray-200/50 shadow-sm p-6">
             <p className={`text-gray-600 text-lg mb-3 ${isSindhi ? 'auto-sindhi-font' : ''}`}>
-              {isSindhi ? 'پاڻ کي' : 'Found'} <span className="font-semibold text-gray-900">{total}</span> {isSindhi ? 'موضوع ملي آھي، جنھن مان پيج' : 'topics, showing page'} <span className="font-semibold text-gray-900">{startIdx}-{endIdx}</span> {isSindhi ? 'ڏيکار رھيا آھون.' : '.'}
+              {isSindhi ? 'پاڻ کي' : 'Found'} <NumberFont className="font-semibold text-gray-900">{total}</NumberFont> {isSindhi ? 'موضوع ملي آھي، جنھن مان پيج' : 'topics, showing page'} <NumberFont className="font-semibold text-gray-900">{startIdx}-{endIdx}</NumberFont> {isSindhi ? 'ڏيکار رھيا آھون.' : '.'}
             </p>
           </div>
         </div>
@@ -530,9 +535,9 @@ export default function TopicsPage() {
                         : "border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300"
                     }`}
                   >
-                    <span>
+                    <NumberFont>
                       {pageNum}
-                    </span>
+                    </NumberFont>
                   </Button>
                 ));
               })()}

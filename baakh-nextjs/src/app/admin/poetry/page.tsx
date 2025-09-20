@@ -30,6 +30,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import AdminLayout from "@/components/layouts/AdminLayout";
+import AdminPageHeader from "@/components/ui/AdminPageHeader";
 
 interface PoetryItem {
   id: string;
@@ -67,6 +68,7 @@ export default function AdminPoetryListPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [q, setQ] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
   const [perPage, setPerPage] = useState(20);
   const [page, setPage] = useState(1);
   const [view, setView] = useState<'cards'|'table'>('table');
@@ -112,7 +114,7 @@ export default function AdminPoetryListPage() {
         sortOrder: sortAsc ? 'asc' : 'desc'
       });
 
-      const response = await fetch(`/api/admin/poetry?${params}`);
+      const response = await fetch(`/api/admin/poetry?${params}`, { cache: 'no-store' });
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to fetch poetry');
@@ -135,10 +137,17 @@ export default function AdminPoetryListPage() {
   }, [fetchPoetry, page]);
 
   // Reset and reload when search or sort changes
+  // Debounce the raw input value into searchTerm
+  useEffect(() => {
+    const t = setTimeout(() => setSearchTerm(q), 400);
+    return () => clearTimeout(t);
+  }, [q]);
+
+  // Refetch when filters/sort or debounced search changes
   useEffect(() => {
     setPage(1);
-    fetchPoetry(1, q, true);
-  }, [q, sortKey, sortAsc, filterStatus, filterLanguage]);
+    fetchPoetry(1, searchTerm, true);
+  }, [searchTerm, sortKey, sortAsc, filterStatus, filterLanguage]);
 
   const headerCell = (label: string, key: keyof PoetryItem | "index") => (
     <th className="text-left font-medium px-3 py-2 cursor-pointer select-none text-[#1F1F1F]" onClick={() => {
@@ -301,70 +310,109 @@ export default function AdminPoetryListPage() {
     ));
   };
 
+  const getTagPills = (poetry: PoetryItem) => {
+    if (!poetry.poetry_tags) return null;
+    
+    // Parse tags from comma-separated string
+    const tags = poetry.poetry_tags.split(',').map(tag => tag.trim()).filter(tag => tag);
+    
+    // Define tag colors for specific themes
+    const getTagColor = (tag: string) => {
+      const lowerTag = tag.toLowerCase();
+      if (lowerTag.includes('nature') || lowerTag.includes('فطرت')) {
+        return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+      }
+      if (lowerTag.includes('wisdom') || lowerTag.includes('حڪمت') || lowerTag.includes('philosophy') || lowerTag.includes('فلسفو')) {
+        return 'bg-amber-50 text-amber-700 border-amber-200';
+      }
+      if (lowerTag.includes('romance') || lowerTag.includes('محبت') || lowerTag.includes('love') || lowerTag.includes('رومانس')) {
+        return 'bg-rose-50 text-rose-700 border-rose-200';
+      }
+      if (lowerTag.includes('sadness') || lowerTag.includes('غم')) {
+        return 'bg-slate-50 text-slate-700 border-slate-200';
+      }
+      if (lowerTag.includes('happiness') || lowerTag.includes('خوشي')) {
+        return 'bg-yellow-50 text-yellow-700 border-yellow-200';
+      }
+      if (lowerTag.includes('spiritual') || lowerTag.includes('روحاني')) {
+        return 'bg-purple-50 text-purple-700 border-purple-200';
+      }
+      // Default color for other tags
+      return 'bg-gray-50 text-gray-700 border-gray-200';
+    };
+    
+    return (
+      <div className="flex flex-wrap gap-1 mt-1">
+        {tags.slice(0, 3).map((tag, index) => (
+          <span
+            key={`${poetry.id}-tag-${index}`}
+            className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getTagColor(tag)}`}
+          >
+            {tag}
+          </span>
+        ))}
+        {tags.length > 3 && (
+          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 border border-gray-200">
+            +{tags.length - 3}
+          </span>
+        )}
+      </div>
+    );
+  };
+
   return (
     <AdminLayout>
-      <div className="space-y-6">
-        {/* Header Section */}
-        <div className="bg-white border-b border-[#E5E5E5] px-6 py-6">
-          <div className="max-w-7xl mx-auto">
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <Badge variant="secondary" className="rounded-full px-3 py-1 text-xs font-medium bg-[#F4F4F5] text-[#1F1F1F] border border-[#E5E5E5]">
-                  <BookOpen className="w-4 h-4 mr-2" />
-                  Poetry Management
-                </Badge>
+      <div className="min-h-screen bg-[#F9F9F9]">
+        <AdminPageHeader
+          title="Poetry Collection"
+          subtitle="Poetry Management"
+          subtitleIcon={<BookOpen className="w-4 h-4" />}
+          description="Manage your poetry collection with translations and couplets. Organize content with structured classification system."
+          action={
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+              <div className="inline-flex rounded-lg border border-[#E5E5E5] p-1 bg-white">
+                {(['cards','table'] as const).map(v => (
+                  <button 
+                    key={v} 
+                    className={`h-9 px-3 rounded-md text-sm font-medium transition-colors ${
+                      view===v
+                        ? 'bg-[#1F1F1F] text-white'
+                        : 'text-[#6B6B6B] hover:bg-[#F4F4F5]'
+                    }`} 
+                    onClick={()=>{ setView(v); setPage(1); }}
+                  >
+                    {v === 'cards' ? 'Card View' : 'Table View'}
+                  </button>
+                ))}
               </div>
-              <div className="space-y-2">
-                <h1 className="text-3xl font-bold text-[#1F1F1F]">Poetry Collection</h1>
-                <p className="text-lg text-[#6B6B6B] max-w-2xl">
-                  Manage your poetry collection with translations and couplets.
-                  Organize content with structured classification system.
-                </p>
-              </div>
-              <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                <div className="inline-flex rounded-lg border border-[#E5E5E5] p-1 bg-white">
-                  {(['cards','table'] as const).map(v => (
-                    <button 
-                      key={v} 
-                      className={`h-9 px-3 rounded-md text-sm font-medium transition-colors ${
-                        view===v
-                          ? 'bg-[#1F1F1F] text-white'
-                          : 'text-[#6B6B6B] hover:bg-[#F4F4F5]'
-                      }`} 
-                      onClick={()=>{ setView(v); setPage(1); }}
-                    >
-                      {v === 'cards' ? 'Card View' : 'Table View'}
-                    </button>
-                  ))}
-                </div>
-                <Button 
-                  asChild
-                  className="bg-[#1F1F1F] hover:bg-[#404040] text-white h-10 px-6 rounded-lg"
-                >
-                  <Link href="/admin/poetry/create">
-                    <Plus className="w-4 h-4 mr-2" /> New Poetry
-                  </Link>
-                </Button>
-                <Button 
-                  asChild
-                  variant="outline"
-                  className="border-[#E5E5E5] text-[#6B6B6B] hover:bg-[#F4F4F5] hover:border-[#E5E5E5] h-10 px-6 rounded-lg transition-colors"
-                >
-                  <Link href="/admin/poetry/couplets/create">
-                    <Quote className="w-4 h-4 mr-2" /> New Couplet
-                  </Link>
-                </Button>
-              </div>
+              <Button 
+                asChild
+                variant="outline"
+                className="h-10 px-6 rounded-lg border-[#E5E5E5] text-[#1F1F1F] hover:bg-[#F4F4F5] hover:border-[#D4D4D8] transition-colors"
+              >
+                <Link href="/admin/poetry/create">
+                  <Plus className="w-4 h-4 mr-2" /> New Poetry
+                </Link>
+              </Button>
+              <Button 
+                asChild
+                variant="outline"
+                className="h-10 px-6 rounded-lg border-[#E5E5E5] text-[#1F1F1F] hover:bg-[#F4F4F5] hover:border-[#D4D4D8] transition-colors"
+              >
+                <Link href="/admin/poetry/couplets/create">
+                  <Quote className="w-4 h-4 mr-2" /> New Couplet
+                </Link>
+              </Button>
             </div>
-          </div>
-        </div>
+          }
+        />
 
         {/* Main Content */}
         <div className="max-w-7xl mx-auto px-6 py-8">
           {/* Insights */}
           <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
             <Card className="bg-white border-[#E5E5E5] rounded-lg shadow-sm">
-              <CardContent className="p-6">
+              <CardContent className="p-8">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-[#F4F4F5] rounded-lg flex items-center justify-center">
                     <BookOpen className="w-5 h-5 text-[#1F1F1F]" />
@@ -377,7 +425,7 @@ export default function AdminPoetryListPage() {
               </CardContent>
             </Card>
             <Card className="bg-white border-[#E5E5E5] rounded-lg shadow-sm">
-              <CardContent className="p-6">
+              <CardContent className="p-8">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-[#F4F4F5] rounded-lg flex items-center justify-center">
                     <Eye className="w-5 h-5 text-[#1F1F1F]" />
@@ -390,7 +438,7 @@ export default function AdminPoetryListPage() {
               </CardContent>
             </Card>
             <Card className="bg-white border-[#E5E5E5] rounded-lg shadow-sm">
-              <CardContent className="p-6">
+              <CardContent className="p-8">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-[#F4F4F5] rounded-lg flex items-center justify-center">
                     <FileText className="w-5 h-5 text-[#1F1F1F]" />
@@ -403,7 +451,7 @@ export default function AdminPoetryListPage() {
               </CardContent>
             </Card>
             <Card className="bg-white border-[#E5E5E5] rounded-lg shadow-sm">
-              <CardContent className="p-6">
+              <CardContent className="p-8">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-[#F4F4F5] rounded-lg flex items-center justify-center">
                     <Star className="w-5 h-5 text-[#1F1F1F]" />
@@ -416,7 +464,7 @@ export default function AdminPoetryListPage() {
               </CardContent>
             </Card>
             <Card className="bg-white border-[#E5E5E5] rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer" onClick={() => window.location.href = '/admin/poetry/couplets'}>
-              <CardContent className="p-6">
+              <CardContent className="p-8">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-[#F4F4F5] rounded-lg flex items-center justify-center">
                     <Quote className="w-5 h-5 text-[#1F1F1F]" />
@@ -426,7 +474,7 @@ export default function AdminPoetryListPage() {
                     <p className="text-2xl font-bold text-[#1F1F1F]">{insights.totalCouplets}</p>
                   </div>
                 </div>
-                <div className="mt-2 text-xs text-[#6B6B6B]">
+                <div className="mt-3 text-xs text-[#6B6B6B]">
                   Click to view all couplets
                 </div>
               </CardContent>
@@ -435,7 +483,7 @@ export default function AdminPoetryListPage() {
 
           {/* Controls */}
           <Card className="bg-white border-[#E5E5E5] rounded-lg shadow-sm mb-8">
-            <CardContent className="p-6">
+            <CardContent className="p-8">
               <div className="flex flex-col lg:flex-row lg:items-center gap-6">
                 <div className="flex items-center gap-3 text-sm">
                   <span className="text-[#6B6B6B] font-medium">Show</span>
@@ -521,7 +569,7 @@ export default function AdminPoetryListPage() {
                 {loading ? (
                   Array.from({ length: 6 }).map((_, i) => (
                     <Card key={i} className="bg-white border-[#E5E5E5] rounded-lg shadow-sm">
-                      <CardContent className="p-6 space-y-4">
+                      <CardContent className="p-8 space-y-4">
                         <div className="flex items-center gap-3">
                           <Skeleton className="w-10 h-10 rounded-lg bg-[#F4F4F5]" />
                           <div className="space-y-2 flex-1">
@@ -542,7 +590,7 @@ export default function AdminPoetryListPage() {
                 ) : pagePoetry.length === 0 ? (
                   <div className="col-span-full text-center py-12">
                     <Card className="max-w-md mx-auto bg-white border-[#E5E5E5] rounded-lg shadow-sm">
-                      <CardContent className="p-8">
+                      <CardContent className="p-12">
                         <div className="w-16 h-16 bg-[#F4F4F5] rounded-full flex items-center justify-center mx-auto mb-4">
                           <BookOpen className="w-8 h-8 text-[#6B6B6B]" />
                         </div>
@@ -563,7 +611,7 @@ export default function AdminPoetryListPage() {
                 ) : (
                   pagePoetry.map((poetry, idx) => (
                     <Card key={poetry.id} className="bg-white border-[#E5E5E5] rounded-lg shadow-sm hover:bg-[#F4F4F5] transition-colors duration-200">
-                      <CardHeader className="pb-4">
+                      <CardHeader className="pb-6 px-8 pt-8">
                         <div className="flex items-start justify-between gap-3">
                           <div>
                             <CardTitle className="text-[#1F1F1F] space-y-0.5">
@@ -587,8 +635,8 @@ export default function AdminPoetryListPage() {
                             </CardTitle>
                             <CardDescription className="line-clamp-2 text-[#6B6B6B]">
                               {poetry.poets?.english_name && <span className="block mb-1">by {poetry.poets.english_name}</span>}
-                              {poetry.poetry_tags || '—'}
                             </CardDescription>
+                            {getTagPills(poetry)}
                           </div>
                           <div className="inline-flex items-center gap-2">
                             <div className="flex gap-1">
@@ -601,7 +649,7 @@ export default function AdminPoetryListPage() {
                           </div>
                         </div>
                       </CardHeader>
-                      <CardContent className="pt-0">
+                      <CardContent className="pt-0 px-8 pb-8">
                         <div className="flex items-center justify-end gap-1">
                           <Button variant="ghost" size="sm" className="h-9 w-9 p-0 hover:bg-[#F4F4F5] text-[#6B6B6B] hover:text-[#1F1F1F] transition-colors" asChild>
                             <Link href={`/admin/poetry/${poetry.id}`}>
@@ -625,7 +673,7 @@ export default function AdminPoetryListPage() {
             </>
           ) : (
           <Card className="bg-white border-[#E5E5E5] rounded-lg shadow-sm overflow-hidden">
-            <CardHeader className="py-4">
+            <CardHeader className="py-6 px-8">
               <CardTitle className="text-base text-[#1F1F1F]">Poetry List</CardTitle>
               <CardDescription className="text-[#6B6B6B]">Comprehensive table with poetry information and actions.</CardDescription>
             </CardHeader>
@@ -677,9 +725,7 @@ export default function AdminPoetryListPage() {
                                     return <span className="text-sm">{poetry.poetry_slug}</span>;
                                   })()}
                                 </div>
-                                {poetry.poetry_tags && (
-                                  <div className="text-xs text-[#6B6B6B]">{poetry.poetry_tags}</div>
-                                )}
+                                {getTagPills(poetry)}
                               </div>
                             </td>
                             <td className="px-3 py-2">
@@ -768,7 +814,7 @@ export default function AdminPoetryListPage() {
           {/* Quick Navigation */}
           <div className="mt-8">
             <Card className="bg-white border border-[#E5E5E5] rounded-lg shadow-sm">
-              <CardContent className="p-6">
+              <CardContent className="p-8">
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="text-lg font-semibold text-[#1F1F1F] mb-2">Quick Actions</h3>

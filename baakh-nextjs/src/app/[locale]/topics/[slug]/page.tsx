@@ -25,6 +25,8 @@ import {
 import Link from 'next/link';
 import { NumberFont, MixedContentWithNumbers } from '@/components/ui/NumberFont';
 import { cn } from '@/lib/utils';
+import { useAuthRequired } from '@/hooks/useAuthRequired';
+import { AuthModal } from '@/components/ui/AuthModal';
 
 interface Couplet {
   id: string;
@@ -97,14 +99,31 @@ export default function TopicPage() {
   const topicSlug = params.slug as string;
   const isSindhi = pathname.startsWith('/sd');
   const isRTL = isSindhi;
+  const { isAuthenticated, showAuthModal, authContext, requireAuth, closeAuthModal } = useAuthRequired();
 
   // State management
   const [loading, setLoading] = useState(true);
   const [topic, setTopic] = useState<Topic | null>(null);
-  const [featuredCouplets, setFeaturedCouplets] = useState<Couplet[]>([]);
+  const [couplets, setCouplets] = useState<Couplet[]>([]);
   const [poetry, setPoetry] = useState<Poetry[]>([]);
+  const [totalCouplets, setTotalCouplets] = useState(0);
+  const [totalPoetry, setTotalPoetry] = useState(0);
   const [coupletsLoaded, setCoupletsLoaded] = useState(false);
   const [poetryLoaded, setPoetryLoaded] = useState(false);
+
+  const handleLikeClick = (coupletId: string) => {
+    requireAuth(() => {
+      // TODO: Implement like functionality for authenticated users
+      console.log('Like clicked for couplet:', coupletId);
+    }, 'like');
+  };
+
+  const handleBookmarkClick = (coupletId: string) => {
+    requireAuth(() => {
+      // TODO: Implement bookmark functionality for authenticated users
+      console.log('Bookmark clicked for couplet:', coupletId);
+    }, 'bookmark');
+  };
   const [coupletsPage, setCoupletsPage] = useState(1);
   const [poetryPage, setPoetryPage] = useState(1);
   const coupletsPerPage = 6;
@@ -115,28 +134,28 @@ export default function TopicPage() {
   // Content translations
   const content = {
     title: {
-      en: 'Nature Poetry',
-      sd: 'فطرت جي شاعري'
+      en: topic?.englishTitle || 'Topic Poetry',
+      sd: topic?.sindhiTitle || 'موضوع جي شاعري'
     },
     subtitle: {
-      en: 'Explore beautiful couplets and poetry about nature, seasons, and the natural world',
-      sd: 'فطرت، موسم، ۽ قدرتي دنيا بابت خوبصورت شعر ۽ شاعري ڏسو'
+      en: topic?.englishDetail || 'Explore beautiful couplets and poetry on this topic',
+      sd: topic?.sindhiDetail || 'هي موضوع بابت خوبصورت شعر ۽ شاعري ڏسو'
     },
     featuredCouplets: {
       en: 'Featured Couplets',
       sd: 'چونڊ شعر'
     },
     featuredCoupletsSubtitle: {
-      en: 'Beautiful couplets about nature from our collection',
-      sd: 'اسانجي مجموعي مان فطرت بابت خوبصورت شعر'
+      en: `Beautiful couplets about ${topic?.englishTitle || 'this topic'} from our collection`,
+      sd: `اسانجي مجموعي مان ${topic?.sindhiTitle || 'هي موضوع'} بابت خوبصورت شعر`
     },
     poetry: {
       en: 'Poetry Collections',
       sd: 'شاعري جا مجموعا'
     },
     poetrySubtitle: {
-      en: 'Complete poetry works related to nature themes',
-      sd: 'فطرت جي موضوعن سان لاڳاپيل مڪمل شاعري'
+      en: `Complete poetry works related to ${topic?.englishTitle || 'this topic'}`,
+      sd: `${topic?.sindhiTitle || 'هي موضوع'} سان لاڳاپيل مڪمل شاعري`
     },
     totalCouplets: {
       en: 'Total Couplets',
@@ -191,123 +210,45 @@ export default function TopicPage() {
     return colors[Math.abs(hash) % colors.length];
   }, []);
 
-  // Fetch topic details
-  const fetchTopic = async () => {
+  // Fetch topic data (couplets + poetry)
+  const fetchTopicData = async () => {
     try {
       setLoading(true);
+      setCoupletsLoaded(false);
+      setPoetryLoaded(false);
+      
       const params = new URLSearchParams({
-        limit: '50',
-        offset: '0',
         lang: isSindhi ? 'sd' : 'en',
-        type: 'Topic'
+        page: '1',
+        limit: '24'
       });
 
-      const response = await fetch(`/api/tags?${params}`);
+      const response = await fetch(`/api/topics/${topicSlug}?${params}`);
       if (response.ok) {
         const data = await response.json();
-        const topics = data.items || [];
-        const foundTopic = topics.find((t: Topic) => t.slug === topicSlug);
-        setTopic(foundTopic || null);
+        console.log('Topic data received:', data);
+        
+        setTopic(data.topic || null);
+        setCouplets(data.couplets || []);
+        setPoetry(data.poetry || []);
+        setTotalCouplets(data.totalCouplets || 0);
+        setTotalPoetry(data.totalPoetry || 0);
+      } else {
+        console.error('Error fetching topic data:', response.status);
       }
     } catch (error) {
-      console.error('Error fetching topic:', error);
+      console.error('Error fetching topic data:', error);
     } finally {
       setLoading(false);
-    }
-  };
-
-  // Fetch featured couplets with nature tag
-  const fetchFeaturedCouplets = async () => {
-    try {
-      setCoupletsLoaded(false);
-      const params = new URLSearchParams({
-        limit: '24',
-        page: '1',
-        lang: isSindhi ? 'sd' : 'en',
-        tags: topicSlug // Filter by nature tag
-      });
-
-      const response = await fetch(`/api/couplets?${params}`);
-      if (response.ok) {
-        const data = await response.json();
-        if (data?.couplets) {
-          // Group couplets by poet and select one from each
-          const poetGroups: Record<string, { poet: any; couplets: any[] }> = data.couplets.reduce((acc: Record<string, { poet: any; couplets: any[] }>, couplet: any) => {
-            const poetId = couplet.poet?.id || couplet.poet?.slug || 'unknown';
-            if (!acc[poetId]) {
-              acc[poetId] = {
-                poet: couplet.poet || { id: 'unknown', name: 'Unknown Poet', slug: 'unknown' },
-                couplets: []
-              };
-            }
-            acc[poetId].couplets.push(couplet);
-            return acc;
-          }, {});
-
-          const allPoets = Object.values(poetGroups);
-          const selectedCouplets: any[] = [];
-          const usedPoetIds = new Set<string>();
-          
-          const shuffledPoets = allPoets.sort(() => Math.random() - 0.5);
-          const maxCouplets = Math.min(18, shuffledPoets.length);
-          
-          for (const poetGroup of shuffledPoets) {
-            if (selectedCouplets.length >= maxCouplets) break;
-            
-            const poetId = poetGroup.poet?.id || poetGroup.poet?.slug || 'unknown';
-            if (usedPoetIds.has(poetId)) continue;
-            
-            const randomCouplet = poetGroup.couplets[Math.floor(Math.random() * poetGroup.couplets.length)];
-            selectedCouplets.push(randomCouplet);
-            usedPoetIds.add(poetId);
-          }
-          
-          setFeaturedCouplets(selectedCouplets);
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching featured couplets:', error);
-    } finally {
       setCoupletsLoaded(true);
-    }
-  };
-
-  // Fetch poetry with nature category
-  const fetchPoetry = async () => {
-    try {
-      setPoetryLoaded(false);
-      const params = new URLSearchParams({
-        limit: '24',
-        page: '1',
-        lang: isSindhi ? 'sd' : 'en',
-        category: topicSlug // Filter by nature category
-      });
-
-      const response = await fetch(`/api/poetry?${params}`);
-      if (response.ok) {
-        const data = await response.json();
-        if (data?.poetry) {
-          setPoetry(data.poetry);
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching poetry:', error);
-    } finally {
       setPoetryLoaded(true);
     }
   };
 
   // Initial fetch
   useEffect(() => {
-    fetchTopic();
+    fetchTopicData();
   }, [topicSlug, isSindhi]);
-
-  useEffect(() => {
-    if (topic) {
-      fetchFeaturedCouplets();
-      fetchPoetry();
-    }
-  }, [topic, isSindhi]);
 
   // Pagination handlers
   const handleCoupletsPageChange = (newPage: number) => {
@@ -319,12 +260,10 @@ export default function TopicPage() {
   };
 
   // Calculate pagination
-  const totalCouplets = featuredCouplets.length;
-  const totalPoetry = poetry.length;
   const coupletsTotalPages = Math.ceil(totalCouplets / coupletsPerPage);
   const poetryTotalPages = Math.ceil(totalPoetry / poetryPerPage);
 
-  const paginatedCouplets = featuredCouplets.slice(
+  const paginatedCouplets = couplets.slice(
     (coupletsPage - 1) * coupletsPerPage,
     coupletsPage * coupletsPerPage
   );
@@ -390,13 +329,13 @@ export default function TopicPage() {
           {/* Statistics */}
           <div className="flex flex-wrap justify-center gap-8 mb-6">
             <div className="text-center">
-              <NumberFont className="text-3xl font-bold text-gray-900">{totalCouplets}</NumberFont>
+              <NumberFont className="text-3xl font-bold text-gray-900" size="2xl" weight="bold">{totalCouplets}</NumberFont>
               <div className={`text-sm text-gray-600 ${isSindhi ? 'auto-sindhi-font' : ''}`}>
                 {content.totalCouplets[isSindhi ? 'sd' : 'en']}
               </div>
             </div>
             <div className="text-center">
-              <NumberFont className="text-3xl font-bold text-gray-900">{totalPoetry}</NumberFont>
+              <NumberFont className="text-3xl font-bold text-gray-900" size="2xl" weight="bold">{totalPoetry}</NumberFont>
               <div className={`text-sm text-gray-600 ${isSindhi ? 'auto-sindhi-font' : ''}`}>
                 {content.totalPoetry[isSindhi ? 'sd' : 'en']}
               </div>
@@ -405,10 +344,10 @@ export default function TopicPage() {
 
           {/* Feature Badge */}
           <div className="flex flex-wrap justify-center gap-4 mb-6">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-full">
-              <Tag className="h-4 w-4 text-green-600" />
-              <p className={`text-sm text-green-700 font-medium ${isSindhi ? 'auto-sindhi-font' : ''}`}>
-                {isSindhi ? 'فطرت جي خوبصورتي ۽ شاعري' : 'Nature\'s beauty and poetry'}
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-full">
+              <BookOpenCheck className="h-4 w-4 text-blue-600" />
+              <p className={`text-sm text-blue-700 font-medium ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+                {isSindhi ? 'سنڌي ادب جي عظيم رويت، مختلف موضوعن ۽ ٽڪليون سان' : 'Explore the rich heritage of Sindhi literature through diverse topics and themes'}
               </p>
             </div>
           </div>
@@ -530,10 +469,18 @@ export default function TopicPage() {
                       {/* Action Icons */}
                       <div className="flex items-center justify-between pt-4">
                         <div className="flex items-center gap-4">
-                          <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                          <button 
+                            onClick={() => handleLikeClick(couplet.id)}
+                            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                            title={isAuthenticated ? 'Like this couplet' : 'Login to like'}
+                          >
                             <Heart className="h-4 w-4 text-gray-600 hover:text-red-500" />
                           </button>
-                          <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                          <button 
+                            onClick={() => handleBookmarkClick(couplet.id)}
+                            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                            title={isAuthenticated ? 'Bookmark this couplet' : 'Login to bookmark'}
+                          >
                             <Bookmark className="h-4 w-4 text-gray-600 hover:text-blue-500" />
                           </button>
                           <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
@@ -555,7 +502,7 @@ export default function TopicPage() {
           </div>
 
           {/* Couplets Pagination */}
-          {coupletsTotalPages > 1 && !coupletsLoaded && (
+          {coupletsTotalPages > 1 && coupletsLoaded && (
             <div className="flex justify-center mt-8">
               <div className="flex gap-3">
                 <Button
@@ -650,7 +597,7 @@ export default function TopicPage() {
                   transition={{ duration: 0.5, delay: index * 0.1 }}
                   className="transition-all duration-200"
                 >
-                  <Link href={`${isSindhi ? '/sd' : '/en'}/poetry/${poem.slug}`}>
+                  <Link href={`${isSindhi ? '/sd' : '/en'}/poets/${poem.poet.slug}/form/${poem.category.slug}/${poem.slug}`}>
                     <Card className="border border-gray-200/50 bg-white rounded-[12px] shadow-none hover:shadow-md transition-all duration-200">
                       <CardContent className="p-6">
                         <div className="space-y-4">
@@ -713,7 +660,7 @@ export default function TopicPage() {
           </div>
 
           {/* Poetry Pagination */}
-          {poetryTotalPages > 1 && !poetryLoaded && (
+          {poetryTotalPages > 1 && poetryLoaded && (
             <div className="flex justify-center mt-8">
               <div className="flex gap-3">
                 <Button
@@ -760,6 +707,13 @@ export default function TopicPage() {
           )}
         </motion.section>
       </main>
+      
+      {/* Auth Modal */}
+      <AuthModal 
+        isOpen={showAuthModal} 
+        onClose={closeAuthModal}
+        context={authContext}
+      />
     </div>
   );
 }

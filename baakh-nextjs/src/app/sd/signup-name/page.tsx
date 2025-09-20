@@ -2,10 +2,9 @@
 
 import { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useE2EEAuth } from '@/hooks/useE2EEAuth-new'
+import { ArrowRight } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 
 export default function SignupNamePageSD() {
   const [sindhiName, setSindhiName] = useState('')
@@ -14,12 +13,12 @@ export default function SignupNamePageSD() {
   
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { user } = useE2EEAuth()
+  const { user, login } = useE2EEAuth()
   
   // Get the user ID from URL params or auth context
   const userId = searchParams.get('userId') || user?.userId
   
-  const handleNext = async () => {
+  const handleSubmit = async () => {
     if (!sindhiName.trim()) {
       setError('سندي نالو داخل ڪريو')
       return
@@ -39,9 +38,6 @@ export default function SignupNamePageSD() {
     setError('')
     
     try {
-      console.log('Sending request with userId:', userId, 'sindhiName:', sindhiName.trim())
-      
-      // Save Sindhi name to both tables
       const response = await fetch('/api/auth/save-sindhi-name', {
         method: 'POST',
         headers: {
@@ -56,20 +52,27 @@ export default function SignupNamePageSD() {
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
-        console.error('API Error Response:', errorData)
         throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`)
       }
       
       const result = await response.json()
-      console.log('Success response:', result)
       
-      // Redirect to Sindhi dashboard
-      router.push('/sd/dashboard')
+      // If we got a token, log in the user automatically
+      if (result.token) {
+        console.log('Auto-login after Sindhi name save')
+        // Store the token in localStorage
+        localStorage.setItem('e2ee_token', result.token)
+        
+        // Redirect to dashboard (the auth system will pick up the token)
+        router.push('/sd/dashboard')
+      } else {
+        // Fallback: redirect to login
+        router.push('/sd/login')
+      }
       
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred'
       setError(`خطا: ${errorMessage}`)
-      console.error('Error saving Sindhi name:', err)
     } finally {
       setIsLoading(false)
     }
@@ -77,65 +80,101 @@ export default function SignupNamePageSD() {
   
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
-      handleNext()
+      handleSubmit()
     }
   }
   
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold auto-sindhi-font">
-            سندي نالو شامل ڪريو
-          </CardTitle>
-          <p className="text-gray-600 dark:text-gray-400 mt-2 auto-sindhi-font">
-            پنهنجو سندي نالو داخل ڪريو جيڪو توهان جي شاعري ۾ استعمال ٿيندو
-          </p>
-        </CardHeader>
-        
-        <CardContent className="space-y-6">
-          <div className="space-y-2">
-            <label 
-              htmlFor="sindhiName" 
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300 auto-sindhi-font"
-            >
-              سندي نالو
-            </label>
-            <Input
-              id="sindhiName"
-              type="text"
-              value={sindhiName}
-              onChange={(e) => setSindhiName(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="مثال: شاھ عبداللطيف"
-              className="text-lg h-12 text-center auto-sindhi-font"
-              dir="rtl"
-              autoFocus
-            />
-          </div>
+    <motion.div 
+      className="min-h-screen flex items-center justify-center bg-white p-4" 
+      dir="rtl"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
+      <motion.div 
+        className="w-full max-w-md"
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.6, delay: 0.2 }}
+      >
+        <motion.div 
+          className="relative"
+          whileHover={{ scale: 1.02 }}
+          transition={{ duration: 0.2 }}
+        >
+          <motion.input
+            type="text"
+            value={sindhiName}
+            onChange={(e) => setSindhiName(e.target.value)}
+            onKeyPress={handleKeyPress}
+            placeholder="سنڌي نالو لکو"
+            className="w-full h-16 px-6 text-lg bg-gray-50 border border-gray-200 rounded-2xl focus:border-gray-300 focus:outline-none text-center auto-sindhi-font placeholder:text-gray-400 placeholder:auto-sindhi-font"
+            style={{ fontFamily: 'inherit' }}
+            dir="rtl"
+            autoFocus
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.4, delay: 0.3 }}
+            whileFocus={{ scale: 1.02 }}
+          />
           
-          {error && (
-            <div className="text-red-600 dark:text-red-400 text-sm text-center auto-sindhi-font">
-              {error}
-            </div>
-          )}
-          
-          <Button
-            onClick={handleNext}
+          <motion.button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleSubmit().catch((error) => {
+                console.error('Button click error:', error);
+                setError('خطا: هڪ مسئلو پيش آيو. مهرباني ڪري ٻيهر ڪوشش ڪريو.');
+              });
+            }}
             disabled={isLoading || !sindhiName.trim()}
-            className="w-full h-12 text-lg font-medium"
+            className="absolute left-4 top-1/2 transform -translate-y-1/2 p-2 hover:bg-gray-100 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
+            initial={{ x: -20, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ duration: 0.4, delay: 0.5 }}
           >
-            {isLoading ? (
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto"></div>
-                <span className="auto-sindhi-font">محفوظ ٿي رهيو آهي...</span>
-              </div>
-            ) : (
-              <span className="auto-sindhi-font">اڳتي</span>
-            )}
-          </Button>
-        </CardContent>
-      </Card>
-    </div>
+            <AnimatePresence mode="wait">
+              {isLoading ? (
+                <motion.div 
+                  key="loading"
+                  className="w-5 h-5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"
+                  initial={{ opacity: 0, rotate: 0 }}
+                  animate={{ opacity: 1, rotate: 360 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                />
+              ) : (
+                <motion.div
+                  key="arrow"
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 10 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <ArrowRight className="w-5 h-5 text-gray-600 rotate-180" />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.button>
+        </motion.div>
+        
+        <AnimatePresence>
+          {error && (
+            <motion.div 
+              className="text-red-500 text-sm text-center mt-4 auto-sindhi-font"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.3 }}
+            >
+              {error}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
+    </motion.div>
   )
 }

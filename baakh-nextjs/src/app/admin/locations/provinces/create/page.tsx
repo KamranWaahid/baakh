@@ -128,16 +128,16 @@ export default function CreateProvincePage() {
               <div>
                 <h1 className="text-3xl font-bold">Add New Province/State</h1>
                 <p className="text-muted-foreground">
-                  Create a new province or state within a country
+                  Create a new province within a country
                 </p>
               </div>
             </div>
           </div>
 
           {/* Form */}
-          <Card>
+          <Card className="bg-white border border-gray-200">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 text-gray-900">
                 <Mountain className="w-5 h-5" />
                 Province Information
               </CardTitle>
@@ -200,16 +200,16 @@ export default function CreateProvincePage() {
                     required
                   />
                   <p className="text-sm text-muted-foreground">
-                    Enter the province or state name in {formData.lang === "en" ? "English" : "Sindhi"}
+                    Enter the province name in {formData.lang === "en" ? "English" : "Sindhi"}
                   </p>
                 </div>
 
                 {/* Form Actions */}
-                <div className="flex items-center gap-4 pt-6 border-t">
+                <div className="flex items-center gap-4 pt-6 border-t border-gray-200">
                   <Button
                     type="submit"
                     disabled={loading || !formData.province_name || !formData.country_id}
-                    className="flex-1"
+                    className="flex-1 bg-gray-900 text-white"
                   >
                     {loading ? (
                       <>
@@ -224,7 +224,7 @@ export default function CreateProvincePage() {
                     )}
                   </Button>
                   
-                  <Button variant="outline" asChild>
+                  <Button variant="outline" asChild className="border border-gray-200 text-gray-700">
                     <Link href="/admin/locations/provinces">
                       Cancel
                     </Link>
@@ -235,17 +235,17 @@ export default function CreateProvincePage() {
           </Card>
 
           {/* Help Section */}
-          <Card className="mt-6">
+          <Card className="mt-6 bg-white border border-gray-200">
             <CardHeader>
-              <CardTitle className="text-lg">Tips for Adding Provinces</CardTitle>
+              <CardTitle className="text-lg text-gray-900">Tips for Adding Provinces</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="flex items-start gap-3">
                 <Flag className="w-5 h-5 text-muted-foreground mt-0.5" />
                 <div>
-                  <p className="font-medium">Country Selection</p>
+                  <p className="font-medium">Country First</p>
                   <p className="text-sm text-muted-foreground">
-                    Make sure to select the correct country. The province will be linked to that country.
+                    Select the country first to ensure proper hierarchical organization.
                   </p>
                 </div>
               </div>
@@ -255,17 +255,17 @@ export default function CreateProvincePage() {
                 <div>
                   <p className="font-medium">Province Names</p>
                   <p className="text-sm text-muted-foreground">
-                    Use the official name of the province or state as it appears in official documents.
+                    Use the official name of the province as it appears in official documents.
                   </p>
                 </div>
               </div>
               
               <div className="flex items-start gap-3">
-                <Mountain className="w-5 h-5 text-muted-foreground mt-0.5" />
+                <Flag className="w-5 h-5 text-muted-foreground mt-0.5" />
                 <div>
                   <p className="font-medium">Multi-lingual Support</p>
                   <p className="text-sm text-muted-foreground">
-                    You can add the same province in multiple languages. Each language entry will be a separate row.
+                    You can add the same province in multiple languages. Each language entry will be a separate row in the database.
                   </p>
                 </div>
               </div>

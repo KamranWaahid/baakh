@@ -24,6 +24,117 @@ interface Tag {
   }>;
 }
 
+// Fallback tags for when API fails
+function getFallbackTags(lang: string): Tag[] {
+  const fallbackTags = [
+    { id: '1', slug: 'love', label: 'Love', tag_type: 'Topic', created_at: new Date().toISOString() },
+    { id: '2', slug: 'nature', label: 'Nature', tag_type: 'Topic', created_at: new Date().toISOString() },
+    { id: '3', slug: 'wisdom', label: 'Wisdom', tag_type: 'Topic', created_at: new Date().toISOString() },
+    { id: '4', slug: 'family', label: 'Family', tag_type: 'Topic', created_at: new Date().toISOString() },
+    { id: '5', slug: 'friendship', label: 'Friendship', tag_type: 'Topic', created_at: new Date().toISOString() },
+    { id: '6', slug: 'life', label: 'Life', tag_type: 'Topic', created_at: new Date().toISOString() },
+    { id: '7', slug: 'hope', label: 'Hope', tag_type: 'Topic', created_at: new Date().toISOString() },
+    { id: '8', slug: 'peace', label: 'Peace', tag_type: 'Topic', created_at: new Date().toISOString() }
+  ];
+
+  if (lang === 'sd') {
+    return fallbackTags.map(tag => ({
+      ...tag,
+      tags_translations: [{
+        lang_code: 'sd',
+        title: getSindhiTranslation(tag.slug),
+        detail: ''
+      }]
+    }));
+  }
+
+  return fallbackTags;
+}
+
+function getSindhiTranslation(slug: string): string {
+  const translations: { [key: string]: string } = {
+    'love': 'محبت',
+    'wisdom': 'حڪمت',
+    'life': 'زندگي',
+    'death': 'موت',
+    'faith': 'ايمان',
+    'hope': 'اميد',
+    'patience': 'صبرو',
+    'friendship': 'دوستي',
+    'nature': 'فطرت',
+    'freedom': 'آزادي',
+    'justice': 'انصاف',
+    'peace': 'امن',
+    'social-justice': 'سماجي انصاف',
+    'sufism': 'تصوف',
+    'homeland': 'وطن',
+    'culture': 'ثقافت',
+    'religion': 'مذهب',
+    'poetry': 'شاعري',
+    'literature': 'ادب',
+    'beauty': 'خوبصورتي',
+    'sorrow': 'غم',
+    'happiness': 'خوشي',
+    'time': 'وقت',
+    'youth': 'جواني',
+    'old-age': 'ڏاڙهپ',
+    'mother': 'ماءُ',
+    'father': 'پيءُ',
+    'child': 'ٻار',
+    'woman': 'عورت',
+    'man': 'مرد',
+    'heart': 'دل',
+    'soul': 'روح',
+    'mind': 'دماغ',
+    'eyes': 'اکيون',
+    'tears': 'آنسو',
+    'smile': 'مسڪر',
+    'dream': 'سپنو',
+    'reality': 'حقيقت',
+    'truth': 'سچ',
+    'lie': 'ڪوڙ',
+    'good': 'سٺو',
+    'bad': 'خراب',
+    'right': 'صحيح',
+    'wrong': 'غلط',
+    'light': 'روشني',
+    'darkness': 'اندھيرو',
+    'day': 'ڏينهن',
+    'night': 'رات',
+    'morning': 'صبح',
+    'evening': 'شام',
+    'spring': 'بسنت',
+    'summer': 'گرمي',
+    'winter': 'سردي',
+    'autumn': 'خزاں',
+    'rain': 'مينهن',
+    'sun': 'سج',
+    'moon': 'چنڊ',
+    'stars': 'تارا',
+    'sky': 'آسمان',
+    'earth': 'زمين',
+    'water': 'پاڻي',
+    'fire': 'باڻ',
+    'wind': 'هوا',
+    'flower': 'پھول',
+    'tree': 'وڻ',
+    'bird': 'پکي',
+    'river': 'درياءُ',
+    'mountain': 'پهاڙ',
+    'sea': 'سمنڊ',
+    'desert': 'ريگستان',
+    'forest': 'جنگل',
+    'garden': 'باغ',
+    'home': 'گھر',
+    'village': 'ڳوٺ',
+    'city': 'شھر',
+    'country': 'ملڪ',
+    'world': 'دنيا',
+    'universe': 'ڪائنات'
+  };
+  return translations[slug] || slug;
+}
+
 export default function TagsSection({ isSindhi, tags }: TagsSectionProps) {
   const [popularTags, setPopularTags] = useState<Tag[]>(tags || []);
   const [loading, setLoading] = useState(!tags);
@@ -49,30 +160,47 @@ export default function TagsSection({ isSindhi, tags }: TagsSectionProps) {
       try {
         setLoading(true);
         const lang = isSindhi ? 'sd' : 'en';
-        // Request only Topic tags to exclude Poet tags
-        const timeoutSignal = AbortSignal.timeout(10000);
-        const combinedSignal = (AbortSignal as any).any ? (AbortSignal as any).any([controller.signal, timeoutSignal]) : timeoutSignal;
+        
+        // Use traditional timeout approach for better compatibility
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        
         const res = await fetch(`/api/tags?lang=${lang}&type=Topic&limit=18`, { 
-          signal: combinedSignal, 
+          signal: controller.signal, 
           cache: 'no-store' 
         });
         
+        clearTimeout(timeoutId);
+        
         if (!res.ok) {
+          // Handle different error status codes gracefully
+          if (res.status === 500) {
+            console.warn('Tags API returned 500 - likely database not configured. Using fallback data.');
+            setPopularTags(getFallbackTags(lang));
+            return;
+          }
           console.error('Failed to fetch tags:', res.status);
+          // Use fallback data for other errors too
+          setPopularTags(getFallbackTags(lang));
           return;
         }
         
         const json = await res.json();
-        if (json?.items) {
-          setPopularTags(json.items);
+        if (json?.tags && Array.isArray(json.tags)) {
+          setPopularTags(json.tags);
+        } else {
+          // Fallback if response format is unexpected
+          setPopularTags(getFallbackTags(lang));
         }
       } catch (e: any) {
         // Only log errors that aren't abort errors
         if (e.name !== 'AbortError') {
           if (/timed out|signal timed out/i.test(String(e?.message))) {
-            console.warn('Tags request timed out');
+            console.warn('Tags request timed out - using fallback data');
+            setPopularTags(getFallbackTags(isSindhi ? 'sd' : 'en'));
           } else {
             console.error('Error loading tags:', e);
+            // Provide fallback data even on error
+            setPopularTags(getFallbackTags(isSindhi ? 'sd' : 'en'));
           }
         }
       } finally {
@@ -115,11 +243,15 @@ export default function TagsSection({ isSindhi, tags }: TagsSectionProps) {
 
   // Get display title based on language
   function getDisplayTitle(tag: Tag): string {
-    if (isSindhi && tag.tags_translations) {
-      const sindhiTranslation = tag.tags_translations.find(t => t.lang_code === 'sd');
-      if (sindhiTranslation?.title) {
-        return sindhiTranslation.title;
+    // The API now returns the proper translated title in the 'title' field
+    // Use the same fallback logic as the API
+    if (isSindhi) {
+      // Use the title field if it exists and is not just the slug
+      if (tag.title && tag.title !== tag.slug) {
+        return tag.title;
       }
+      // Fallback to the hardcoded translations
+      return getSindhiTranslation(tag.slug);
     }
     return tag.label;
   }
@@ -231,13 +363,18 @@ export default function TagsSection({ isSindhi, tags }: TagsSectionProps) {
         
         {!loading && popularTags.length > 0 && (
           <div className="text-center mt-8">
-            <Link href={isSindhi ? '/sd/topics' : '/en/topics'}>
-              <Button variant="outline" size="lg" className="h-12 px-8 border-2 border-gray-300 text-gray-700 hover:border-black hover:text-black rounded-full font-medium text-base bg-white shadow-sm">
+            <Button 
+              asChild 
+              variant="outline" 
+              size="lg" 
+              className="h-12 px-8 border border-gray-300 text-gray-700 hover:border-black hover:text-black rounded-full font-medium text-base bg-white"
+            >
+              <Link href={isSindhi ? '/sd/topics' : '/en/topics'}>
                 <span className={isSindhi ? 'auto-sindhi-font button-text' : ''}>
                   {isSindhi ? 'سڀ ٽڪليون ڏسو' : 'View All Tags'}
                 </span>
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           </div>
         )}
       </div>

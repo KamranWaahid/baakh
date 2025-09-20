@@ -30,17 +30,25 @@ import {
   Share2
 } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
-import { useParams, usePathname } from "next/navigation";
+import { useParams, usePathname, useRouter } from "next/navigation";
 import { getSmartFontClass } from "@/lib/font-detection-utils";
 import { getPrimaryPoetName, getSecondaryPoetName, getAvatarPoetName } from "@/lib/poet-name-utils";
+import CoupletCard from "@/components/CoupletCard";
+import PoetDescriptionModal from "@/components/ui/PoetDescriptionModal";
 
 interface Poet {
   id: string;
   name: string;
   sindhiName: string;
   englishName: string;
+  sindhi_laqab?: string;
+  english_laqab?: string;
+  sindhi_takhalus?: string;
+  english_takhalus?: string;
   period: string;
   location: string;
+  locationSd?: string;
+  locationEn?: string;
   avatar: string;
   description: string;
   longDescription: string;
@@ -99,6 +107,7 @@ interface Category {
 export default function PoetPage() {
   const params = useParams();
   const pathname = usePathname();
+  const router = useRouter();
   const poetId = params.id as string;
   const isSindhi = pathname?.startsWith('/sd');
   const isRTL = isSindhi;
@@ -126,7 +135,6 @@ export default function PoetPage() {
     noPoetryFound: isSindhi ? 'ڪائي شاعري نه ملي' : 'No Poetry Found',
     noPoetrySubtitle: isSindhi ? 'هن شاعر جي پاس هن وقت ڪوئي شاعري ناهي' : 'This poet doesn\'t have any poetry in the database yet.',
     similarPoets: isSindhi ? 'ملندڙ جلندڙ شاعر' : 'Similar Poets',
-    poetryStats: isSindhi ? 'شاعري جا انگ اکر' : 'Poetry Stats',
     totalWorks: isSindhi ? 'سڀ ڪم' : 'Total Works',
     coupletsLabel: isSindhi ? 'شعر' : 'Couplets',
     nazamsLabel: isSindhi ? 'نظم' : 'Nazams',
@@ -142,11 +150,21 @@ export default function PoetPage() {
     translatedTags: Array<{ id: string; name: { en: string; sd: string } }>;
     likes: number;
     views: number;
+    poetry_id?: number | null;
+    poetry?: any | null;
   }>>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
+  const [poetStats, setPoetStats] = useState({
+    poetry: 0,
+    couplets: 0,
+    categories: 0
+  });
+  const [isDescriptionModalOpen, setIsDescriptionModalOpen] = useState(false);
+  const [morePoets, setMorePoets] = useState<Array<{ id: string; name: string; avatar?: string; period?: string; tagline?: string }>>([]);
+  const [morePoetsLoading, setMorePoetsLoading] = useState(false);
 
   // Apply Sindhi font only when text contains Arabic/Sindhi characters
   const sd = (text?: string | null) => (text && /[\u0600-\u06FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(text) ? 'sindhi-text' : '');
@@ -182,10 +200,39 @@ export default function PoetPage() {
     return lines;
   };
 
+  // Fetch poet stats
+  const fetchPoetStats = useCallback(async () => {
+    if (!poetId) return;
+    
+    try {
+      const response = await fetch(`/api/poets/${poetId}/stats?lang=${language}`);
+      if (response.ok) {
+        const stats = await response.json();
+        setPoetStats(stats);
+      } else {
+        console.log('🔄 Stats fetch failed, using default values');
+        setPoetStats({
+          poetry: 0,
+          couplets: 0,
+          categories: 0
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching poet stats:', error);
+      setPoetStats({
+        poetry: 0,
+        couplets: 0,
+        categories: 0
+      });
+    }
+  }, [poetId, language]);
+
   // Fetch poet data and categories
   const fetchPoetData = useCallback(async () => {
-    if (!poetId) {
-      console.log('No poetId provided, skipping fetch');
+    if (!poetId || poetId === 'undefined' || poetId === 'null') {
+      console.log('No valid poetId provided, skipping fetch. poetId:', poetId);
+      setError(true);
+      setLoading(false);
       return;
     }
     
@@ -195,74 +242,99 @@ export default function PoetPage() {
     setError(false);
     
     try {
-      const apiUrl = `/api/poets/${poetId}?lang=${language}`;
-      console.log('📡 Fetching from:', apiUrl);
-      
-      const response = await fetch(apiUrl, {
-        signal: AbortSignal.timeout(10000)
-      });
-      
-      console.log('📥 Response status:', response.status, response.ok);
-      
-      if (response.ok) {
+      const withTimeout = async (url: string) => {
+        const controller = new AbortController();
+        const id = setTimeout(() => controller.abort(), 10000);
+        try {
+          const res = await fetch(url, { signal: controller.signal, headers: { 'Content-Type': 'application/json' } });
+          return res;
+        } finally {
+          clearTimeout(id);
+        }
+      };
+
+      const urls = [
+        `/api/poets/${poetId}/direct?lang=${language}`,
+        `/api/poets/${poetId}/direct-db?lang=${language}`,
+        `/api/poets/${poetId}/mock?lang=${language}`
+      ];
+
+      let success = false;
+      for (const url of urls) {
+        console.log('📡 Trying URL:', url);
+        let response: Response | null = null;
+        try {
+          response = await withTimeout(url);
+        } catch (fetchError: any) {
+          console.warn('⚠️ Fetch failed for', url, fetchError?.message || fetchError);
+          continue;
+        }
+
+        console.log('📥 Response status:', response.status, response.ok, 'for', url);
+        if (!response.ok) {
+          // Continue to next URL on 404/503; break on other 5xx
+          if (response.status === 404 || response.status === 503) {
+            continue;
+          }
+          try {
+            const errJson = await response.json().catch(() => ({}));
+            console.error('Error details from', url, errJson);
+          } catch {}
+          continue;
+        }
+
         const data = await response.json();
-        console.log('✅ Poet data received:', data);
-        
+        console.log('✅ Poet data received from', url);
         setPoet(data.poet);
         setCategories(data.categories || []);
-        
-        // Seed with couplet samples immediately so UI shows content
         if (Array.isArray(data.poet?.couplets) && data.poet.couplets.length > 0) {
-          console.log('📝 Setting couplet samples:', data.poet.couplets.length);
-          // Normalize to structure used in UI
-          const seeded = data.poet.couplets.map((c: any) => ({
-            id: c.id,
-            lines: c.lines || (c.displayText ? [c.displayText, ''] : []),
-            translatedTags: c.translatedTags || [],
-            likes: c.likes || 0,
-            views: c.views || 0
-          }));
-          setPoetCouplets(seeded);
-        }
-        
-        // Fetch standalone couplets by poet (poetry_id null or 0)
-        if (data.poet?.poetNumericId) {
-          console.log('🔍 Fetching standalone couplets for poet ID:', data.poet.poetNumericId);
-          const params = new URLSearchParams({
-            lang: isSindhi ? 'sd' : 'en',
-            limit: '6',
-            sortBy: 'created_at',
-            sortOrder: 'desc',
-            standalone: '1',
-            poetId: String(data.poet.poetNumericId)
-          });
-          
-          const coupletsUrl = `/api/couplets?${params.toString()}`;
-          console.log('📡 Fetching couplets from:', coupletsUrl);
-          
-          const cl = await fetch(coupletsUrl, {
-            signal: AbortSignal.timeout(10000)
-          });
-          
-          if (cl.ok) {
-            const cj = await cl.json();
-            console.log('✅ Couplets received:', cj.couplets?.length || 0);
-            setPoetCouplets(Array.isArray(cj.couplets) ? cj.couplets : []);
-          } else {
-            console.warn('⚠️ Couplets fetch failed:', cl.status);
+          setPoetCouplets(data.poet.couplets);
+        } else {
+          setPoetCouplets([]);
+          // Fallback: fetch couplets via public couplets API using poetId like homepage
+          try {
+            const fallbackParams = new URLSearchParams({
+              poetId: String((data.poet as any).poetNumericId || (data.poet as any).poet_id || (data.poet as any).id || ''),
+              lang: language,
+              standalone: '1',
+              limit: '12',
+              sortBy: 'created_at',
+              sortOrder: 'desc'
+            });
+            const fallbackRes = await fetch(`/api/couplets?${fallbackParams.toString()}`);
+            if (fallbackRes.ok) {
+              const fallbackJson = await fallbackRes.json();
+              const mapped = (fallbackJson.couplets || []).map((c: any) => ({
+                id: c.id,
+                lines: Array.isArray(c.lines) ? c.lines.slice(0, 2) : String(c.couplet_text || '').split('\n').slice(0, 2),
+                translatedTags: [],
+                likes: c.likes || 0,
+                views: c.views || 0,
+                poetry_id: c.poetry?.id || c.poetry_id || null,
+                poetry: c.poetry || null
+              }));
+              setPoetCouplets(mapped);
+            } else {
+              console.warn('Fallback couplets fetch failed:', fallbackRes.status);
+            }
+          } catch (fallbackErr) {
+            console.warn('Fallback couplets fetch error:', fallbackErr);
           }
         }
-      } else {
-        console.error('❌ Poet fetch failed:', response.status, response.statusText);
+        success = true;
+        break;
+      }
+
+      if (!success) {
+        console.error('❌ All poet data sources failed');
         setError(true);
-        
-        // Auto-retry on failure (max 3 attempts)
+        // Auto-retry on failure (max 3 attempts) - but not for 500 errors
         if (retryCount < 3) {
           console.log(`🔄 Auto-retrying... Attempt ${retryCount + 1}/3`);
           setTimeout(() => {
             setRetryCount(prev => prev + 1);
             fetchPoetData();
-          }, 2000); // Wait 2 seconds before retry
+          }, 2000);
         }
       }
     } catch (error) {
@@ -297,16 +369,90 @@ export default function PoetPage() {
   useEffect(() => {
     console.log('🔄 useEffect triggered with poetId:', poetId, 'language:', language, 'mounted:', mounted);
     
-    // Only fetch if component is mounted and poetId exists
-    if (mounted && poetId) {
+    // Only fetch if component is mounted and poetId exists and is valid
+    if (mounted && poetId && poetId !== 'undefined' && poetId !== 'null') {
       console.log('✅ Component mounted and poetId exists, calling fetchPoetData');
       fetchPoetData();
+      fetchPoetStats();
     } else if (!mounted) {
       console.log('⏳ Component not yet mounted, waiting...');
-    } else if (!poetId) {
-      console.log('❌ poetId is missing, cannot fetch data');
+    } else if (!poetId || poetId === 'undefined' || poetId === 'null') {
+      console.log('❌ poetId is missing or invalid, redirecting to poets list. poetId:', poetId);
+      // Redirect to poets list page after a short delay
+      setTimeout(() => {
+        router.push(`/${isSindhi ? 'sd' : 'en'}/poets`);
+      }, 2000);
+      setError(true);
+      setLoading(false);
     }
   }, [poetId, fetchPoetData, mounted]);
+
+  // Fallback: compute stats on client if API returns zeros
+  useEffect(() => {
+    // If any stat is non-zero, assume API provided meaningful data
+    if (poetStats.poetry > 0 || poetStats.couplets > 0 || poetStats.categories > 0) return;
+
+    const computedCategories = Array.isArray(categories) ? categories.length : 0;
+    const computedPoetry = Array.isArray(categories)
+      ? categories.reduce((sum, cat) => sum + (Number(cat.poetryCount) || 0), 0)
+      : 0;
+    const computedCouplets = Array.isArray(poetCouplets)
+      ? poetCouplets.filter(c => !c.poetry_id || c.poetry_id === 0).length
+      : 0;
+
+    if (computedCategories || computedPoetry || computedCouplets) {
+      setPoetStats({
+        poetry: computedPoetry,
+        couplets: computedCouplets,
+        categories: computedCategories
+      });
+    }
+  }, [categories, poetCouplets, poetStats.poetry, poetStats.couplets, poetStats.categories]);
+
+  // Fetch more poets (up to 7), excluding current poet
+  useEffect(() => {
+    const fetchMorePoets = async () => {
+      if (!poetId) return;
+      try {
+        setMorePoetsLoading(true);
+        // Try to use the generic poets list API; fall back gracefully
+        const res = await fetch(`/api/poets?limit=12&lang=${language}`);
+        if (!res.ok) {
+          setMorePoets([]);
+          return;
+        }
+        const json = await res.json();
+        const list: any[] = Array.isArray(json.poets) ? json.poets : (Array.isArray(json) ? json : (Array.isArray(json.data) ? json.data : []));
+        const normalized = list
+          .map((p: any) => {
+            const nameCandidate = (
+              p.name || p.englishName || p.sindhiName || p.poet_name || p.primary_name || p.title || p.display_name || ''
+            );
+            const name = String(nameCandidate);
+            const taglineCandidate = (
+              (isSindhi ? p.sindhi_laqab : p.english_laqab) ||
+              p.tagline ||
+              (typeof p.description === 'string' ? p.description.split(/\n|\./)[0] : '')
+            );
+            return {
+              id: String(p.id || p.slug || p.poet_id || p.identifier || name || ''),
+              name,
+              avatar: p.avatar || p.photo || p.image || '',
+              period: p.period || p.years || p.active_years || '',
+              tagline: taglineCandidate ? String(taglineCandidate) : ''
+            };
+          })
+          .filter((p: any) => p.id && p.id !== String(poetId));
+        setMorePoets(normalized.slice(0, 7));
+      } catch (e) {
+        setMorePoets([]);
+      } finally {
+        setMorePoetsLoading(false);
+      }
+    };
+
+    fetchMorePoets();
+  }, [poetId, language]);
 
   // Debug effect to track state changes
   useEffect(() => {
@@ -326,7 +472,7 @@ export default function PoetPage() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.3 }}
             >
-              <div className="inline-flex items-center gap-2 w-32 h-10 bg-muted animate-pulse rounded-lg" />
+              <div className="inline-flex items-center gap-2 w-32 h-10 bg-muted rounded-lg shimmer" />
             </motion.div>
 
             {/* Poet Header Skeleton */}
@@ -339,7 +485,7 @@ export default function PoetPage() {
               <div className="flex flex-col lg:flex-row items-start gap-10 md:gap-12">
                 {/* Avatar Skeleton */}
                 <motion.div 
-                  className="h-40 w-40 rounded-full bg-muted animate-pulse ring-4 ring-gray-100 shadow-md"
+                  className="h-40 w-40 rounded-full bg-muted ring-4 ring-gray-100 shadow-md shimmer"
                   initial={{ scale: 0.8 }}
                   animate={{ scale: 1 }}
                   transition={{ duration: 0.5, delay: 0.2 }}
@@ -353,24 +499,24 @@ export default function PoetPage() {
                   transition={{ duration: 0.4, delay: 0.3 }}
                 >
                   {/* Name Skeleton */}
-                  <div className="h-12 bg-muted animate-pulse rounded w-3/4" />
+                  <div className="h-12 bg-muted rounded w-3/4 shimmer" />
                   {/* Alternate Name Skeleton */}
-                  <div className="h-8 bg-muted animate-pulse rounded w-1/2" />
+                  <div className="h-8 bg-muted rounded w-1/2 shimmer" />
                   {/* Period Skeleton */}
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-muted animate-pulse rounded" />
-                    <div className="h-5 bg-muted animate-pulse rounded w-24" />
+                    <div className="w-4 h-4 bg-muted rounded shimmer" />
+                    <div className="h-5 bg-muted rounded w-24 shimmer" />
                   </div>
                   {/* Location Skeleton */}
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-muted animate-pulse rounded" />
-                    <div className="h-5 bg-muted animate-pulse rounded w-32" />
+                    <div className="w-4 h-4 bg-muted rounded shimmer" />
+                    <div className="h-5 bg-muted rounded w-32 shimmer" />
                   </div>
                   {/* Description Skeleton */}
                   <div className="space-y-3">
-                    <div className="h-4 bg-muted animate-pulse rounded w-full" />
-                    <div className="h-4 bg-muted animate-pulse rounded w-5/6" />
-                    <div className="h-4 bg-muted animate-pulse rounded w-4/5" />
+                    <div className="h-4 bg-muted rounded w-full shimmer" />
+                    <div className="h-4 bg-muted rounded w-5/6 shimmer" />
+                    <div className="h-4 bg-muted rounded w-4/5 shimmer" />
                   </div>
                 </motion.div>
               </div>
@@ -392,8 +538,8 @@ export default function PoetPage() {
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.3, delay: 0.5 + (i * 0.1) }}
                   >
-                    <div className="h-8 bg-muted animate-pulse rounded w-16 mx-auto mb-2" />
-                    <div className="h-5 bg-muted animate-pulse rounded w-20 mx-auto" />
+                    <div className="h-8 bg-muted rounded w-16 mx-auto mb-2 shimmer" />
+                    <div className="h-5 bg-muted rounded w-20 mx-auto shimmer" />
                   </motion.div>
                 ))}
               </div>
@@ -407,8 +553,8 @@ export default function PoetPage() {
               transition={{ duration: 0.4, delay: 0.6 }}
             >
               <div className="mb-8">
-                <div className="h-8 bg-muted animate-pulse rounded w-48 mb-2" />
-                <div className="h-5 bg-muted animate-pulse rounded w-96" />
+                <div className="h-8 bg-muted rounded w-48 mb-2 shimmer" />
+                <div className="h-5 bg-muted rounded w-96 shimmer" />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {[1, 2, 3, 4, 5, 6].map((i) => (
@@ -420,16 +566,16 @@ export default function PoetPage() {
                     transition={{ duration: 0.3, delay: 0.7 + (i * 0.05) }}
                   >
                     <div className="space-y-4">
-                      <div className="h-6 bg-muted animate-pulse rounded w-full" />
-                      <div className="h-6 bg-muted animate-pulse rounded w-5/6" />
+                      <div className="h-6 bg-muted rounded w-full shimmer" />
+                      <div className="h-6 bg-muted rounded w-5/6 shimmer" />
                       <div className="flex items-center justify-between pt-4">
                         <div className="flex items-center gap-2">
-                          <div className="w-4 h-4 bg-muted animate-pulse rounded" />
-                          <div className="h-4 bg-muted animate-pulse rounded w-12" />
+                          <div className="w-4 h-4 bg-muted rounded shimmer" />
+                          <div className="h-4 bg-muted rounded w-12 shimmer" />
                         </div>
                         <div className="flex items-center gap-2">
-                          <div className="w-4 h-4 bg-muted animate-pulse rounded" />
-                          <div className="h-4 bg-muted animate-pulse rounded w-12" />
+                          <div className="w-4 h-4 bg-muted rounded shimmer" />
+                          <div className="h-4 bg-muted rounded w-12 shimmer" />
                         </div>
                       </div>
                     </div>
@@ -446,8 +592,8 @@ export default function PoetPage() {
               transition={{ duration: 0.4, delay: 0.8 }}
             >
               <div className="mb-8">
-                <div className="h-8 bg-muted animate-pulse rounded w-56 mb-2" />
-                <div className="h-5 bg-muted animate-pulse rounded w-80" />
+                <div className="h-8 bg-muted rounded w-56 mb-2 shimmer" />
+                <div className="h-5 bg-muted rounded w-80 shimmer" />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {[1, 2, 3].map((i) => (
@@ -460,19 +606,19 @@ export default function PoetPage() {
                   >
                     <div className="space-y-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 bg-muted animate-pulse rounded-lg" />
+                        <div className="w-12 h-12 bg-muted rounded-lg shimmer" />
                         <div className="flex-1">
-                          <div className="h-6 bg-muted animate-pulse rounded w-24 mb-2" />
-                          <div className="h-4 bg-muted animate-pulse rounded w-32" />
+                          <div className="h-6 bg-muted rounded w-24 mb-2 shimmer" />
+                          <div className="h-4 bg-muted rounded w-32 shimmer" />
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <div className="h-4 bg-muted animate-pulse rounded w-full" />
-                        <div className="h-4 bg-muted animate-pulse rounded w-3/4" />
+                        <div className="h-4 bg-muted rounded w-full shimmer" />
+                        <div className="h-4 bg-muted rounded w-3/4 shimmer" />
                       </div>
                       <div className="flex items-center justify-between">
-                        <div className="h-5 bg-muted animate-pulse rounded w-16" />
-                        <div className="h-8 bg-muted animate-pulse rounded w-20" />
+                        <div className="h-5 bg-muted rounded w-16 shimmer" />
+                        <div className="h-8 bg-muted rounded w-20 shimmer" />
                       </div>
                     </div>
                   </motion.div>
@@ -488,8 +634,8 @@ export default function PoetPage() {
               transition={{ duration: 0.4, delay: 1.0 }}
             >
               <div className="mb-8">
-                <div className="h-8 bg-muted animate-pulse rounded w-40 mb-2" />
-                <div className="h-5 bg-muted animate-pulse rounded w-64" />
+                <div className="h-8 bg-muted rounded w-40 mb-2 shimmer" />
+                <div className="h-5 bg-muted rounded w-64 shimmer" />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {[1, 2, 3, 4].map((i) => (
@@ -500,9 +646,9 @@ export default function PoetPage() {
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.3, delay: 1.1 + (i * 0.1) }}
                   >
-                    <div className="w-20 h-20 bg-muted animate-pulse rounded-full mx-auto mb-3" />
-                    <div className="h-5 bg-muted animate-pulse rounded w-24 mx-auto mb-2" />
-                    <div className="h-4 bg-muted animate-pulse rounded w-20 mx-auto" />
+                    <div className="w-20 h-20 bg-muted rounded-full mx-auto mb-3 shimmer" />
+                    <div className="h-5 bg-muted rounded w-24 mx-auto mb-2 shimmer" />
+                    <div className="h-4 bg-muted rounded w-20 mx-auto shimmer" />
                   </motion.div>
                 ))}
               </div>
@@ -565,7 +711,10 @@ export default function PoetPage() {
               {isSindhi ? 'شاعر نه مليو' : 'Poet Not Found'}
             </h3>
             <p className="text-gray-600 mb-6">
-              {isSindhi ? 'مهرباني ڪري چيڪ ڪريو ته شاعر جو نالو درست آهي.' : 'Please check if the poet name is correct.'}
+              {poetId === 'undefined' || poetId === 'null' 
+                ? (isSindhi ? 'شاعر جو نالو غلط آهي. توهان کي شاعرن جي فهرست ڏانهن موڪيو ويندو.' : 'Invalid poet ID provided. You will be redirected to the poets list.')
+                : (isSindhi ? 'مهرباني ڪري چيڪ ڪريو ته شاعر جو نالو درست آهي.' : 'Please check if the poet name is correct.')
+              }
             </p>
             <Button 
               onClick={() => {
@@ -618,39 +767,124 @@ export default function PoetPage() {
                   <h1 className={`text-4xl md:text-5xl font-extrabold tracking-tight mb-2 ${getSmartFontClass(getPrimaryPoetName(poet, isSindhi))}`}>
                     {getPrimaryPoetName(poet, isSindhi)}
                   </h1>
-                  {/* Show secondary name if available */}
-                  {getSecondaryPoetName(poet, isSindhi) && (
-                    <p className={`text-2xl text-gray-600 mb-6 ${getSmartFontClass(getSecondaryPoetName(poet, isSindhi)!)}`} dir={isSindhi ? 'rtl' : 'ltr'}>
-                      {getSecondaryPoetName(poet, isSindhi)}
+                  
+                  {/* Laqab (honorific title) - neutral color, no blue */}
+                  {(poet as any).sindhi_laqab || (poet as any).english_laqab ? (
+                    <p className={`text-xl text-gray-700 mb-1 ${getSmartFontClass(isSindhi ? (poet as any).sindhi_laqab : (poet as any).english_laqab)}`} dir={isSindhi ? 'rtl' : 'ltr'}>
+                      {isSindhi ? (poet as any).sindhi_laqab : (poet as any).english_laqab}
                     </p>
-                  )}
+                  ) : null}
+
+                  {/* Original/secondary name below */}
+                  {(() => {
+                    const secondaryName = getSecondaryPoetName(poet, isSindhi);
+                    return secondaryName ? (
+                      <p className={`text-base text-gray-600 mb-2 ${getSmartFontClass(secondaryName)}`} dir={isSindhi ? 'rtl' : 'ltr'}>
+                        {secondaryName}
+                      </p>
+                    ) : null;
+                  })()}
                   
                   <div className="flex flex-wrap items-center gap-3 text-muted-foreground mb-6">
-                    <span className="inline-flex items-center gap-2"><Calendar className="w-4 h-4" /> {poet.period}</span>
+                    {/* Birth and Death Dates */}
+                    <span className={`inline-flex items-center gap-2 ${getSmartFontClass(poet.period)}`}>
+                      <Calendar className="w-4 h-4" /> 
+                      {(poet as any).birth_date && (poet as any).death_date ? (
+                        <span>
+                          {isSindhi ? 'پيدائش: ' : 'Born: '}{(poet as any).birth_date} • {isSindhi ? 'وفات: ' : 'Died: '}{(poet as any).death_date}
+                        </span>
+                      ) : (poet as any).birth_date ? (
+                        <span>
+                          {isSindhi ? 'پيدائش: ' : 'Born: '}{(poet as any).birth_date} • {isSindhi ? 'زنده' : 'Alive'}
+                        </span>
+                      ) : (
+                        poet.period
+                      )}
+                    </span>
                     <span className="opacity-60">•</span>
-                    <span className="inline-flex items-center gap-2"><MapPin className="w-4 h-4" /> {isSindhi ? (poet as any).locationSd || poet.location : (poet as any).locationEn || poet.location}</span>
+                    <span className={`inline-flex items-center gap-2 ${getSmartFontClass(isSindhi ? (poet as any).birth_place_sd || (poet as any).birth_place : (poet as any).birth_place_en || (poet as any).birth_place)}`}>
+                      <MapPin className="w-4 h-4" /> 
+                      {isSindhi ? (poet as any).birth_place_sd || (poet as any).birth_place : (poet as any).birth_place_en || (poet as any).birth_place}
+                    </span>
+                    {/* Death place if different from birth place */}
+                    {(poet as any).death_place && (poet as any).death_place !== (poet as any).birth_place && (
+                      <>
+                        <span className="opacity-60">•</span>
+                        <span className={`inline-flex items-center gap-2 ${getSmartFontClass(isSindhi ? (poet as any).death_place_sd || (poet as any).death_place : (poet as any).death_place_en || (poet as any).death_place)}`}>
+                          <MapPin className="w-4 h-4" /> 
+                          {isSindhi ? (isSindhi ? 'وفات: ' : 'Died: ') + ((poet as any).death_place_sd || (poet as any).death_place) : (isSindhi ? 'وفات: ' : 'Died: ') + ((poet as any).death_place_en || (poet as any).death_place)}
+                        </span>
+                      </>
+                    )}
                   </div>
                   
-                  <p className={`text-lg text-gray-700 mb-6 leading-relaxed ${getSmartFontClass(poet.description)}`}>
-                    {poet.description}
-                  </p>
+                  <div className="mb-6">
+                    {(() => {
+                      const full = poet.description || '';
+                      const firstParagraph = full.split('\n').map(s => s.trim()).filter(Boolean)[0] || full;
+                      // Prefer first sentence boundary within first paragraph
+                      const firstSentence = (() => {
+                        const m = firstParagraph.match(/^([\s\S]+?[۔\.!?])\s+/u);
+                        return m ? m[1].trim() : firstParagraph.trim();
+                      })();
+                      const maxChars = 220;
+                      const excerpt = firstSentence.length > maxChars
+                        ? firstSentence.slice(0, maxChars).trimEnd() + '…'
+                        : firstSentence;
+                      const hasMore = full.trim().length > excerpt.length;
+                      return (
+                        <>
+                          <p className={`text-lg text-gray-700 leading-relaxed ${getSmartFontClass(excerpt)}`}>
+                            {excerpt}
+                          </p>
+                          {hasMore && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setIsDescriptionModalOpen(true)}
+                              className="mt-3 text-gray-600 border-gray-300 hover:bg-gray-50 hover:border-gray-400"
+                            >
+                              {isSindhi ? "مڪمل پڙهو" : "Read More"}
+                              <ChevronRight className="w-4 h-4 ml-1" />
+                            </Button>
+                          )}
+                        </>
+                      );
+                    })()}
+
+                    {/* Additional details if available */}
+                    {((poet as any).tags && (poet as any).tags.length > 0) && (
+                      <div className="mt-4">
+                        <h4 className={`text-sm font-medium text-gray-600 mb-2 ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+                          {isSindhi ? 'خاصيتون' : 'Characteristics'}
+                        </h4>
+                        <div className="flex flex-wrap gap-2">
+                          {(poet as any).tags.map((tag: string, index: number) => (
+                            <Badge key={index} variant="secondary" className="text-xs bg-gray-100 text-gray-700">
+                              {tag}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                   
                   <div className="grid grid-cols-3 gap-4 p-4 rounded-2xl bg-white/70 backdrop-blur-sm border border-gray-200">
                     <div className="text-center">
-                      <div className="text-2xl font-bold font-mono">
-                        {poet.stats.works}
+                      <div className="text-2xl font-bold font-inter">
+                        {poetStats.poetry}
                       </div>
                       <div className={`text-sm text-gray-600 ${getSmartFontClass(content.works)}`}>{content.works}</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold font-mono">
-                        {poet.stats.couplets}
+                      <div className="text-2xl font-bold font-inter">
+                        {poetStats.couplets}
                       </div>
                       <div className={`text-sm text-gray-600 ${getSmartFontClass(content.couplets)}`}>{content.couplets}</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold font-mono">
-                        {poet.stats.nazams + poet.stats.vaayis}
+                      <div className="text-2xl font-bold font-inter">
+                        {poetStats.categories}
                       </div>
                       <div className={`text-sm text-gray-600 ${getSmartFontClass(content.poems)}`}>{content.poems}</div>
                     </div>
@@ -666,8 +900,20 @@ export default function PoetPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Main Content */}
             <div className="lg:col-span-2 space-y-8">
-              {/* Couplets */}
-              {poetCouplets && poetCouplets.length > 0 && (
+              {/* Couplets - Show only standalone couplets (poetry_id null or 0) */}
+              {(() => {
+                const standaloneCouplets = poetCouplets?.filter(couplet => 
+                  !couplet.poetry || 
+                  !couplet.poetry_id || 
+                  couplet.poetry_id === 0
+                ) || [];
+                console.log('🔍 Couplets section check:', {
+                  totalCouplets: poetCouplets?.length || 0,
+                  standaloneCouplets: standaloneCouplets.length,
+                  willShow: standaloneCouplets.length > 0
+                });
+                return standaloneCouplets.length > 0;
+              })() && (
                 <section>
                   <div className="pb-3">
                     <h2 className={`text-2xl font-semibold mb-1 ${getSmartFontClass(content.famousCouplets)}`}>
@@ -676,89 +922,62 @@ export default function PoetPage() {
                     <p className={`text-gray-600 ${getSmartFontClass(content.coupletsSubtitle)}`}>
                       {content.coupletsSubtitle}
                     </p>
+                    <div className="mt-2">
+                      <Badge variant="outline" className="text-xs text-gray-500 border-gray-300">
+                        {isSindhi ? 'صرف آزاد شعر' : 'Standalone Couplets Only'}
+                      </Badge>
+                    </div>
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mt-6">
-                    {poetCouplets.slice(0, 4).map((couplet, index) => (
+                    {poetCouplets
+                      .filter(couplet => !couplet.poetry_id || couplet.poetry_id === 0)
+                      .slice(0, 4)
+                      .map((couplet, index) => (
                       <motion.div
                         key={couplet.id}
                         initial={{ opacity: 0, y: 12 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.25, delay: index * 0.05 }}
                       >
-                        <Card className="bg-white/80 backdrop-blur-sm border border-gray-200">
-                          <CardHeader className="pb-2">
-                            <div className="flex items-start justify-between gap-2">
-                              <div className="flex items-center gap-3">
-                                {poet.avatar ? (
-                                  <img 
-                                    src={poet.avatar} 
-                                    alt={poet.name}
-                                    className="w-10 h-10 rounded-full object-cover border-2 border-border/30"
-                                    onError={(e) => {
-                                      e.currentTarget.style.display = 'none';
-                                    }}
-                                  />
-                                ) : (
-                                  <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center border-2 border-border/30">
-                                    <User className="w-5 h-5 text-muted-foreground" />
-                                  </div>
-                                )}
-                                <CardTitle className={`text-base group-hover:opacity-90 ${getSmartFontClass(getPrimaryPoetName(poet, isSindhi))}`}>{getPrimaryPoetName(poet, isSindhi)}</CardTitle>
-                              </div>
-                              <div className="inline-flex items-center gap-2 text-muted-foreground">
-                                <button aria-label="Like" className="hover:text-foreground">
-                                  <Heart className="w-4 h-4" />
-                                </button>
-                                <button aria-label="Share" className="hover:text-foreground">
-                                  <Share2 className="w-4 h-4" />
-                                </button>
-                              </div>
-                            </div>
-                          </CardHeader>
-                          
-                          <CardContent className="text-sm text-muted-foreground">
-                            <div className="text-center space-y-1">
-                              {couplet.lines.slice(0, 2).map((line: string, lineIndex: number) => (
-                                <div key={`line-${lineIndex}`} className={`leading-relaxed ${getSmartFontClass(line)}`} dir={isSindhi ? 'rtl' : 'ltr'}>
-                                  {line}
-                                </div>
-                              ))}
-                            </div>
-                            <div className="mt-3 flex items-center justify-between text-xs">
-                              <div className="flex items-center gap-1.5 flex-wrap">
-                                {/* Tags section - only show if tags exist */}
-                                {couplet.translatedTags && couplet.translatedTags.length > 0 ? (
-                                  <>
-                                    {couplet.translatedTags.slice(0, 3).map((tag: string, tagIndex: number) => (
-                                      <Link key={`${couplet.id}-tag-${tagIndex}-${tag}`} href={isSindhi ? `/sd/couplets?tag=${encodeURIComponent(tag)}` : `/en/couplets?tag=${encodeURIComponent(tag)}`}>
-                                        <Badge variant="outline" className={`text-[10px] ${getSmartFontClass(tag)}`}>#{tag}</Badge>
-                                      </Link>
-                                    ))}
-                                    {couplet.translatedTags.length > 3 && (
-                                      <Badge key={`${couplet.id}-more-tags`} variant="outline" className="text-[10px]">
-                                        +{couplet.translatedTags.length - 3}
-                                      </Badge>
-                                    )}
-                                  </>
-                                ) : null}
-                              </div>
-                              <div className="flex items-center gap-3">
-                                <span className="inline-flex items-center gap-1">
-                                  <Heart className="w-3.5 h-3.5" />
-                                  {couplet.likes || 0}
-                                </span>
-                                <span className="inline-flex items-center gap-1">
-                                  <Eye className="w-3.5 h-3.5" />
-                                  {couplet.views || 0}
-                                </span>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
+                        <CoupletCard
+                          couplet={{
+                            id: typeof couplet.id === 'string' ? parseInt(couplet.id, 10) : couplet.id,
+                            couplet_text: couplet.lines.join('\n'),
+                            couplet_slug: `couplet-${couplet.id}`,
+                            lang: isSindhi ? 'sd' : 'en',
+                            lines: couplet.lines,
+                            tags: couplet.translatedTags?.map(tag => typeof tag === 'string' ? tag : tag.name?.[isSindhi ? 'sd' : 'en'] || '') || [],
+                            poet: {
+                              name: getPrimaryPoetName(poet, isSindhi),
+                              slug: poetId,
+                              photo: poet.avatar
+                            },
+                            created_at: new Date().toISOString(),
+                            likes: couplet.likes || 0,
+                            views: couplet.views || 0
+                          }}
+                          isSindhi={isSindhi}
+                          index={index}
+                        />
                       </motion.div>
                     ))}
                   </div>
+                  
+                  {/* More Couplets Button */}
+                  {poetCouplets.filter(couplet => !couplet.poetry_id || couplet.poetry_id === 0).length > 4 && (
+                    <div className="mt-6 text-center">
+                      <Link 
+                        href={`/${isSindhi ? 'sd' : 'en'}/couplets?poet=${poetId}`}
+                        className="inline-flex items-center gap-2 px-6 py-3 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-colors"
+                      >
+                        <span className={`font-medium ${getSmartFontClass(isSindhi ? 'سڀ شعر ڏسو' : 'View All Couplets')}`}>
+                          {isSindhi ? 'سڀ شعر ڏسو' : 'View All Couplets'}
+                        </span>
+                        <ChevronRight className="w-4 h-4 text-gray-500" />
+                      </Link>
+                    </div>
+                  )}
                 </section>
               )}
 
@@ -791,7 +1010,7 @@ export default function PoetPage() {
                         className="h-full"
                       >
                         <Card className="h-full rounded-2xl bg-white/60 backdrop-blur-sm border border-gray-200">
-                          <CardHeader className="pb-3">
+                          <CardHeader className="pb-3 pt-5">
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-3 min-w-0">
                                 <div className="w-10 h-10 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center shrink-0">
@@ -808,7 +1027,7 @@ export default function PoetPage() {
                             </div>
                           </CardHeader>
                           
-                          <CardContent className="space-y-3">
+                          <CardContent className="space-y-3 py-4">
                             {category.poetry.slice(0, 5).map((poem) => (
                               <div key={poem.id} className="p-3 rounded-lg bg-muted/10">
                                 <Link href={isSindhi ? `/sd/poets/${poetId}/form/${category.slug}/${poem.slug}` : `/en/poets/${poetId}/form/${category.slug}/${poem.slug}`} className="block">
@@ -816,16 +1035,23 @@ export default function PoetPage() {
                                     {isSindhi ? poem.title : (poem.englishTitle || poem.title)}
                                   </h4>
                                 </Link>
-                                {poem.tags && poem.tags.length > 0 && (
-                                  <div className="flex flex-wrap gap-1 mt-1">
-                                    {poem.tags.slice(0, 2).map((tag, tagIndex) => (
-                                      <span key={`${poem.id}-tag-${tagIndex}`} className="text-[10px] px-2 py-0.5 bg-muted/20 rounded-full text-muted-foreground">#{tag}</span>
-                                    ))}
-                                    {poem.tags.length > 2 && (
-                                      <span key={`${poem.id}-more-tags`} className="text-[10px] px-2 py-0.5 bg-muted/20 rounded-full text-muted-foreground">+{poem.tags.length - 2}</span>
-                                    )}
-                                  </div>
-                                )}
+                                {(() => {
+                                  const tagList = Array.isArray(poem.tags)
+                                    ? poem.tags
+                                    : (typeof poem.tags === 'string'
+                                        ? poem.tags.split(',').map((t: string) => t.trim()).filter(Boolean)
+                                        : []);
+                                  return tagList.length > 0 ? (
+                                    <div className="flex flex-wrap gap-1 mt-1">
+                                      {tagList.slice(0, 2).map((tag: string, tagIndex: number) => (
+                                        <span key={`${poem.id}-tag-${tagIndex}`} className="text-[10px] px-2 py-0.5 bg-muted/20 rounded-full text-muted-foreground">#{tag}</span>
+                                      ))}
+                                      {tagList.length > 2 && (
+                                        <span key={`${poem.id}-more-tags`} className="text-[10px] px-2 py-0.5 bg-muted/20 rounded-full text-muted-foreground">+{tagList.length - 2}</span>
+                                      )}
+                                    </div>
+                                  ) : null;
+                                })()}
                               </div>
                             ))}
 
@@ -956,13 +1182,16 @@ export default function PoetPage() {
 
             {/* Sidebar */}
             <div className="space-y-6">
-              {/* Similar Poets */}
-              {poet.similarPoets && poet.similarPoets.length > 0 && (
+              {/* Similar Poets / Suggestions */}
+              {(poet.similarPoets && poet.similarPoets.length > 0) ? (
                 <section>
-                  <h3 className={`text-lg font-semibold mb-3 ${getSmartFontClass(content.similarPoets)}`}>
-                    {content.similarPoets}
-                  </h3>
-                  <div className="space-y-3">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Users className="w-5 h-5 text-gray-600" />
+                    <h3 className={`text-lg font-semibold text-gray-900 ${getSmartFontClass(content.similarPoets)}`}>
+                      {content.similarPoets}
+                    </h3>
+                  </div>
+                  <div className="space-y-4">
                     {poet.similarPoets.map((similarPoet, index) => (
                       <motion.div
                         key={similarPoet.id}
@@ -971,26 +1200,26 @@ export default function PoetPage() {
                         transition={{ duration: 0.5, delay: index * 0.1 }}
                       >
                         <Link href={isSindhi ? `/sd/poets/${similarPoet.id}` : `/en/poets/${similarPoet.id}`}>
-                          <Card className="cursor-pointer rounded-2xl bg-white/70 backdrop-blur-sm border border-gray-200 hover:shadow-md hover:-translate-y-0.5 transition-all">
-                            <CardContent className="p-4">
-                              <div className="flex items-center justify-between gap-4">
-                                <div className="flex items-center gap-4 md:gap-5">
-                                  <Avatar className="h-12 w-12 ring-2 ring-gray-200">
+                          <Card className="cursor-pointer rounded-xl bg-white border border-gray-200">
+                            <CardContent className="p-3">
+                              <div className="flex items-center justify-between gap-3">
+                                <div className="flex items-center gap-3">
+                                  <Avatar className="h-10 w-10">
                                     <AvatarImage src={similarPoet.avatar} alt={similarPoet.name} />
-                                    <AvatarFallback className={`text-sm font-semibold ${getSmartFontClass(similarPoet.name)}`}>
+                                    <AvatarFallback className={`text-sm font-normal ${getSmartFontClass(similarPoet.name)}`}>
                                       {similarPoet.name.charAt(0)}
                                     </AvatarFallback>
                                   </Avatar>
                                   <div>
-                                    <h4 className={`font-medium ${getSmartFontClass(similarPoet.name)}`}>
+                                    <h4 className={`text-sm font-normal text-gray-900 ${getSmartFontClass(similarPoet.name)}`}>
                                       {similarPoet.name}
                                     </h4>
-                                    <p className="text-sm text-muted-foreground">
+                                    <p className="text-xs text-gray-500">
                                       {similarPoet.period}
                                     </p>
                                   </div>
                                 </div>
-                                <ChevronRight className="w-4 h-4 text-gray-400" />
+                                <ChevronRight className="w-3 h-3 text-gray-400" />
                               </div>
                             </CardContent>
                           </Card>
@@ -999,35 +1228,145 @@ export default function PoetPage() {
                     ))}
                   </div>
                 </section>
+              ) : (
+                <section>
+                  <div className="flex items-center gap-2 mb-4">
+                    <Sparkles className="w-5 h-5 text-gray-600" />
+                    <h3 className={`text-lg font-semibold text-gray-900 ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+                      {isSindhi ? 'تجويزات' : 'Suggestions'}
+                    </h3>
+                  </div>
+                  <div className="space-y-4">
+                    <Link href={isSindhi ? '/sd/poets' : '/en/poets'}>
+                      <Card className="cursor-pointer rounded-xl bg-white border border-gray-200 hover:shadow-md transition-shadow">
+                        <CardContent className="p-4">
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 bg-gray-100 rounded-lg">
+                              <BookOpen className="w-5 h-5 text-gray-600" />
+                            </div>
+                            <div>
+                              <h4 className={`font-medium text-gray-900 ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+                                {isSindhi ? 'سڀ شاعر ڏسو' : 'Explore All Poets'}
+                              </h4>
+                              <p className="text-sm text-gray-500">
+                                {isSindhi ? 'سڀ شاعرن کي ڳوليو' : 'Discover more poets'}
+                              </p>
+                            </div>
+                            <ChevronRight className="w-4 h-4 text-gray-400 ml-auto" />
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                    <Link href={isSindhi ? '/sd/couplets' : '/en/couplets'}>
+                      <Card className="cursor-pointer rounded-xl bg-white border border-gray-200 hover:shadow-md transition-shadow">
+                        <CardContent className="p-4">
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 bg-gray-100 rounded-lg">
+                              <Quote className="w-5 h-5 text-gray-600" />
+                            </div>
+                            <div>
+                              <h4 className={`font-medium text-gray-900 ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+                                {isSindhi ? 'شعر ڳوليو' : 'Explore Couplets'}
+                              </h4>
+                              <p className="text-sm text-gray-500">
+                                {isSindhi ? 'مشهور شعر ڳوليو' : 'Find famous couplets'}
+                              </p>
+                            </div>
+                            <ChevronRight className="w-4 h-4 text-gray-400 ml-auto" />
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  </div>
+                </section>
               )}
 
-              {/* Quick Stats */}
+              {/* More Poets (Suggestions list of ~7) */}
               <section>
-                <Card className="rounded-2xl bg-white/70 backdrop-blur-sm border border-gray-200">
-                  <CardHeader className="pb-3">
-                    <CardTitle className={`text-lg ${getSmartFontClass(content.poetryStats)}`}>{content.poetryStats}</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-2">
-                    {[
-                      { k: content.totalWorks, v: poet.stats.works },
-                      ...(poet.stats.couplets > 0 ? [{ k: content.coupletsLabel, v: poet.stats.couplets }] : []),
-                      ...(poet.stats.nazams > 0 ? [{ k: content.nazamsLabel, v: poet.stats.nazams }] : []),
-                      ...(poet.stats.vaayis > 0 ? [{ k: content.vaayisLabel, v: poet.stats.vaayis }] : [])
-                    ].map((row, i) => (
-                      <div key={i} className="flex items-center justify-between py-1.5 border-t first:border-t-0 border-border/60">
-                        <span className={`text-sm text-muted-foreground ${getSmartFontClass(row.k)}`}>
-                          {row.k}
-                        </span>
-                        <span className="text-sm font-medium">{row.v}</span>
-                      </div>
+                <div className="flex items-center gap-2 mb-4">
+                  <Users className="w-5 h-5 text-gray-600" />
+                  <h3 className={`text-lg font-semibold text-gray-900 ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+                    {isSindhi ? 'وڌيڪ شاعر' : 'More Poets'}
+                  </h3>
+                </div>
+
+                {morePoetsLoading ? (
+                  <div className="space-y-3">
+                    {[...Array(4)].map((_, i) => (
+                      <div key={i} className="h-14 bg-muted animate-pulse rounded-xl border border-gray-200" />
                     ))}
-                  </CardContent>
-                </Card>
+                  </div>
+                ) : morePoets.length > 0 ? (
+                  <div className="space-y-4">
+                    {morePoets.map((p, index) => (
+                      <motion.div
+                        key={`${p.id}-${index}`}
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.4, delay: index * 0.07 }}
+                      >
+                        <Link href={isSindhi ? `/sd/poets/${p.id}` : `/en/poets/${p.id}`}>
+                          <Card className="cursor-pointer rounded-xl bg-white border border-gray-200 hover:shadow-sm">
+                            <CardContent className="p-3">
+                              <div className="flex items-center justify-between gap-3">
+                                <div className="flex items-center gap-3 min-w-0">
+                                  <Avatar className="h-10 w-10 shrink-0">
+                                    <AvatarImage src={p.avatar || ''} alt={p.name} />
+                                    <AvatarFallback className={`text-sm font-normal ${getSmartFontClass(p.name)}`}>
+                                      {p.name?.charAt(0) || 'P'}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <div className="min-w-0">
+                                    <h4 className={`text-sm font-medium text-gray-900 truncate ${getSmartFontClass(p.name)}`}>
+                                      {p.name || (isSindhi ? 'نالو موجود ناهي' : 'Unnamed Poet')}
+                                    </h4>
+                                    {p.tagline ? (
+                                      <p className={`text-xs text-gray-600 truncate ${getSmartFontClass(p.tagline)}`}>
+                                        {p.tagline}
+                                      </p>
+                                    ) : p.period ? (
+                                      <p className="text-xs text-gray-500 truncate">{p.period}</p>
+                                    ) : null}
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-1 shrink-0 text-xs text-gray-500">
+                                  <span className={`${isSindhi ? 'auto-sindhi-font' : ''}`}>{isSindhi ? 'پروفائل' : 'Profile'}</span>
+                                  <ChevronRight className="w-3 h-3 text-gray-400" />
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        </Link>
+                      </motion.div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    {isSindhi ? 'هاڻي ڪو وڌيڪ شاعر موجود ناهي' : 'No more poets to show right now.'}
+                  </p>
+                )}
               </section>
+
             </div>
           </div>
         </div>
       </main>
+
+      {/* Description Modal */}
+      {poet && (
+        <PoetDescriptionModal
+          isOpen={isDescriptionModalOpen}
+          onClose={() => setIsDescriptionModalOpen(false)}
+          poet={poet}
+          isSindhi={isSindhi}
+          content={{
+            fullDescription: isSindhi ? "مڪمل تفصيل" : "Full Biography",
+            originalName: isSindhi ? "اصل نالو" : "Original Name",
+            laqab: isSindhi ? "لقب" : "Laqab (Honorific Title)",
+            takhalus: isSindhi ? "تخلص" : "Takhalus (Pen Name)"
+          }}
+        />
+      )}
     </div>
   );
 }

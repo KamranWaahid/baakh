@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { Plus, Search, Filter, Edit, Trash2, Users, RotateCcw } from "lucide-react";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import AdminLayout from "@/components/layouts/AdminLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import AdminPageHeader from "@/components/ui/AdminPageHeader";
 
 interface Poet {
   id: string;
@@ -190,41 +192,27 @@ export default function PoetsPage() {
   return (
     <AdminLayout>
       <div className="min-h-screen bg-[#F9F9F9]">
-        {/* Header Section */}
-        <div className="bg-white border-b border-[#E5E5E5] px-6 py-6">
-          <div className="max-w-7xl mx-auto">
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <Badge variant="secondary" className="rounded-full px-4 py-2 text-sm font-medium bg-[#F4F4F5] text-[#1F1F1F] border border-[#E5E5E5]">
-                  <Users className="w-4 h-4 mr-2" />
-                  Poets Management
-                </Badge>
-              </div>
-              <div className="space-y-2">
-                <h1 className="text-3xl font-bold text-[#1F1F1F]">Poets Collection</h1>
-                <p className="text-lg text-[#6B6B6B] max-w-2xl">
-                  Manage poetry collection authors and their comprehensive details. 
-                  Add new poets, update profiles, and curate the archive.
-                </p>
-              </div>
-              <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                <Button asChild className="bg-[#1F1F1F] hover:bg-[#404040] text-white h-10 px-6 rounded-lg" disabled={loading}>
-                  <Link href="/admin/poets/create">
-                    <Plus className="w-4 h-4 mr-2" /> 
-                    New Poet
-                  </Link>
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <AdminPageHeader
+          title="Poets Collection"
+          subtitle="Poets Management"
+          subtitleIcon={<Users className="w-4 h-4" />}
+          description="Manage poetry collection authors and their comprehensive details. Add new poets, update profiles, and curate the archive."
+          action={
+            <Button asChild variant="outline" className="h-10 px-6 rounded-lg border-[#E5E5E5] text-[#1F1F1F] hover:bg-[#F4F4F5] hover:border-[#D4D4D8] transition-colors" disabled={loading}>
+              <Link href="/admin/poets/create">
+                <Plus className="w-4 h-4 mr-2" />
+                New Poet
+              </Link>
+            </Button>
+          }
+        />
 
         {/* Main Content */}
         <div className="max-w-7xl mx-auto px-6 py-8">
           {/* Insights */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <Card className="bg-white border-[#E5E5E5] rounded-lg shadow-sm">
-              <CardContent className="p-6">
+              <CardContent className="px-6 py-6">
                 <div className="space-y-2">
                   <div className="text-sm text-[#6B6B6B] font-medium">Total Poets</div>
                   <div className="text-2xl font-bold text-[#1F1F1F]">{total}</div>
@@ -233,7 +221,7 @@ export default function PoetsPage() {
               </CardContent>
             </Card>
             <Card className="bg-white border-[#E5E5E5] rounded-lg shadow-sm">
-              <CardContent className="p-6">
+              <CardContent className="px-6 py-6">
                 <div className="space-y-2">
                   <div className="text-sm text-[#6B6B6B] font-medium">Featured</div>
                   <div className="text-2xl font-bold text-[#1F1F1F]">{insights.featured}</div>
@@ -243,7 +231,7 @@ export default function PoetsPage() {
             </Card>
 
             <Card className="bg-white border-[#E5E5E5] rounded-lg shadow-sm">
-              <CardContent className="p-6">
+              <CardContent className="px-6 py-6">
                 <div className="space-y-2">
                   <div className="text-sm text-[#6B6B6B] font-medium">Living</div>
                   <div className="text-2xl font-bold text-[#1F1F1F]">{insights.living}</div>
@@ -252,7 +240,7 @@ export default function PoetsPage() {
               </CardContent>
             </Card>
             <Card className="bg-white border-[#E5E5E5] rounded-lg shadow-sm">
-              <CardContent className="p-6">
+              <CardContent className="px-6 py-6">
                 <div className="space-y-2">
                   <div className="text-sm text-[#6B6B6B] font-medium">Deceased</div>
                   <div className="text-2xl font-bold text-[#1F1F1F]">{insights.deceased}</div>
@@ -264,7 +252,7 @@ export default function PoetsPage() {
 
           {/* Controls */}
           <Card className="bg-white border-[#E5E5E5] rounded-lg shadow-sm mb-8">
-            <CardContent className="p-6">
+            <CardContent className="px-6 py-6">
               <div className="flex flex-col lg:flex-row lg:items-center gap-6">
                 <div className="flex items-center gap-3 text-sm">
                   <span className="text-[#6B6B6B] font-medium">Show</span>
@@ -311,7 +299,7 @@ export default function PoetsPage() {
 
           {/* Poets Table - Designed to match /admin/tags exactly */}
            <Card className="bg-white border-[#E5E5E5] rounded-lg shadow-sm overflow-hidden mb-8">
-             <CardHeader className="py-6">
+             <CardHeader className="px-6 py-6">
                <div className="space-y-2">
                  <CardTitle className="text-xl font-bold text-[#1F1F1F]">Poet List</CardTitle>
                  <p className="text-base text-[#6B6B6B]">
@@ -319,7 +307,7 @@ export default function PoetsPage() {
                  </p>
                </div>
              </CardHeader>
-             <CardContent className="p-0">
+             <CardContent className="px-0 pb-0">
                <div className="overflow-x-auto">
                  {loading || pageLoading ? (
                    <div className="p-6 space-y-3">
@@ -368,14 +356,14 @@ export default function PoetsPage() {
                                  </div>
                                  <div>
                                    <div className="font-medium text-[#1F1F1F]">
-                                     {poet.english_name || poet.sindhi_name}
+                                     {poet.english_laqab || poet.sindhi_laqab || poet.english_name || poet.sindhi_name}
                                    </div>
                                    <div className="text-xs text-[#6B6B6B] font-mono">
                                      {poet.poet_slug}
                                    </div>
-                                   {poet.sindhi_name && (
+                                   {poet.sindhi_laqab && (
                                      <div className="text-sm text-[#6B6B6B] mt-1" dir="rtl">
-                                       {poet.sindhi_name}
+                                       {poet.sindhi_laqab}
                                      </div>
                                    )}
                                  </div>
@@ -383,26 +371,44 @@ export default function PoetsPage() {
                              </td>
                              <td className="px-4 py-3">
                                <div className="flex items-center gap-2">
-                                 <button
+                                 <motion.button
                                    onClick={() => handleToggleFeatured(poet.id)}
+                                   whileHover={{ scale: 1.05 }}
+                                   whileTap={{ scale: 0.95 }}
                                    className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
                                      poet.is_featured
                                        ? 'bg-yellow-100 text-yellow-800 border border-yellow-200'
                                        : 'border border-[#E5E5E5] text-[#6B6B6B] bg-white hover:bg-[#F4F4F5]'
                                    }`}
                                  >
-                                   {poet.is_featured ? '⭐ Featured' : 'Not Featured'}
-                                 </button>
-                                 <button
+                                   <motion.span
+                                     key={poet.is_featured ? 'featured' : 'not-featured'}
+                                     initial={{ opacity: 0, y: -5 }}
+                                     animate={{ opacity: 1, y: 0 }}
+                                     transition={{ duration: 0.2 }}
+                                   >
+                                     {poet.is_featured ? 'Featured' : 'Not Featured'}
+                                   </motion.span>
+                                 </motion.button>
+                                 <motion.button
                                    onClick={() => handleToggleHidden(poet.id)}
+                                   whileHover={{ scale: 1.05 }}
+                                   whileTap={{ scale: 0.95 }}
                                    className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
                                      poet.is_hidden
                                        ? 'bg-red-100 text-red-800 border border-red-200'
                                        : 'border border-[#E5E5E5] text-[#6B6B6B] bg-white hover:bg-[#F4F4F5]'
                                    }`}
                                  >
-                                   {poet.is_hidden ? '👁️ Hidden' : 'Visible'}
-                                 </button>
+                                   <motion.span
+                                     key={poet.is_hidden ? 'hidden' : 'visible'}
+                                     initial={{ opacity: 0, y: -5 }}
+                                     animate={{ opacity: 1, y: 0 }}
+                                     transition={{ duration: 0.2 }}
+                                   >
+                                     {poet.is_hidden ? '👁️ Hidden' : 'Visible'}
+                                   </motion.span>
+                                 </motion.button>
                                </div>
                              </td>
                              <td className="px-4 py-3">

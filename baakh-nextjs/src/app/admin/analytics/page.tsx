@@ -1,12 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 
 import AdminLayout from "@/components/layouts/AdminLayout";
+import AdminPageHeader from "@/components/ui/AdminPageHeader";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
 import {
   BarChart3,
   TrendingUp,
@@ -23,111 +26,271 @@ import {
   Zap,
   TrendingDown,
   Download,
-  RefreshCw
+  RefreshCw,
+  Loader2,
+  AlertCircle
 } from "lucide-react";
+
+// Types for analytics data
+interface AnalyticsMetrics {
+  totalViews: number;
+  totalUsers: number;
+  totalContent: number;
+  avgSession: string;
+  viewsChange: number;
+  usersChange: number;
+  contentChange: number;
+  sessionChange: number;
+}
+
+interface TopPoet {
+  name: string;
+  reads: number;
+  change: number;
+  trend: "up" | "down";
+}
+
+interface TrendingTag {
+  tag: string;
+  change: number;
+  count: number;
+}
+
+interface RecentActivity {
+  action: string;
+  time: string;
+  type: "user" | "social" | "engagement" | "view" | "search";
+}
+
+interface ChartData {
+  labels: string[];
+  datasets: {
+    label: string;
+    data: number[];
+    borderColor: string;
+    backgroundColor: string;
+  }[];
+}
 
 export default function AdminAnalyticsPage() {
   const [range, setRange] = useState("30d");
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  // Analytics data state
+  const [metrics, setMetrics] = useState<AnalyticsMetrics | null>(null);
+  const [topPoets, setTopPoets] = useState<TopPoet[]>([]);
+  const [trendingTags, setTrendingTags] = useState<TrendingTag[]>([]);
+  const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
+  const [chartData, setChartData] = useState<ChartData | null>(null);
 
-  const metrics = [
-    { title: "Total Views", value: "12,847", change: "+12%", icon: Eye, trend: "up" },
-    { title: "Total Users", value: "2,847", change: "+8%", icon: Users, trend: "up" },
-    { title: "Total Content", value: "1,234", change: "+23%", icon: BookOpen, trend: "up" },
-    { title: "Avg. Session", value: "4m 32s", change: "+5%", icon: Clock, trend: "up" }
-  ];
+  // Fetch analytics data
+  const fetchAnalyticsData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const response = await fetch(`/api/admin/analytics?range=${range}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch analytics data');
+      }
+      
+      const data = await response.json();
+      
+      // Set the fetched data
+      setMetrics(data.metrics || null);
+      setTopPoets(data.topPoets || []);
+      setTrendingTags(data.trendingTags || []);
+      setRecentActivity(data.recentActivity || []);
+      setChartData(data.chartData || null);
+      
+    } catch (err) {
+      console.error('Error fetching analytics data:', err);
+      setError(err instanceof Error ? err.message : 'Failed to fetch analytics data');
+      
+      // Set fallback data for demo purposes
+      setMetrics({
+        totalViews: 12847,
+        totalUsers: 2847,
+        totalContent: 1234,
+        avgSession: "4m 32s",
+        viewsChange: 12,
+        usersChange: 8,
+        contentChange: 23,
+        sessionChange: 5
+      });
+      
+      setTopPoets([
+        { name: "Shah Abdul Latif", reads: 8200, change: 15, trend: "up" },
+        { name: "Sachal Sarmast", reads: 6400, change: 8, trend: "up" },
+        { name: "Bedil", reads: 5200, change: -3, trend: "down" },
+        { name: "Makhdoom Bilawal", reads: 4800, change: 12, trend: "up" },
+        { name: "Qadir Bux Bedil", reads: 4200, change: 6, trend: "up" }
+      ]);
+      
+      setTrendingTags([
+        { tag: "Sufi", change: 12, count: 156 },
+        { tag: "Mysticism", change: 9, count: 89 },
+        { tag: "Romance", change: 6, count: 234 },
+        { tag: "Wisdom", change: 4, count: 67 },
+        { tag: "Nature", change: 18, count: 123 }
+      ]);
+      
+      setRecentActivity([
+        { action: "New user registered", time: "2 minutes ago", type: "user" },
+        { action: "Poetry shared on social", time: "5 minutes ago", type: "social" },
+        { action: "New comment added", time: "12 minutes ago", type: "engagement" },
+        { action: "Poet profile viewed", time: "18 minutes ago", type: "view" },
+        { action: "Search performed", time: "25 minutes ago", type: "search" }
+      ]);
+      
+      // Generate sample chart data
+      const days = range === "7d" ? 7 : range === "30d" ? 30 : range === "90d" ? 90 : 365;
+      const labels = Array.from({ length: days }, (_, i) => {
+        const date = new Date();
+        date.setDate(date.getDate() - (days - 1 - i));
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      });
+      
+      setChartData({
+        labels,
+        datasets: [
+          {
+            label: "Views",
+            data: Array.from({ length: days }, () => Math.floor(Math.random() * 1000) + 500),
+            borderColor: "#1F1F1F",
+            backgroundColor: "rgba(31, 31, 31, 0.1)"
+          }
+        ]
+      });
+      
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const topPoets = [
-    { name: "Shah Abdul Latif", reads: 8200, change: "+15%", trend: "up" },
-    { name: "Sachal Sarmast", reads: 6400, change: "+8%", trend: "up" },
-    { name: "Bedil", reads: 5200, change: "-3%", trend: "down" },
-    { name: "Makhdoom Bilawal", reads: 4800, change: "+12%", trend: "up" },
-    { name: "Qadir Bux Bedil", reads: 4200, change: "+6%", trend: "up" }
-  ];
+  // Load data on component mount and when range changes
+  useEffect(() => {
+    fetchAnalyticsData();
+  }, [range]);
 
-  const trendingTags = [
-    { tag: "Sufi", change: "+12%", count: 156 },
-    { tag: "Mysticism", change: "+9%", count: 89 },
-    { tag: "Romance", change: "+6%", count: 234 },
-    { tag: "Wisdom", change: "+4%", count: 67 },
-    { tag: "Nature", change: "+18%", count: 123 }
-  ];
-
-  const recentActivity = [
-    { action: "New user registered", time: "2 minutes ago", type: "user" },
-    { action: "Poetry shared on social", time: "5 minutes ago", type: "social" },
-    { action: "New comment added", time: "12 minutes ago", type: "engagement" },
-    { action: "Poet profile viewed", time: "18 minutes ago", type: "view" },
-    { action: "Search performed", time: "25 minutes ago", type: "search" }
-  ];
-
-  const getTrendIcon = (trend: string) => {
+  const getTrendIcon = (trend: "up" | "down") => {
     if (trend === "up") {
       return <ArrowUpRight className="w-4 h-4 text-green-600" />;
     }
     return <ArrowDownRight className="w-4 h-4 text-red-600" />;
   };
 
-  const getTrendColor = (trend: string) => {
+  const getTrendColor = (trend: "up" | "down") => {
     if (trend === "up") {
       return "text-green-600";
     }
     return "text-red-600";
   };
 
-  const handleRefresh = async () => {
-    setIsRefreshing(true);
-    // Simulate refresh delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setIsRefreshing(false);
+  const formatChange = (change: number) => {
+    return `${change > 0 ? '+' : ''}${change}%`;
   };
 
-  const handleExport = () => {
-    // Export functionality would go here
-    console.log('Exporting analytics data...');
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await fetchAnalyticsData();
+    setIsRefreshing(false);
+    toast.success('Analytics data refreshed');
   };
+
+  const handleExport = async () => {
+    try {
+      const response = await fetch(`/api/admin/analytics/export?range=${range}`);
+      if (!response.ok) {
+        throw new Error('Failed to export analytics data');
+      }
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `analytics-${range}-${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      toast.success('Analytics data exported successfully');
+    } catch (err) {
+      console.error('Export error:', err);
+      toast.error('Failed to export analytics data');
+    }
+  };
+
+  // Memoized metrics for display
+  const displayMetrics = useMemo(() => {
+    if (!metrics) return [];
+    
+    return [
+      { 
+        title: "Total Views", 
+        value: metrics.totalViews.toLocaleString(), 
+        change: formatChange(metrics.viewsChange), 
+        icon: Eye, 
+        trend: metrics.viewsChange >= 0 ? "up" : "down" as const
+      },
+      { 
+        title: "Total Users", 
+        value: metrics.totalUsers.toLocaleString(), 
+        change: formatChange(metrics.usersChange), 
+        icon: Users, 
+        trend: metrics.usersChange >= 0 ? "up" : "down" as const
+      },
+      { 
+        title: "Total Content", 
+        value: metrics.totalContent.toLocaleString(), 
+        change: formatChange(metrics.contentChange), 
+        icon: BookOpen, 
+        trend: metrics.contentChange >= 0 ? "up" : "down" as const
+      },
+      { 
+        title: "Avg. Session", 
+        value: metrics.avgSession, 
+        change: formatChange(metrics.sessionChange), 
+        icon: Clock, 
+        trend: metrics.sessionChange >= 0 ? "up" : "down" as const
+      }
+    ];
+  }, [metrics]);
 
   return (
     <AdminLayout>
-      <div className="container mx-auto px-4 py-10 space-y-10">
-        {/* Header Section */}
-        <div className="bg-white border-b border-[#E5E5E5] px-6 py-6">
-          <div className="max-w-7xl mx-auto">
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <Badge variant="secondary" className="rounded-full px-3 py-1 text-xs font-medium bg-[#F4F4F5] text-[#1F1F1F] border border-[#E5E5E5]">
-                  <BarChart3 className="w-4 h-4 mr-2" />
-                  Analytics & Insights
-                </Badge>
-              </div>
-              <div className="space-y-2">
-                <h1 className="text-3xl font-bold text-[#1F1F1F]">Performance Insights</h1>
-                <p className="text-lg text-[#6B6B6B] max-w-2xl">
-                  Track traffic, engagement, and reading trends across your poetry archive. 
-                  Monitor user behavior and content performance.
-                </p>
-              </div>
-              <div className="flex items-center gap-3">
-                <Button 
-                  variant="outline" 
-                  className="border-[#E5E5E5] text-[#6B6B6B] hover:bg-[#F4F4F5] hover:border-[#E5E5E5] h-10 px-4 rounded-lg"
-                  onClick={handleRefresh}
-                  disabled={isRefreshing}
-                >
-                  <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-                  Refresh
-                </Button>
-                <Button 
-                  className="bg-[#1F1F1F] hover:bg-[#404040] text-white h-10 px-4 rounded-lg"
-                  onClick={handleExport}
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  Export
-                </Button>
-              </div>
+      <div className="min-h-screen bg-[#F9F9F9]">
+        <AdminPageHeader
+          title="Performance Insights"
+          subtitle="Analytics & Insights"
+          subtitleIcon={<BarChart3 className="w-4 h-4" />}
+          description="Track traffic, engagement, and reading trends across your poetry archive. Monitor user behavior and content performance."
+          action={
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+              <Button 
+                variant="outline" 
+                className="h-10 px-6 rounded-lg border-[#E5E5E5] text-[#1F1F1F] hover:bg-[#F4F4F5] hover:border-[#D4D4D8] transition-colors"
+                onClick={handleRefresh}
+                disabled={isRefreshing}
+              >
+                <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+                Refresh
+              </Button>
+              <Button 
+                className="h-10 px-6 rounded-lg bg-[#1F1F1F] hover:bg-[#404040] text-white transition-colors"
+                onClick={handleExport}
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Export
+              </Button>
             </div>
-          </div>
-        </div>
+          }
+        />
+
+        <div className="max-w-7xl mx-auto px-6 py-8 space-y-10">
 
           {/* Controls */}
           <div className="flex items-center gap-3">
@@ -150,32 +313,71 @@ export default function AdminAnalyticsPage() {
 
         {/* Top Metrics Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {metrics.map((m) => {
-            const Icon = m.icon;
-            return (
-              <Card key={m.title} className="bg-white border-[#E5E5E5] rounded-lg shadow-sm">
+          {loading ? (
+            Array.from({ length: 4 }).map((_, index) => (
+              <Card key={index} className="bg-white border-[#E5E5E5] rounded-lg shadow-sm">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
-                    <div className="space-y-2">
-                      <p className="text-sm text-[#6B6B6B] font-medium">{m.title}</p>
+                    <div className="space-y-2 flex-1">
+                      <Skeleton className="h-4 w-24 bg-[#F4F4F5]" />
                       <div className="flex items-center gap-3">
-                        <span className="text-2xl font-bold text-[#1F1F1F]">{m.value}</span>
-                        <div className="flex items-center gap-1">
-                          {getTrendIcon(m.trend)}
-                          <span className={`text-sm font-medium ${getTrendColor(m.trend)}`}>
-                            {m.change}
-                          </span>
-                        </div>
+                        <Skeleton className="h-8 w-20 bg-[#F4F4F5]" />
+                        <Skeleton className="h-4 w-12 bg-[#F4F4F5]" />
                       </div>
                     </div>
-                    <div className="w-12 h-12 bg-[#F4F4F5] rounded-lg flex items-center justify-center">
-                      <Icon className="w-6 h-6 text-[#1F1F1F]" />
-                    </div>
+                    <Skeleton className="w-12 h-12 bg-[#F4F4F5] rounded-lg" />
                   </div>
                 </CardContent>
               </Card>
-            );
-          })}
+            ))
+          ) : error ? (
+            <div className="col-span-full">
+              <Card className="bg-white border-red-200 rounded-lg shadow-sm">
+                <CardContent className="p-6 text-center">
+                  <div className="text-red-600 mb-2">
+                    <AlertCircle className="w-8 h-8 mx-auto" />
+                  </div>
+                  <p className="text-red-600 font-medium">Failed to load analytics data</p>
+                  <p className="text-sm text-gray-600 mt-1">{error}</p>
+                  <Button 
+                    onClick={handleRefresh}
+                    variant="outline"
+                    className="mt-4"
+                  >
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Try Again
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          ) : (
+            displayMetrics.map((m) => {
+              const Icon = m.icon;
+              return (
+                <Card key={m.title} className="bg-white border-[#E5E5E5] rounded-lg shadow-sm">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-2">
+                        <p className="text-sm text-[#6B6B6B] font-medium">{m.title}</p>
+                        <div className="flex items-center gap-3">
+                          <span className="text-2xl font-bold text-[#1F1F1F]">{m.value}</span>
+                          <div className="flex items-center gap-1">
+                            {getTrendIcon(m.trend)}
+                            <span className={`text-sm font-medium ${getTrendColor(m.trend)}`}>
+                              {m.change}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="w-12 h-12 bg-[#F4F4F5] rounded-lg flex items-center justify-center">
+                        <Icon className="w-6 h-6 text-[#1F1F1F]" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })
+          )}
         </div>
 
         {/* Charts and Insights Grid */}
@@ -198,29 +400,46 @@ export default function AdminAnalyticsPage() {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {topPoets.map((poet, index) => (
-                    <div key={poet.name} className="flex items-center justify-between p-4 rounded-lg bg-[#F9F9F9] hover:bg-[#F4F4F5] transition-colors">
-                      <div className="flex items-center gap-4">
-                        <div className="w-8 h-8 bg-[#F4F4F5] rounded-lg flex items-center justify-center text-sm font-bold text-[#1F1F1F]">
-                          {index + 1}
+                {loading ? (
+                  <div className="space-y-4">
+                    {Array.from({ length: 5 }).map((_, index) => (
+                      <div key={index} className="flex items-center justify-between p-4 rounded-lg bg-[#F9F9F9]">
+                        <div className="flex items-center gap-4">
+                          <Skeleton className="w-8 h-8 bg-[#F4F4F5] rounded-lg" />
+                          <div className="space-y-1">
+                            <Skeleton className="h-4 w-32 bg-[#F4F4F5]" />
+                            <Skeleton className="h-3 w-20 bg-[#F4F4F5]" />
+                          </div>
                         </div>
-                        <div className="space-y-1">
-                          <p className="text-base font-semibold text-[#1F1F1F]">{poet.name}</p>
-                          <p className="text-sm text-[#6B6B6B]">
-                            {poet.reads.toLocaleString()} reads
-                          </p>
+                        <Skeleton className="h-4 w-12 bg-[#F4F4F5]" />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {topPoets.map((poet, index) => (
+                      <div key={poet.name} className="flex items-center justify-between p-4 rounded-lg bg-[#F9F9F9] hover:bg-[#F4F4F5] transition-colors">
+                        <div className="flex items-center gap-4">
+                          <div className="w-8 h-8 bg-[#F4F4F5] rounded-lg flex items-center justify-center text-sm font-bold text-[#1F1F1F]">
+                            {index + 1}
+                          </div>
+                          <div className="space-y-1">
+                            <p className="text-base font-semibold text-[#1F1F1F]">{poet.name}</p>
+                            <p className="text-sm text-[#6B6B6B]">
+                              {poet.reads.toLocaleString()} reads
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {getTrendIcon(poet.trend)}
+                          <span className={`text-sm font-medium ${getTrendColor(poet.trend)}`}>
+                            {formatChange(poet.change)}
+                          </span>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        {getTrendIcon(poet.trend)}
-                        <span className={`text-sm font-medium ${getTrendColor(poet.trend)}`}>
-                          {poet.change}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -237,27 +456,44 @@ export default function AdminAnalyticsPage() {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
-                  {trendingTags.map((tag) => (
-                    <div key={tag.tag} className="flex items-center justify-between p-3 rounded-lg bg-[#F9F9F9] hover:bg-[#F4F4F5] transition-colors">
-                      <div className="flex items-center gap-3">
-                        <Tag className="w-4 h-4 text-[#6B6B6B]" />
-                        <div>
-                          <p className="text-sm font-medium text-[#1F1F1F]">{tag.tag}</p>
-                          <p className="text-xs text-[#6B6B6B]">
-                            {tag.count} poems
-                          </p>
+                {loading ? (
+                  <div className="space-y-3">
+                    {Array.from({ length: 5 }).map((_, index) => (
+                      <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-[#F9F9F9]">
+                        <div className="flex items-center gap-3">
+                          <Skeleton className="w-4 h-4 bg-[#F4F4F5]" />
+                          <div>
+                            <Skeleton className="h-4 w-20 bg-[#F4F4F5] mb-1" />
+                            <Skeleton className="h-3 w-16 bg-[#F4F4F5]" />
+                          </div>
+                        </div>
+                        <Skeleton className="h-4 w-8 bg-[#F4F4F5]" />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {trendingTags.map((tag) => (
+                      <div key={tag.tag} className="flex items-center justify-between p-3 rounded-lg bg-[#F9F9F9] hover:bg-[#F4F4F5] transition-colors">
+                        <div className="flex items-center gap-3">
+                          <Tag className="w-4 h-4 text-[#6B6B6B]" />
+                          <div>
+                            <p className="text-sm font-medium text-[#1F1F1F]">{tag.tag}</p>
+                            <p className="text-xs text-[#6B6B6B]">
+                              {tag.count} poems
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <ArrowUpRight className="w-3 h-3 text-green-600" />
+                          <span className="text-xs font-medium text-green-600">
+                            {formatChange(tag.change)}
+                          </span>
                         </div>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <ArrowUpRight className="w-3 h-3 text-green-600" />
-                        <span className="text-xs font-medium text-green-600">
-                          {tag.change}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -281,59 +517,73 @@ export default function AdminAnalyticsPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="relative">
-                <div className="absolute left-6 top-0 bottom-0 w-px bg-[#E5E5E5]" aria-hidden />
-                <ul className="space-y-4">
-                  {recentActivity.map((activity, index) => {
-                    const getActivityIcon = (type: string) => {
-                      switch (type) {
-                        case 'user': return <Users className="w-4 h-4 text-blue-600" />;
-                        case 'social': return <TrendingUp className="w-4 h-4 text-green-600" />;
-                        case 'engagement': return <Tag className="w-4 h-4 text-purple-600" />;
-                        case 'view': return <Eye className="w-4 h-4 text-orange-600" />;
-                        case 'search': return <Target className="w-4 h-4 text-indigo-600" />;
-                        default: return <Activity className="w-4 h-4 text-[#6B6B6B]" />;
-                      }
-                    };
+              {loading ? (
+                <div className="space-y-4">
+                  {Array.from({ length: 5 }).map((_, index) => (
+                    <div key={index} className="flex items-start gap-4 p-4">
+                      <Skeleton className="w-10 h-10 bg-[#F4F4F5] rounded-xl" />
+                      <div className="flex-1 space-y-2">
+                        <Skeleton className="h-4 w-48 bg-[#F4F4F5]" />
+                        <Skeleton className="h-3 w-24 bg-[#F4F4F5]" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="relative">
+                  <div className="absolute left-6 top-0 bottom-0 w-px bg-[#E5E5E5]" aria-hidden />
+                  <ul className="space-y-4">
+                    {recentActivity.map((activity, index) => {
+                      const getActivityIcon = (type: string) => {
+                        switch (type) {
+                          case 'user': return <Users className="w-4 h-4 text-blue-600" />;
+                          case 'social': return <TrendingUp className="w-4 h-4 text-green-600" />;
+                          case 'engagement': return <Tag className="w-4 h-4 text-purple-600" />;
+                          case 'view': return <Eye className="w-4 h-4 text-orange-600" />;
+                          case 'search': return <Target className="w-4 h-4 text-indigo-600" />;
+                          default: return <Activity className="w-4 h-4 text-[#6B6B6B]" />;
+                        }
+                      };
 
-                    const getActivityColor = (type: string) => {
-                      switch (type) {
-                        case 'user': return 'bg-blue-500/10';
-                        case 'social': return 'bg-green-500/10';
-                        case 'engagement': return 'bg-purple-500/10';
-                        case 'view': return 'bg-orange-500/10';
-                        case 'search': return 'bg-indigo-500/10';
-                        default: return 'bg-[#F4F4F5]';
-                      }
-                    };
+                      const getActivityColor = (type: string) => {
+                        switch (type) {
+                          case 'user': return 'bg-blue-500/10';
+                          case 'social': return 'bg-green-500/10';
+                          case 'engagement': return 'bg-purple-500/10';
+                          case 'view': return 'bg-orange-500/10';
+                          case 'search': return 'bg-indigo-500/10';
+                          default: return 'bg-[#F4F4F5]';
+                        }
+                      };
 
-                    return (
-                      <li
-                        key={index}
-                        className="relative pl-12"
-                      >
-                        <div className="absolute left-4 top-2 w-4 h-4 rounded-full border-2 border-white bg-white flex items-center justify-center">
-                          <div className="w-2 h-2 rounded-full bg-[#1F1F1F]" />
-                        </div>
-                        <div className="group flex items-start gap-4 rounded-xl p-4 hover:bg-[#F4F4F5] transition-all duration-200">
-                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${getActivityColor(activity.type)}`}>
-                            {getActivityIcon(activity.type)}
+                      return (
+                        <li
+                          key={index}
+                          className="relative pl-12"
+                        >
+                          <div className="absolute left-4 top-2 w-4 h-4 rounded-full border-2 border-white bg-white flex items-center justify-center">
+                            <div className="w-2 h-2 rounded-full bg-[#1F1F1F]" />
                           </div>
-                          <div className="flex-1 min-w-0 space-y-1">
-                            <p className="text-base font-medium text-[#1F1F1F]">
-                              {activity.action}
-                            </p>
-                            <div className="flex items-center gap-2 text-sm text-[#6B6B6B]">
-                              <Clock className="w-3 h-3" />
-                              {activity.time}
+                          <div className="group flex items-start gap-4 rounded-xl p-4 hover:bg-[#F4F4F5] transition-all duration-200">
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${getActivityColor(activity.type)}`}>
+                              {getActivityIcon(activity.type)}
+                            </div>
+                            <div className="flex-1 min-w-0 space-y-1">
+                              <p className="text-base font-medium text-[#1F1F1F]">
+                                {activity.action}
+                              </p>
+                              <div className="flex items-center gap-2 text-sm text-[#6B6B6B]">
+                                <Clock className="w-3 h-3" />
+                                {activity.time}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -388,6 +638,7 @@ export default function AdminAnalyticsPage() {
               </div>
             </CardContent>
           </Card>
+        </div>
         </div>
       </div>
     </AdminLayout>

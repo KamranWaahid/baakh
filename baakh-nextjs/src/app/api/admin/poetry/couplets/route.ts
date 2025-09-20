@@ -20,19 +20,15 @@ export async function GET(request: NextRequest) {
 
     const supabase = createAdminClient();
 
-    // Build the base query for couplets
+    // Build the base query for couplets - prioritize Sindhi (sd) couplets
     let query = supabase
       .from('poetry_couplets')
-      .select('*', { count: 'exact' });
+      .select('*', { count: 'exact' })
+      .eq('lang', 'sd'); // Only get Sindhi couplets as primary entries
 
     // Apply search filter
     if (search) {
       query = query.or(`couplet_text.ilike.%${search}%,couplet_slug.ilike.%${search}%,couplet_tags.ilike.%${search}%`);
-    }
-
-    // Apply language filter
-    if (lang) {
-      query = query.eq('lang', lang);
     }
 
     // Apply sorting
@@ -88,7 +84,7 @@ export async function GET(request: NextRequest) {
     if (poetIds.length > 0) {
       const { data: poets, error: poetsError } = await supabase
         .from('poets')
-        .select('poet_id, poet_slug, sindhi_name, english_name')
+        .select('poet_id, poet_slug, sindhi_name, english_name, sindhi_laqab, english_laqab')
         .in('poet_id', poetIds);
 
       if (!poetsError && poets) {
@@ -112,19 +108,41 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Combine the data
-    const enrichedCouplets = coupletsData.map(couplet => {
+    // Fetch English couplets for each Sindhi couplet
+    const enrichedCouplets = await Promise.all(coupletsData.map(async (couplet) => {
       const poetry = poetryData.find(p => p.id === couplet.poetry_id);
       const poet = poetsData.find(p => p.poet_id === couplet.poet_id);
       const category = categoriesData.find(c => c.id === poetry?.category_id);
+
+      // Fetch English couplet if it exists for the same poetry work
+      let englishCouplet = null;
+      if (couplet.poetry_id) {
+        const { data: englishData } = await supabase
+          .from('poetry_couplets')
+          .select(`
+            id,
+            couplet_text,
+            couplet_slug,
+            couplet_tags,
+            lang,
+            created_at,
+            updated_at
+          `)
+          .eq('poetry_id', couplet.poetry_id)
+          .eq('lang', 'en')
+          .single();
+        
+        englishCouplet = englishData;
+      }
 
       return {
         ...couplet,
         poetry_main: poetry || null,
         poets: poet || null,
-        categories: category || null
+        categories: category || null,
+        english_couplet: englishCouplet
       };
-    });
+    }));
 
     const totalPages = Math.ceil((count || 0) / limit);
 

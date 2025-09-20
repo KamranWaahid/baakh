@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { withSecurity } from '@/lib/security/middleware';
+import { validateApiInput, poetCreateSchema } from '@/lib/security/validation';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -58,22 +60,18 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function POST(request: NextRequest) {
+async function postHandler(request: NextRequest) {
   try {
     const body = await request.json();
     
-    // Validate required fields
-    if (!body.poet_slug || !body.sindhi_name || !body.english_name) {
-      return NextResponse.json({ 
-        error: 'Missing required fields: poet_slug, sindhi_name, english_name' 
-      }, { status: 400 });
-    }
+    // Validate and sanitize input
+    const validatedData = validateApiInput(body, poetCreateSchema);
 
     // Check if poet with same slug already exists
     const { data: existingPoet } = await admin
       .from('poets')
       .select('id')
-      .eq('poet_slug', body.poet_slug)
+      .eq('poet_slug', validatedData.poet_slug)
       .single();
 
     if (existingPoet) {
@@ -82,29 +80,29 @@ export async function POST(request: NextRequest) {
       }, { status: 409 });
     }
 
-    // Prepare poet data for database
+    // Prepare poet data for database using validated data
     const poetData = {
-      poet_slug: body.poet_slug,
-      birth_date: body.birth_date || null,
-      death_date: body.death_date || null,
-      birth_place: body.birth_place || null,
-      death_place: body.death_place || null,
-      tags: body.tags || [],
-      file_url: body.file_url || null,
-      is_featured: body.is_featured || false,
-      is_hidden: body.is_hidden || false,
+      poet_slug: validatedData.poet_slug,
+      birth_date: validatedData.birth_date || null,
+      death_date: validatedData.death_date || null,
+      birth_place: validatedData.birth_place || null,
+      death_place: validatedData.death_place || null,
+      tags: validatedData.tags || [],
+      file_url: validatedData.file_url || null,
+      is_featured: validatedData.is_featured || false,
+      is_hidden: validatedData.is_hidden || false,
       // Sindhi fields
-      sindhi_name: body.sindhi_name,
-      sindhi_laqab: body.sindhi_laqab || null,
-      sindhi_takhalus: body.sindhi_takhalus || null,
-      sindhi_tagline: body.sindhi_tagline || null,
-      sindhi_details: body.sindhi_details,
+      sindhi_name: validatedData.sindhi_name,
+      sindhi_laqab: validatedData.sindhi_laqab || null,
+      sindhi_takhalus: validatedData.sindhi_takhalus || null,
+      sindhi_tagline: validatedData.sindhi_tagline || null,
+      sindhi_details: validatedData.sindhi_details,
       // English fields
-      english_name: body.english_name,
-      english_laqab: body.english_laqab || null,
-      english_takhalus: body.english_takhalus || null,
-      english_tagline: body.english_tagline || null,
-      english_details: body.english_details,
+      english_name: validatedData.english_name,
+      english_laqab: validatedData.english_laqab || null,
+      english_takhalus: validatedData.english_takhalus || null,
+      english_tagline: validatedData.english_tagline || null,
+      english_details: validatedData.english_details,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
@@ -128,6 +126,11 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Unexpected error:', error);
+    if (error instanceof Error) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
+
+export const POST = withSecurity(postHandler);

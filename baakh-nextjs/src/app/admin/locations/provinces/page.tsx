@@ -120,11 +120,11 @@ export default function ProvincesAdminPage() {
     <AdminLayout>
       <div className="min-h-screen bg-[#F9F9F9]">
         {/* Header Section */}
-        <div className="bg-white border-b border-[#E5E5E5] px-6 py-6">
+        <div className="bg-white border-b border-gray-200 px-6 py-6">
           <div className="max-w-7xl mx-auto">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <Button variant="ghost" size="sm" asChild className="text-[#6B6B6B] hover:bg-[#F1F1F1]">
+                <Button variant="ghost" size="sm" asChild className="text-gray-600">
                   <Link href="/admin/locations">
                     <ArrowLeft className="w-4 h-4 mr-2" />
                     Back to Locations
@@ -132,7 +132,7 @@ export default function ProvincesAdminPage() {
                 </Button>
               </div>
               
-              <Button asChild className="bg-[#1F1F1F] hover:bg-[#2B2B2B] text-white border-0">
+              <Button asChild className="bg-gray-900 text-white border-0">
                 <Link href="/admin/locations/provinces/create">
                   <Plus className="w-4 h-4 mr-2" />
                   Add Province
@@ -145,8 +145,8 @@ export default function ProvincesAdminPage() {
                 <Mountain className="w-8 h-8 text-green-500" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-[#1F1F1F]">Provinces/States</h1>
-                <p className="text-[#6B6B6B] text-lg">
+                <h1 className="text-3xl font-bold text-gray-900">Provinces/States</h1>
+                <p className="text-gray-600 text-lg">
                   Manage provinces and states within countries
                 </p>
               </div>
@@ -158,17 +158,17 @@ export default function ProvincesAdminPage() {
         <div className="max-w-7xl mx-auto px-6 py-8">
 
           {/* Filters */}
-          <Card className="mb-6 bg-white border-[#E5E5E5]">
+          <Card className="mb-6 bg-white border border-gray-200">
             <CardContent className="p-6">
               <div className="flex flex-col sm:flex-row gap-4">
                 <div className="flex-1">
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#6B6B6B]" />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
                     <Input
                       placeholder="Search provinces..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-10 border-[#E5E5E5] focus:border-[#1F1F1F] focus:ring-[#1F1F1F]"
+                      className="pl-10 border border-gray-200 focus:border-gray-900 focus:ring-gray-900"
                     />
                   </div>
                 </div>
@@ -177,7 +177,7 @@ export default function ProvincesAdminPage() {
                   <select
                     value={selectedLang}
                     onChange={(e) => setSelectedLang(e.target.value)}
-                    className="w-full p-2 border border-[#E5E5E5] rounded-md bg-white focus:border-[#1F1F1F] focus:ring-[#1F1F1F]"
+                    className="w-full p-2 border border-gray-200 rounded-md bg-white focus:border-gray-900 focus:ring-gray-900"
                   >
                     <option value="all">All Languages</option>
                     <option value="en">English</option>
@@ -190,26 +190,26 @@ export default function ProvincesAdminPage() {
 
           {/* Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <Card className="bg-white border-[#E5E5E5]">
+            <Card className="bg-white border border-gray-200">
               <CardContent className="p-4">
-                <div className="text-2xl font-bold text-[#1F1F1F]">{total}</div>
-                <div className="text-sm text-[#6B6B6B]">Total Provinces</div>
+                <div className="text-2xl font-bold text-gray-900">{total}</div>
+                <div className="text-sm text-gray-600">Total Provinces</div>
               </CardContent>
             </Card>
-            <Card className="bg-white border-[#E5E5E5]">
+            <Card className="bg-white border border-gray-200">
               <CardContent className="p-4">
-                <div className="text-2xl font-bold text-[#1F1F1F]">
+                <div className="text-2xl font-bold text-gray-900">
                   {provinces.filter(p => p.lang === "en").length}
                 </div>
-                <div className="text-sm text-[#6B6B6B]">English</div>
+                <div className="text-sm text-gray-600">English</div>
               </CardContent>
             </Card>
-            <Card className="bg-white border-[#E5E5E5]">
+            <Card className="bg-white border border-gray-200">
               <CardContent className="p-4">
-                <div className="text-2xl font-bold text-[#1F1F1F]">
+                <div className="text-2xl font-bold text-gray-900">
                   {provinces.filter(p => p.lang === "sd").length}
                 </div>
-                <div className="text-sm text-[#6B6B6B]">سنڌي</div>
+                <div className="text-sm text-gray-600">سنڌي</div>
               </CardContent>
             </Card>
           </div>
@@ -225,7 +225,7 @@ export default function ProvincesAdminPage() {
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.2, delay: index * 0.05 }}
                 >
-                  <Card className="h-full bg-white border-[#E5E5E5] hover:shadow-lg transition-all duration-200 hover:border-[#D0D0D0]">
+                  <Card className="h-full bg-white border border-gray-200">
                     <CardHeader className="pb-4">
                       <div className="flex items-start justify-between">
                         <div className="flex items-center gap-3">
@@ -233,15 +233,15 @@ export default function ProvincesAdminPage() {
                             <Mountain className="w-5 h-5 text-green-500" />
                           </div>
                           <div>
-                            <CardTitle className="text-lg text-[#1F1F1F]">{province.province_name}</CardTitle>
+                            <CardTitle className="text-lg text-gray-900">{province.province_name}</CardTitle>
                             <div className="flex items-center gap-2 mt-1">
-                              <Flag className="w-4 h-4 text-[#6B6B6B]" />
-                              <span className="text-sm text-[#6B6B6B]">{province.country_name}</span>
+                              <Flag className="w-4 h-4 text-gray-500" />
+                              <span className="text-sm text-gray-500">{province.country_name}</span>
                             </div>
                           </div>
                         </div>
                         <div className="flex flex-col gap-1">
-                          <Badge variant="secondary" className="text-xs bg-[#F1F1F1] text-[#2B2B2B] border-[#E7E7E7]">
+                          <Badge variant="secondary" className="text-xs bg-gray-100 text-gray-700 border border-gray-200">
                             {getLangLabel(province.lang)}
                           </Badge>
                         </div>
@@ -250,14 +250,14 @@ export default function ProvincesAdminPage() {
                     
                     <CardContent className="pt-0">
                       <div className="space-y-2 mb-4">
-                        <div className="flex items-center gap-2 text-sm text-[#6B6B6B]">
+                        <div className="flex items-center gap-2 text-sm text-gray-500">
                           <Building2 className="w-4 h-4" />
                           <span>{province.cities_count} cities</span>
                         </div>
                       </div>
                       
                       <div className="flex items-center gap-2">
-                        <Button variant="outline" size="sm" asChild className="flex-1 border-[#E5E5E5] text-[#2B2B2B] hover:bg-[#F9F9F9] hover:border-[#D0D0D0]">
+                        <Button variant="outline" size="sm" asChild className="flex-1 border border-gray-200 text-gray-700">
                           <Link href={`/admin/locations/provinces/${province.id}/edit`}>
                             <Edit className="w-4 h-4 mr-2" />
                             Edit
@@ -267,7 +267,7 @@ export default function ProvincesAdminPage() {
                           variant="outline" 
                           size="sm" 
                           onClick={() => handleDelete(province.id)}
-                          className="border-[#E5E5E5] text-red-600 hover:bg-red-50 hover:border-red-300"
+                          className="border border-gray-200 text-red-600"
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>

@@ -3,19 +3,38 @@ import { cookies } from 'next/headers';
 import { createClient } from '@supabase/supabase-js';
 
 export async function GET() {
-  console.log('🔍 /api/auth/me: Request received');
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('🔍 /api/auth/me: Request received');
+  }
   
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !anon || !serviceKey) {
-    console.error('❌ /api/auth/me: Missing environment variables');
-    return NextResponse.json({ error: 'Supabase not configured' }, { status: 500 });
+  
+  // Check if Supabase is properly configured
+  const isConfigured = url && 
+    anon && 
+    serviceKey && 
+    url !== 'your_supabase_project_url_here' && 
+    anon !== 'your_supabase_anon_key_here' &&
+    serviceKey !== 'your_supabase_service_role_key_here' &&
+    url.startsWith('https://') &&
+    url.includes('.supabase.co');
+  
+  if (!isConfigured) {
+    console.warn('⚠️ /api/auth/me: Supabase not properly configured, returning fallback response');
+    return NextResponse.json({ 
+      error: 'not-configured',
+      message: 'Supabase not configured. Please complete setup at /admin/setup',
+      allowed: false 
+    }, { status: 503 });
   }
 
   const cookieStore = await cookies();
   const allCookies = cookieStore.getAll();
-  console.log('🍪 /api/auth/me: Cookies found:', allCookies.map(c => `${c.name}=${c.value.substring(0, 20)}...`));
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('🍪 /api/auth/me: Cookies present:', allCookies.map(c => c.name));
+  }
   
   // Look for the Supabase session cookie
   const sessionCookie = allCookies.find(c => c.name === 'baakh_supabase_auth');
@@ -23,11 +42,15 @@ export async function GET() {
   const localTokenCookie = allCookies.find(c => c.name === 'baakh_local_auth');
   
   if (!sessionCookie && !localTokenCookie) {
-    console.log('❌ /api/auth/me: No session cookie found');
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('❌ /api/auth/me: No session cookie found');
+    }
     return NextResponse.json({ error: 'not-authenticated' }, { status: 401 });
   }
   
-  console.log('🔐 /api/auth/me: Session cookie found, length:', sessionCookie.value.length);
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('🔐 /api/auth/me: Session cookie found');
+  }
   
   try {
     // If local cookie exists but no supabase cookie, resolve minimal user from users table
@@ -53,25 +76,33 @@ export async function GET() {
         const decodedString = Buffer.from(base64Data, 'base64').toString('utf-8');
         // Parse the decoded JSON
         sessionData = JSON.parse(decodedString);
-        console.log('✅ /api/auth/me: Base64 session cookie decoded and parsed successfully');
+        if (process.env.NODE_ENV !== 'production') {
+          console.log('✅ /api/auth/me: Base64 session cookie decoded and parsed successfully');
+        }
       } else {
         // Try to parse as regular JSON (fallback)
         sessionData = JSON.parse(sessionCookie.value);
-        console.log('✅ /api/auth/me: Regular JSON session cookie parsed successfully');
+        if (process.env.NODE_ENV !== 'production') {
+          console.log('✅ /api/auth/me: Regular JSON session cookie parsed successfully');
+        }
       }
     } catch (parseError) {
-      console.error('❌ /api/auth/me: Failed to parse session cookie:', parseError);
+      console.error('❌ /api/auth/me: Failed to parse session cookie');
       return NextResponse.json({ error: 'Invalid session format' }, { status: 401 });
     }
     
     // Extract user information from session
     const user = sessionData?.user || sessionData?.currentSession?.user;
     if (!user || !user.id) {
-      console.log('❌ /api/auth/me: No user found in session data');
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('❌ /api/auth/me: No user found in session data');
+      }
       return NextResponse.json({ error: 'not-authenticated' }, { status: 401 });
     }
     
-    console.log('✅ /api/auth/me: User found:', user.id, user.email);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('✅ /api/auth/me: User found');
+    }
 
     // Use service role client to access profiles table
     const admin = createClient(url, serviceKey, { 
@@ -85,31 +116,40 @@ export async function GET() {
       .single();
     
     if (profileError) {
-      console.error('❌ /api/auth/me: Error getting profile:', profileError.message);
+      console.error('❌ /api/auth/me: Error getting profile');
       // Don't fail here, just log the error
     }
     
     let allowed = !!profile && (profile.is_admin || profile.is_editor);
-    console.log('📋 /api/auth/me: Profile data:', profile);
-    console.log('🔐 /api/auth/me: Initial allowed status:', allowed);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('🔐 /api/auth/me: Initial allowed status:', allowed);
+    }
 
     // Bootstrap: optionally auto-elevate users in allowlist (development only)
     const allowlist = (process.env.ADMIN_EMAIL_ALLOWLIST || '').split(',').map(s=>s.trim().toLowerCase()).filter(Boolean);
     const auto = String(process.env.AUTO_ELEVATE_ADMINS || '').toLowerCase() === 'true';
     const isLocalhost = process.env.NODE_ENV !== 'production';
     
-    console.log('⚙️ /api/auth/me: Auto-elevation config:', { allowlist, auto, isLocalhost, userEmail: user.email });
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('⚙️ /api/auth/me: Auto-elevation config:', { allowlist, auto, isLocalhost });
+    }
     
     if (!allowed && auto && isLocalhost && user.email && allowlist.includes(user.email.toLowerCase())) {
-      console.log('🚀 /api/auth/me: Auto-elevating user to admin');
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('🚀 /api/auth/me: Auto-elevating user to admin');
+      }
       await admin.from('profiles').upsert({ id: user.id, is_admin: true, is_editor: true }, { onConflict: 'id' });
       const { data: refreshed } = await admin.from('profiles').select('is_admin,is_editor,display_name,avatar_url').eq('id', user.id).single();
       profile = refreshed || profile;
       allowed = !!profile && (profile.is_admin || profile.is_editor);
-      console.log('✅ /api/auth/me: Auto-elevation completed, new allowed status:', allowed);
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('✅ /api/auth/me: Auto-elevation completed, new allowed status:', allowed);
+      }
     }
     
-    console.log('🎯 /api/auth/me: Final response - allowed:', allowed);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('🎯 /api/auth/me: Final response - allowed:', allowed);
+    }
     
     return NextResponse.json({
       user: { id: user.id, email: user.email },

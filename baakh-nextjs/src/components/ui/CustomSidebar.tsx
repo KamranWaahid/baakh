@@ -6,6 +6,7 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Logo } from "@/components/ui/logo";
 import { 
   Home, 
   Users, 
@@ -23,7 +24,8 @@ import {
   Shield,
   Zap,
   Globe,
-  ChevronDown
+  ChevronDown,
+  History
 } from "lucide-react";
 
 // Types
@@ -51,6 +53,7 @@ const navigationItems: NavItem[] = [
   { id: "poets", icon: Users, label: "Poets", description: "Manage Poetry Authors", href: "/admin/poets" },
   { id: "poetry", icon: BookOpen, label: "Poetry", description: "Manage Poetry Works", href: "/admin/poetry" },
   { id: "couplets", icon: Quote, label: "Couplets", description: "Manage Individual Couplets", href: "/admin/poetry/couplets" },
+  { id: "timeline", icon: History, label: "Timeline", description: "Manage Historical Periods & Events", href: "/admin/timeline" },
   { id: "tags-poets", icon: Tag, label: "Poet Tags", description: "Manage Poet Tags", href: "/admin/tags/poets" },
   { id: "tags-poetry", icon: Tag, label: "Poetry Tags", description: "Manage Poetry Tags", href: "/admin/tags/poetry" },
   { id: "romanizer", icon: Type, label: "Romanizer", description: "Hesudhar & Romanization Tools", href: "/admin/romanizer" },
@@ -61,7 +64,7 @@ const navigationItems: NavItem[] = [
 
 // Derived sectioned lists for clearer grouping
 const adminItems: NavItem[] = navigationItems.filter(i => i.id === "dashboard");
-const contentItems: NavItem[] = navigationItems.filter(i => ["categories","poets","poetry","couplets"].includes(i.id));
+const contentItems: NavItem[] = navigationItems.filter(i => ["categories","poets","poetry","couplets","timeline"].includes(i.id));
 const tagsItems: NavItem[] = navigationItems.filter(i => ["tags-poets","tags-poetry"].includes(i.id));
 const toolsItems: NavItem[] = navigationItems.filter(i => ["romanizer","locations"].includes(i.id));
 const insightsItems: NavItem[] = navigationItems.filter(i => i.id === "analytics");
@@ -77,12 +80,10 @@ const quickActions: QuickAction[] = [
 const SidebarBrand = () => (
   <div className="px-6 py-5">
     <div className="flex items-center gap-3">
-      <div className="w-6 h-6 text-[#2B2B2B]">
-        <Shield size={24} />
-      </div>
+      <Logo size="md" className="text-[#2B2B2B]" />
       <div className="flex flex-col">
-        <h1 className="text-[18px] leading-6 font-semibold text-[#2B2B2B]">Admin</h1>
-        <p className="text-[12px] leading-5 font-medium text-[#6B6B6B]">Poetry Archive</p>
+        <h1 className="text-[18px] leading-tight font-semibold text-[#2B2B2B]">Baakh</h1>
+        <p className="text-[12px] leading-tight font-medium text-[#6B6B6B] -mt-1">Poetry Archive</p>
       </div>
     </div>
   </div>
@@ -355,8 +356,6 @@ export default function Sidebar({ className }: SidebarProps) {
           <CollapsibleSection title="Insights" items={insightsItems} />
           <div className="h-px bg-[#EDEDED] my-2" />
           <CollapsibleSection title="System" items={systemItems} />
-          <div className="h-px bg-[#EDEDED] my-2" />
-          <SidebarQuickActions actions={quickActions} />
         </div>
       </aside>
     </>

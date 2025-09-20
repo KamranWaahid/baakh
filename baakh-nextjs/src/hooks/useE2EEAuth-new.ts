@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { CryptoUtils } from '@/lib/crypto-utils';
+import { toError } from '@/lib/toError';
 
 interface UserProfile {
   email: string;
@@ -160,11 +161,36 @@ export function useE2EEAuth() {
       });
       
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Signup failed');
+        let errorMessage = 'Signup failed';
+        try {
+          const errorText = await response.text();
+          console.error('Signup API error response:', errorText);
+          if (errorText) {
+            const error = JSON.parse(errorText);
+            errorMessage = error.error || errorMessage;
+          }
+        } catch (parseError) {
+          console.error('Failed to parse error response:', parseError);
+          errorMessage = `Signup failed with status ${response.status}`;
+        }
+        throw new Error(errorMessage);
       }
       
-      const result = await response.json();
+      const responseText = await response.text();
+      console.log('Signup API response text:', responseText);
+      
+      if (!responseText.trim()) {
+        throw new Error('Empty response from signup API');
+      }
+      
+      let result;
+      try {
+        result = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('Failed to parse signup response:', parseError);
+        console.error('Response text:', responseText);
+        throw new Error('Invalid JSON response from signup API');
+      }
       
       // Store master key in memory for this session
       setMasterKey(masterKey);
@@ -205,12 +231,55 @@ export function useE2EEAuth() {
       });
       
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Login failed');
+        let errorMessage = 'Login failed';
+        try {
+          const errorText = await response.text();
+          console.error('Login API error response:', errorText);
+          console.error('Response status:', response.status);
+          console.error('Response headers:', Object.fromEntries(response.headers.entries()));
+          
+          if (errorText && errorText.trim()) {
+            try {
+              const error = JSON.parse(errorText);
+              errorMessage = error.error || error.message || errorMessage;
+              console.error('Parsed error object:', error);
+            } catch (jsonError) {
+              console.error('Failed to parse error as JSON:', jsonError);
+              errorMessage = errorText || `Login failed with status ${response.status}`;
+            }
+          } else {
+            console.error('Empty error response body');
+            errorMessage = `Login failed with status ${response.status} - no error message`;
+          }
+        } catch (parseError) {
+          console.error('Failed to parse error response:', parseError);
+          errorMessage = `Login failed with status ${response.status}`;
+        }
+        throw new Error(errorMessage);
       }
       
-      const result = await response.json();
-      console.log('✅ Login API response received');
+      const responseText = await response.text();
+      console.log('Login API response text:', responseText);
+      
+      if (!responseText.trim()) {
+        throw new Error('Empty response from login API');
+      }
+      
+      let result;
+      try {
+        result = JSON.parse(responseText);
+        console.log('✅ Login API response received');
+        console.log('📊 Response data structure:', {
+          hasUserData: !!result.userData,
+          userDataKeys: result.userData ? Object.keys(result.userData) : [],
+          hasToken: !!result.token,
+          success: result.success
+        });
+      } catch (parseError) {
+        console.error('Failed to parse login response:', parseError);
+        console.error('Response text:', responseText);
+        throw new Error('Invalid JSON response from login API');
+      }
       
       // Extract user data from response
       const { userData, token } = result;
@@ -229,28 +298,93 @@ export function useE2EEAuth() {
       const salt = CryptoUtils.fromBase64(validatedPasswordSalt);
       console.log('  ✅ Success, decoded length:', salt.length);
       
-      console.log('📝 Step 2: Deriving key from password and salt...');
+      console.log('📝 Step 2: Skipping password verification, will verify via master key decryption...');
+      
+      console.log('📝 Step 3: Deriving key from password and salt...');
       const iterations = (userData?.kdfParams?.iterations as number) || 100000;
       const derivedKey = await CryptoUtils.deriveKey(password, salt, iterations);
       console.log('  ✅ Success, key derived');
+      console.log('🔑 Derived key details:', {
+        keyType: derivedKey?.constructor?.name,
+        keyAlgorithm: (derivedKey as any)?.algorithm?.name,
+        keyUsages: (derivedKey as any)?.usages
+      });
       
-      console.log('🔄 Step 3: Attempting master key decryption...');
+      console.log('🔄 Step 4: Attempting master key decryption...');
       
       // First, decrypt the master key using the derived key
       try {
         const validatedMasterKeyCipher = validateBase64Field('masterKeyCipher', userData.masterKeyCipher);
         const validatedMasterKeyNonce = validateBase64Field('masterKeyNonce', userData.masterKeyNonce);
+        
+        console.log('🔑 Master key cipher data:', {
+          original: userData.masterKeyCipher,
+          validated: validatedMasterKeyCipher,
+          length: validatedMasterKeyCipher?.length
+        });
+        
+        console.log('🔑 Master key nonce data:', {
+          original: userData.masterKeyNonce,
+          validated: validatedMasterKeyNonce,
+          length: validatedMasterKeyNonce?.length
+        });
+        
         const masterKeyCipher = CryptoUtils.fromBase64(validatedMasterKeyCipher);
         const masterKeyNonce = CryptoUtils.fromBase64(validatedMasterKeyNonce);
         
-        const masterKeyBytesArray = await CryptoUtils.decryptToBytes(
-          derivedKey,
-          masterKeyCipher,
-          masterKeyNonce,
-          'master_key:v1'
-        );
+      console.log('🔑 Converted data:', {
+        cipherType: masterKeyCipher?.constructor?.name,
+        cipherLength: masterKeyCipher?.length,
+        cipherSample: masterKeyCipher ? Array.from(masterKeyCipher.slice(0, 10)) : 'undefined',
+        nonceType: masterKeyNonce?.constructor?.name,
+        nonceLength: masterKeyNonce?.length,
+        nonceSample: masterKeyNonce ? Array.from(masterKeyNonce.slice(0, 10)) : 'undefined'
+      });
+
+      // Additional debugging for OperationError
+      console.log('🔍 Pre-decryption validation:', {
+        cipherIsValid: masterKeyCipher && masterKeyCipher.length > 0,
+        nonceIsValid: masterKeyNonce && masterKeyNonce.length === 12,
+        derivedKeyType: derivedKey?.constructor?.name,
+        derivedKeyAlgorithm: (derivedKey as any)?.algorithm,
+        derivedKeyUsages: (derivedKey as any)?.usages,
+        kdfParams: userData.kdfParams,
+        passwordSalt: userData.passwordSalt,
+        passwordVerifier: userData.passwordVerifier
+      });
         
-        console.log('✅ Master key decrypted successfully');
+        // Validate the data before attempting decryption
+        if (!masterKeyCipher || masterKeyCipher.length === 0) {
+          throw new Error('Master key cipher is empty or invalid');
+        }
+        if (!masterKeyNonce || masterKeyNonce.length !== 12) {
+          throw new Error(`Master key nonce has invalid length: ${masterKeyNonce?.length}, expected 12`);
+        }
+        
+        let masterKeyBytesArray;
+        try {
+          masterKeyBytesArray = await CryptoUtils.decryptToBytes(
+            derivedKey,
+            masterKeyCipher,
+            masterKeyNonce,
+            'master_key:v1'
+          );
+          console.log('✅ Master key decrypted successfully');
+        } catch (decryptError) {
+          const norm = toError(decryptError);
+          console.error('❌ Decryption failed with error:', norm);
+          console.error('❌ Decryption error details:', {
+            errorMessage: norm.message,
+            errorName: norm.name,
+            errorType: typeof decryptError,
+            errorConstructor: (decryptError as any)?.constructor?.name,
+            isEvent: decryptError instanceof Event,
+            cipherLength: masterKeyCipher?.length,
+            nonceLength: masterKeyNonce?.length,
+            derivedKeyType: derivedKey?.constructor?.name
+          });
+          throw new Error(`Master key decryption failed: ${norm.message}`);
+        }
         
         // Ensure the master key is exactly 32 bytes
         if (masterKeyBytesArray.length !== 32) {
@@ -336,14 +470,16 @@ export function useE2EEAuth() {
           return result;
           
         } catch (fallbackError) {
-          console.error('❌ Fallback also failed:', (fallbackError as Error).message);
+          const norm = toError(fallbackError);
+          console.error('❌ Fallback also failed:', norm);
           throw new Error('Invalid password - unable to decrypt user data');
         }
       }
       
     } catch (error) {
-      console.error('❌ Login error:', error);
-      throw error;
+      const norm = toError(error);
+      console.error('❌ Login error:', norm);
+      throw norm;
     }
   }, []);
 

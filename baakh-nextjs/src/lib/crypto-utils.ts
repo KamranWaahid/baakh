@@ -114,15 +114,22 @@ export class CryptoUtils {
       );
       
       return new TextDecoder().decode(decrypted);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Decryption failed:', {
-        error: error.message,
+        error: error,
+        errorMessage: error?.message,
+        errorName: error?.name,
+        errorType: typeof error,
+        errorConstructor: error?.constructor?.name,
+        errorString: String(error),
         keyType: key?.type,
         cipherLength: cipher?.length,
         nonceLength: nonce?.length,
         additionalData
       });
-      throw new Error(`Decryption failed: ${error.message}`);
+      
+      const errorMessage = error?.message || error?.toString() || 'Unknown decryption error';
+      throw new Error(`Decryption failed: ${errorMessage}`);
     }
   }
 
@@ -195,6 +202,43 @@ export class CryptoUtils {
     } catch (error) {
       console.error('Error encoding to base64:', error);
       throw new Error(`Failed to encode data: ${error.message}`);
+    }
+  }
+
+  // Verify password by attempting to decrypt the password verifier
+  static async verifyPassword(
+    password: string,
+    salt: Uint8Array,
+    verifier: Uint8Array,
+    verifierNonce: Uint8Array,
+    kdfParams: any
+  ): Promise<boolean> {
+    try {
+      console.log('🔐 Verifying password...');
+      
+      // Derive key from password and salt
+      const iterations = kdfParams?.iterations || 100000;
+      const derivedKey = await this.deriveKey(password, salt, iterations);
+      
+      // Try to decrypt the verifier
+      const decryptedVerifier = await this.decryptToBytes(
+        derivedKey,
+        verifier,
+        verifierNonce,
+        'password_verifier'
+      );
+      
+      // Convert to string and check if it matches expected format
+      const verifierText = new TextDecoder().decode(decryptedVerifier);
+      console.log('🔐 Password verifier decrypted successfully');
+      
+      // For now, if decryption succeeds, consider password valid
+      // In a more robust implementation, you might check against a known value
+      return true;
+      
+    } catch (error) {
+      console.log('🔐 Password verification failed:', error.message);
+      return false;
     }
   }
 
@@ -308,13 +352,37 @@ export class CryptoUtils {
       return new Uint8Array(decrypted);
     } catch (error: any) {
       console.error('Decryption (bytes) failed:', {
-        error: error.message,
+        error: error,
+        errorMessage: error?.message,
+        errorName: error?.name,
+        errorType: typeof error,
+        errorConstructor: error?.constructor?.name,
+        errorString: String(error),
         keyType: (key as any)?.type,
         cipherLength: (cipher as any)?.length,
         nonceLength: (nonce as any)?.length,
-        additionalData
+        additionalData,
+        // Additional debugging info
+        keyUsages: (key as any)?.usages,
+        keyAlgorithm: (key as any)?.algorithm,
+        cipherFirstBytes: cipher ? Array.from(cipher.slice(0, 8)) : 'N/A',
+        nonceFirstBytes: nonce ? Array.from(nonce.slice(0, 4)) : 'N/A'
       });
-      throw new Error(`Decryption failed: ${error.message}`);
+      
+      // Handle specific Web Crypto API errors
+      if (error?.name === 'OperationError') {
+        console.error('❌ Web Crypto OperationError - likely authentication tag mismatch');
+        throw new Error('Decryption failed: Authentication tag mismatch - wrong password or corrupted data');
+      } else if (error?.name === 'InvalidAccessError') {
+        console.error('❌ Web Crypto InvalidAccessError - key not suitable for decryption');
+        throw new Error('Decryption failed: Key not suitable for decryption');
+      } else if (error?.name === 'NotSupportedError') {
+        console.error('❌ Web Crypto NotSupportedError - algorithm not supported');
+        throw new Error('Decryption failed: Algorithm not supported');
+      }
+      
+      const errorMessage = error?.message || error?.toString() || 'Unknown decryption error';
+      throw new Error(`Decryption failed: ${errorMessage}`);
     }
   }
 }

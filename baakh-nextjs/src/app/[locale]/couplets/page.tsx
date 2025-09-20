@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -24,6 +24,119 @@ import { motion, AnimatePresence } from "framer-motion";
 import { NumberFont, MixedContentWithNumbers } from "@/components/ui/NumberFont";
 import { getSmartFontClass } from "@/lib/font-detection-utils";
 import { getPrimaryPoetName } from "@/lib/poet-name-utils";
+import { useAuthRequired } from "@/hooks/useAuthRequired";
+import { AuthModal } from "@/components/ui/AuthModal";
+import { useViewTracking } from "@/hooks/useViewTracking";
+
+// Couplet Card Component with View Tracking
+function CoupletCard({ couplet, index, isSindhi, isRTL, isAuthenticated, handleLikeClick, handleBookmarkClick }: {
+  couplet: Couplet;
+  index: number;
+  isSindhi: boolean;
+  isRTL: boolean;
+  isAuthenticated: boolean;
+  handleLikeClick: (coupletId: string) => void;
+  handleBookmarkClick: (coupletId: string) => void;
+}) {
+  // Track view for this couplet
+  useViewTracking({
+    contentId: parseInt(couplet.id),
+    contentType: 'couplet',
+    enabled: true,
+    delay: 2000 // Track after 2 seconds of viewing
+  });
+
+  return (
+    <motion.div
+      key={`couplet-${couplet.id}-${index}`}
+      initial={{ opacity: 0, y: 30 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, delay: 0.1 * index }}
+      className="group"
+    >
+      <Card className="h-full border border-gray-200/50 bg-white rounded-[12px] shadow-none overflow-hidden">
+        <CardContent className="p-8">
+          {/* Couplet Content */}
+          <div className="space-y-2 mb-6">
+            <div className="text-center space-y-1">
+              {couplet.lines.slice(0, 2).map((line, lineIndex) => (
+                <div 
+                  key={`${couplet.id}-line-${lineIndex}`}
+                  className={`leading-relaxed ${
+                    couplet.lang === 'sd' 
+                      ? 'text-lg font-medium text-black auto-sindhi-font' 
+                      : 'text-base font-light text-gray-800 tracking-wide'
+                  }`}
+                  dir={couplet.lang === 'sd' ? 'rtl' : 'ltr'}
+                  style={{
+                    fontFamily: couplet.lang === 'sd' ? 'var(--font-sindhi-primary)' : 'Georgia, serif',
+                    whiteSpace: 'pre-line',
+                    wordBreak: 'keep-all',
+                    overflowWrap: 'break-word',
+                    textAlign: 'center',
+                    lineHeight: couplet.lang === 'sd' ? '1.6' : '1.8',
+                    marginBottom: '0',
+                    fontStyle: couplet.lang === 'en' ? 'italic' : 'normal'
+                  }}
+                >
+                  {line}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Poet Info */}
+          <div className="flex items-center justify-between pt-6 border-t border-gray-100">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-gradient-to-br from-gray-200 to-gray-300 rounded-full flex items-center justify-center">
+                <User className="h-4 w-4 text-gray-600" />
+              </div>
+              <span className={`text-sm text-gray-700 font-medium ${getSmartFontClass(getPrimaryPoetName(couplet.poet, isSindhi))}`}>
+                {getPrimaryPoetName(couplet.poet, isSindhi)}
+              </span>
+            </div>
+            <div className="flex items-center gap-2 text-xs text-gray-500">
+              <Calendar className="h-4 w-4" />
+              <MixedContentWithNumbers 
+                text={isSindhi ? '2 منٽ' : '2 min'}
+                className="text-xs"
+              />
+            </div>
+          </div>
+
+          {/* Action Icons */}
+          <div className="flex items-center justify-between pt-4">
+            <div className="flex items-center gap-4">
+              <button 
+                onClick={() => handleLikeClick(couplet.id)}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                title={isAuthenticated ? 'Like this couplet' : 'Login to like'}
+              >
+                <Heart className="h-4 w-4 text-gray-600 hover:text-red-500" />
+              </button>
+              <button 
+                onClick={() => handleBookmarkClick(couplet.id)}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                title={isAuthenticated ? 'Bookmark this couplet' : 'Login to bookmark'}
+              >
+                <Bookmark className="h-4 w-4 text-gray-600 hover:text-blue-500" />
+              </button>
+              <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                <Share2 className="h-4 w-4 text-gray-600 hover:text-green-500" />
+              </button>
+            </div>
+            <div className="flex items-center gap-1 text-xs text-gray-500">
+              <Eye className="h-4 w-4" />
+              <NumberFont className="text-xs">
+                {couplet.views || 0}
+              </NumberFont>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+}
 
 interface Couplet {
   id: string;
@@ -35,23 +148,48 @@ interface Couplet {
   lang: string;
   lines: string[];
   couplet_slug: string;
+  poetry_id?: number | null;
+  poetry?: any | null;
   poet: {
     id: string;
     name: string;
     slug: string;
     photo: string;
+    sindhiName?: string;
+    englishName?: string;
+    sindhi_laqab?: string;
+    english_laqab?: string;
   };
 }
 
 export default function CoupletsPage() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const isSindhi = pathname?.startsWith('/sd');
   const isRTL = isSindhi;
+  const { isAuthenticated, showAuthModal, authContext, requireAuth, closeAuthModal } = useAuthRequired();
   
   const [couplets, setCouplets] = useState<Couplet[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<'created_at' | 'likes' | 'views'>('created_at');
+  
+  // Get poet filter from URL params
+  const poetFilter = searchParams.get('poet') || '';
+
+  const handleLikeClick = (coupletId: string) => {
+    requireAuth(() => {
+      // TODO: Implement like functionality for authenticated users
+      console.log('Like clicked for couplet:', coupletId);
+    }, 'like');
+  };
+
+  const handleBookmarkClick = (coupletId: string) => {
+    requireAuth(() => {
+      // TODO: Implement bookmark functionality for authenticated users
+      console.log('Bookmark clicked for couplet:', coupletId);
+    }, 'bookmark');
+  };
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
@@ -95,15 +233,21 @@ export default function CoupletsPage() {
         search: searchQuery,
         sortBy,
         sortOrder,
-        lang: isSindhi ? 'sd' : 'en'
+        lang: isSindhi ? 'sd' : 'en',
+        standalone: '1' // Only fetch standalone couplets (without poetry)
       });
-
+      
+      if (poetFilter) {
+        params.append('poet', poetFilter);
+      }
       const response = await fetch(`/api/couplets?${params}`);
       if (response.ok) {
         const data = await response.json();
-        setCouplets(data.couplets || []);
-        setTotal(data.total || 0);
-        setTotalPages(data.pagination?.totalPages || 1);
+        const allCouplets: Couplet[] = data.couplets || [];
+        // No need to filter since we're already getting standalone couplets from API
+        setCouplets(allCouplets);
+        setTotal(data.total || allCouplets.length);
+        setTotalPages(data.totalPages || 1);
       } else {
         console.error('Failed to fetch couplets:', response.status);
       }
@@ -112,13 +256,14 @@ export default function CoupletsPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, searchQuery, sortBy, sortOrder, isSindhi, perPage]);
+  }, [page, searchQuery, sortBy, sortOrder, isSindhi, perPage, poetFilter]);
 
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= totalPages && newPage !== page) {
       setPage(newPage);
     }
   };
+
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -144,7 +289,7 @@ export default function CoupletsPage() {
 
   useEffect(() => {
     fetchCouplets();
-  }, [page, searchQuery, sortBy, sortOrder, isSindhi, fetchCouplets]);
+  }, [page, searchQuery, sortBy, sortOrder, isSindhi, poetFilter, fetchCouplets]);
 
   const uniquePoetsCount = new Set(couplets.map(c => c.poet.id)).size;
   const startIdx = (page - 1) * perPage + 1;
@@ -154,33 +299,44 @@ export default function CoupletsPage() {
     <div className="animate-pulse">
       <Card className="h-full border border-gray-200/50 bg-white rounded-[12px] shadow-none overflow-hidden">
         <CardContent className="p-8">
-          {/* Couplet Content skeleton */}
+          {/* Couplet Content skeleton - matches actual couplet lines */}
           <div className="space-y-2 mb-6">
-            <div className="text-center space-y-1">
-              <div className="h-6 bg-gray-200 rounded w-full"></div>
+            <div className="text-center space-y-3">
+              {/* First line of couplet */}
+              <div className="h-6 bg-gray-200 rounded w-4/5 mx-auto"></div>
+              {/* Second line of couplet */}
               <div className="h-6 bg-gray-200 rounded w-3/4 mx-auto"></div>
             </div>
           </div>
 
-          {/* Poet Info skeleton */}
+          {/* Poet Info skeleton - matches actual poet section */}
           <div className="flex items-center justify-between pt-6 border-t border-gray-100">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
-              <div className="h-4 bg-gray-200 rounded w-24"></div>
+              {/* Poet avatar skeleton */}
+              <div className="w-8 h-8 bg-gradient-to-br from-gray-200 to-gray-300 rounded-full flex items-center justify-center">
+                <div className="w-4 h-4 bg-gray-300 rounded"></div>
+              </div>
+              {/* Poet name skeleton */}
+              <div className="h-4 bg-gray-200 rounded w-20"></div>
             </div>
-            <div className="flex items-center gap-2">
+            {/* Reading time skeleton */}
+            <div className="flex items-center gap-2 text-xs">
               <div className="h-4 w-4 bg-gray-200 rounded"></div>
-              <div className="h-4 bg-gray-200 rounded w-16"></div>
+              <div className="h-4 bg-gray-200 rounded w-12"></div>
             </div>
           </div>
 
-          {/* Action Icons skeleton */}
+          {/* Action Icons skeleton - matches actual action buttons */}
           <div className="flex items-center justify-between pt-4">
             <div className="flex items-center gap-4">
+              {/* Like button skeleton */}
               <div className="h-8 w-8 bg-gray-200 rounded-full"></div>
+              {/* Bookmark button skeleton */}
               <div className="h-8 w-8 bg-gray-200 rounded-full"></div>
+              {/* Share button skeleton */}
               <div className="h-8 w-8 bg-gray-200 rounded-full"></div>
             </div>
+            {/* View count skeleton */}
             <div className="flex items-center gap-1">
               <div className="h-4 w-4 bg-gray-200 rounded"></div>
               <div className="h-4 bg-gray-200 rounded w-8"></div>
@@ -385,13 +541,13 @@ export default function CoupletsPage() {
           {/* Stats */}
           <div className="flex flex-wrap justify-center gap-8 mb-6">
             <div className="text-center">
-              <div className="text-3xl font-bold text-gray-900">{total.toLocaleString()}</div>
+              <NumberFont className="text-3xl font-bold text-gray-900" size="2xl" weight="bold">{total.toLocaleString()}</NumberFont>
               <div className={`text-sm text-gray-600 ${getSmartFontClass(content.totalCouplets)}`}>
                 {content.totalCouplets}
               </div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-gray-900">{uniquePoetsCount}</div>
+              <NumberFont className="text-3xl font-bold text-gray-900" size="2xl" weight="bold">{uniquePoetsCount}</NumberFont>
               <div className={`text-sm text-gray-600 ${getSmartFontClass(content.uniquePoets)}`}>
                 {content.uniquePoets}
               </div>
@@ -518,84 +674,16 @@ export default function CoupletsPage() {
           {couplets.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {couplets.map((couplet, index) => (
-                <motion.div
+                <CoupletCard
                   key={`couplet-${couplet.id}-${index}`}
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.1 * index }}
-                  className="group"
-                >
-                  <Card className="h-full border border-gray-200/50 bg-white rounded-[12px] shadow-none overflow-hidden">
-                    <CardContent className="p-8">
-                      {/* Couplet Content */}
-                      <div className="space-y-2 mb-6">
-                        <div className="text-center space-y-1">
-                          {couplet.lines.slice(0, 2).map((line, lineIndex) => (
-                            <div 
-                              key={`${couplet.id}-line-${lineIndex}`}
-                              className={`leading-relaxed ${
-                                couplet.lang === 'sd' 
-                                  ? 'text-lg font-medium text-black auto-sindhi-font' 
-                                  : 'text-base font-light text-gray-800 tracking-wide'
-                              }`}
-                              dir={couplet.lang === 'sd' ? 'rtl' : 'ltr'}
-                              style={{
-                                fontFamily: couplet.lang === 'sd' ? 'var(--font-sindhi-primary)' : 'Georgia, serif',
-                                whiteSpace: 'pre-line',
-                                wordBreak: 'keep-all',
-                                overflowWrap: 'break-word',
-                                textAlign: 'center',
-                                lineHeight: couplet.lang === 'sd' ? '1.6' : '1.8',
-                                marginBottom: '0',
-                                fontStyle: couplet.lang === 'en' ? 'italic' : 'normal'
-                              }}
-                            >
-                              {line}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Poet Info */}
-                      <div className="flex items-center justify-between pt-6 border-t border-gray-100">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 bg-gradient-to-br from-gray-200 to-gray-300 rounded-full flex items-center justify-center">
-                            <User className="h-4 w-4 text-gray-600" />
-                          </div>
-                          <span className={`text-sm text-gray-700 font-medium ${getSmartFontClass(getPrimaryPoetName(couplet.poet, isSindhi))}`}>
-                            {getPrimaryPoetName(couplet.poet, isSindhi)}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 text-xs text-gray-500">
-                          <Calendar className="h-4 w-4" />
-                          <MixedContentWithNumbers 
-                            text={isSindhi ? '2 منٽ' : '2 min'}
-                            className="text-xs"
-                          />
-                        </div>
-                      </div>
-
-                      {/* Action Icons */}
-                      <div className="flex items-center justify-between pt-4">
-                        <div className="flex items-center gap-4">
-                          <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-                            <Heart className="h-4 w-4 text-gray-600 hover:text-red-500" />
-                          </button>
-                          <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-                            <Bookmark className="h-4 w-4 text-gray-600 hover:text-blue-500" />
-                          </button>
-                          <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-                            <Share2 className="h-4 w-4 text-gray-600 hover:text-green-500" />
-                          </button>
-                        </div>
-                        <div className="flex items-center gap-1 text-xs text-gray-500">
-                          <Eye className="h-4 w-4" />
-                          <span>{couplet.views || Math.floor(Math.random() * 100) + 50}</span>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
+                  couplet={couplet}
+                  index={index}
+                  isSindhi={isSindhi}
+                  isRTL={isRTL}
+                  isAuthenticated={isAuthenticated}
+                  handleLikeClick={handleLikeClick}
+                  handleBookmarkClick={handleBookmarkClick}
+                />
               ))}
             </div>
           ) : (
@@ -666,9 +754,9 @@ export default function CoupletsPage() {
                         : "border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300"
                     }`}
                   >
-                    <span>
+                    <NumberFont>
                       {pageNum}
-                    </span>
+                    </NumberFont>
                   </Button>
                 ));
               })()}
@@ -701,6 +789,13 @@ export default function CoupletsPage() {
           </motion.div>
         )}
       </main>
+      
+      {/* Auth Modal */}
+      <AuthModal 
+        isOpen={showAuthModal} 
+        onClose={closeAuthModal}
+        context={authContext}
+      />
     </div>
   );
 }

@@ -1,6 +1,8 @@
 /* stylelint-disable */
 /* Modern Font System - Minimal & Clean */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+/* Helvetica Now Text Regular will be loaded via system fonts */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=MB+Lateefi:wght@400;500;600&display=swap');
 
 @custom-variant dark (&:is(.dark *));
 
@@ -36,9 +38,9 @@
   --text-link: 0 0% 25%;        /* Links - dark gray */
   --text-accent: 0 0% 9%;       /* Accent text - very dark */
 
-  /* Modern Font System - Only Inter & MB Lateefi 2.0 */
-  --font-inter: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-sindhi: 'MB Lateefi SK 2.0', 'Noto Naskh Arabic', serif;
+  /* Modern Font System - Helvetica Now Text Regular & MB Lateefi */
+  --font-inter: "Helvetica Now Text Regular","Helvetica Now Text Regular Placeholder",sans-serif;
+  --font-sindhi: 'MB Lateefi', 'Noto Naskh Arabic', serif;
   
   /* Spacing System - Modern & Minimal */
   --spacing-xs: 0.25rem;    /* 4px */
@@ -57,6 +59,10 @@
   --sidebar-border: hsl(220 13% 91%);
   --sidebar-ring: hsl(217.2 91.2% 59.8%);
 }
+
+.font-face-loaded {} /* anchor for edits */
+
+/* Using online MB Lateefi font from Google Fonts for better performance */
 
 .dark {
   /* Dark theme colors */
@@ -154,6 +160,21 @@
     transform: translateX(100%);
   }
 }
+/* Shimmer utility, matches badge-style shimmer */
+@layer utilities {
+  .shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+  .shimmer::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.55) 50%, rgba(255,255,255,0) 100%);
+    animation: shimmer 1.8s infinite;
+  }
+}
 @tailwind utilities;
 
 /* Base Styles */
@@ -170,6 +191,41 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+    font-kerning: normal;
+    font-variant-ligatures: common-ligatures;
+    font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+  }
+
+  /* Improve English reading rhythm (do not apply to Sindhi/RTL) */
+  [lang="en"] p,
+  [dir="ltr"] p {
+    line-height: 1.7;
+    letter-spacing: 0.005em;
+  }
+
+  [lang="en"] li,
+  [dir="ltr"] li {
+    line-height: 1.7;
+    letter-spacing: 0.003em;
+  }
+
+  [lang="en"] small,
+  [dir="ltr"] small {
+    line-height: 1.5;
+  }
+
+  /* Ensure Arabic-derived scripts keep natural spacing */
+  [lang="sd"] p,
+  [dir="rtl"] p,
+  [lang="sd"] li,
+  [dir="rtl"] li {
+    letter-spacing: normal;
+  }
+
+  /* Enable kerning on headings */
+  h1, h2, h3, h4, h5, h6 {
+    font-kerning: normal;
+    font-feature-settings: "kern" 1, "liga" 1;
   }
 
   /* RTL/LTR Layout Support */
@@ -230,9 +286,170 @@
 
 /* Modern Component Styles */
 @layer components {
+  /* English public site: neutralize bold for minimal aesthetic */
+  [lang="en"].public-site *,
+  .public-site [lang="en"] *,
+  .public-site[dir="ltr"] * {
+    font-weight: 400 !important;
+  }
+  .public-site [lang="en"] :is(strong, b),
+  [lang="en"].public-site :is(strong, b),
+  .public-site[dir="ltr"] :is(strong, b) {
+    font-weight: 400 !important;
+  }
+  /* Tailwind-style classes that might enforce bold */
+  .public-site [lang="en"] :is(.font-bold, .font-semibold),
+  [lang="en"].public-site :is(.font-bold, .font-semibold),
+  .public-site[dir="ltr"] :is(.font-bold, .font-semibold) {
+    font-weight: 400 !important;
+  }
+  /* Global Sindhi application: language and RTL text blocks */
+  [lang="sd"],
+  [dir="rtl"],
+  .sindhi-text, .sindhi-label, .sindhi-textarea, .sindhi-rtl {
+    font-family: var(--font-sindhi) !important;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+
+  /* Apply Sindhi font to all static content in /sd locale */
+  [lang="sd"] h1, [lang="sd"] h2, [lang="sd"] h3, [lang="sd"] h4, [lang="sd"] h5, [lang="sd"] h6,
+  [lang="sd"] p, [lang="sd"] span, [lang="sd"] div, [lang="sd"] section, [lang="sd"] article,
+  [lang="sd"] .text-display, [lang="sd"] .text-h1, [lang="sd"] .text-h2, [lang="sd"] .text-h3,
+  [lang="sd"] .text-h4, [lang="sd"] .text-h5, [lang="sd"] .text-h6, [lang="sd"] .text-body,
+  [lang="sd"] .text-caption, [lang="sd"] .text-muted, [lang="sd"] .text-secondary,
+  [lang="sd"] .card-text, [lang="sd"] .hero-text, [lang="sd"] .description,
+  [lang="sd"] .subtitle, [lang="sd"] .title, [lang="sd"] .heading,
+  [dir="rtl"] h1, [dir="rtl"] h2, [dir="rtl"] h3, [dir="rtl"] h4, [dir="rtl"] h5, [dir="rtl"] h6,
+  [dir="rtl"] p, [dir="rtl"] span, [dir="rtl"] div, [dir="rtl"] section, [dir="rtl"] article,
+  [dir="rtl"] .text-display, [dir="rtl"] .text-h1, [dir="rtl"] .text-h2, [dir="rtl"] .text-h3,
+  [dir="rtl"] .text-h4, [dir="rtl"] .text-h5, [dir="rtl"] .text-h6, [dir="rtl"] .text-body,
+  [dir="rtl"] .text-caption, [dir="rtl"] .text-muted, [dir="rtl"] .text-secondary,
+  [dir="rtl"] .card-text, [dir="rtl"] .hero-text, [dir="rtl"] .description,
+  [dir="rtl"] .subtitle, [dir="rtl"] .title, [dir="rtl"] .heading {
+    font-family: var(--font-sindhi) !important;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Comprehensive Sindhi font application for all content in /sd locale */
+  [lang="sd"] *:not(.number):not([data-number="true"]):not(input[type="number"]):not(.font-english),
+  [dir="rtl"] *:not(.number):not([data-number="true"]):not(input[type="number"]):not(.font-english) {
+    font-family: var(--font-sindhi) !important;
+  }
+
+  /* Force Sindhi font for all text elements in /sd locale - highest priority */
+  [lang="sd"] h1, [lang="sd"] h2, [lang="sd"] h3, [lang="sd"] h4, [lang="sd"] h5, [lang="sd"] h6,
+  [lang="sd"] p, [lang="sd"] span, [lang="sd"] div, [lang="sd"] section, [lang="sd"] article,
+  [lang="sd"] main, [lang="sd"] header, [lang="sd"] footer, [lang="sd"] nav, [lang="sd"] aside,
+  [dir="rtl"] h1, [dir="rtl"] h2, [dir="rtl"] h3, [dir="rtl"] h4, [dir="rtl"] h5, [dir="rtl"] h6,
+  [dir="rtl"] p, [dir="rtl"] span, [dir="rtl"] div, [dir="rtl"] section, [dir="rtl"] article,
+  [dir="rtl"] main, [dir="rtl"] header, [dir="rtl"] footer, [dir="rtl"] nav, [dir="rtl"] aside {
+    font-family: var(--font-sindhi) !important;
+  }
+
+  /* Ensure numbers and ASCII remain Helvetica Now Text Regular inside Sindhi blocks */
+  [lang="sd"] :is(.number, [data-number="true"], input[type="number"], .font-english),
+  [dir="rtl"] :is(.number, [data-number="true"], input[type="number"], .font-english),
+  [lang="sd"] .number,
+  [dir="rtl"] .number {
+    font-family: var(--font-inter) !important;
+  }
+
+  /* Inputs/textareas should display Sindhi correctly when inside RTL/Sindhi blocks */
+  [lang="sd"] :is(input, textarea, select),
+  [dir="rtl"] :is(input, textarea, select) {
+    font-family: var(--font-sindhi);
+  }
+
+  /* Buttons should use Sindhi font for text content but not for numbers */
+  [lang="sd"] button:not(:has(.number)),
+  [dir="rtl"] button:not(:has(.number)) {
+    font-family: var(--font-sindhi);
+  }
+
+  /* Ensure buttons with numbers use regular font */
+  [lang="sd"] button:has(.number),
+  [lang="sd"] button .number,
+  [dir="rtl"] button:has(.number),
+  [dir="rtl"] button .number {
+    font-family: var(--font-inter) !important;
+  }
+
+  /* Ensure pagination numbers and numeric content use regular font in /sd */
+  [lang="sd"] .pagination button,
+  [lang="sd"] .pagination span,
+  [lang="sd"] button:has(.number),
+  [lang="sd"] .page-number,
+  [lang="sd"] .pagination-number,
+  [lang="sd"] .stats-number,
+  [lang="sd"] .count-number,
+  [lang="sd"] .total-number,
+  [lang="sd"] .number,
+  [lang="sd"] button span,
+  [lang="sd"] .pagination button span,
+  [lang="sd"] .pagination span span,
+  [dir="rtl"] .pagination button,
+  [dir="rtl"] .pagination span,
+  [dir="rtl"] button:has(.number),
+  [dir="rtl"] .page-number,
+  [dir="rtl"] .pagination-number,
+  [dir="rtl"] .stats-number,
+  [dir="rtl"] .count-number,
+  [dir="rtl"] .total-number,
+  [dir="rtl"] .number,
+  [dir="rtl"] button span,
+  [dir="rtl"] .pagination button span,
+  [dir="rtl"] .pagination span span {
+    font-family: var(--font-inter) !important;
+  }
+
+  /* Force all .number elements to use Helvetica Now Text Regular font - highest specificity */
+  .number {
+    font-family: var(--font-inter) !important;
+  }
+
+  /* Ensure all numbers in Sindhi pages use Helvetica Now Text Regular font - override any conflicting rules */
+  [lang="sd"] .number,
+  [dir="rtl"] .number,
+  [lang="sd"] .number *,
+  [dir="rtl"] .number *,
+  [lang="sd"] .NumberFont,
+  [dir="rtl"] .NumberFont,
+  [lang="sd"] .NumberFont *,
+  [dir="rtl"] .NumberFont * {
+    font-family: var(--font-inter) !important;
+  }
+
+  /* Force Helvetica Now Text Regular font for all text content that contains numbers in Sindhi pages */
+  [lang="sd"] *[data-number="true"],
+  [dir="rtl"] *[data-number="true"],
+  [lang="sd"] .numeric,
+  [dir="rtl"] .numeric,
+  [lang="sd"] .pagination-number,
+  [dir="rtl"] .pagination-number,
+  [lang="sd"] .page-number,
+  [dir="rtl"] .page-number {
+    font-family: var(--font-inter) !important;
+  }
+  /* Ensure labels use Sindhi font in Sindhi/RTL contexts (covers Radix Label) */
+  [lang="sd"] :is(label, [data-slot="label"]),
+  [dir="rtl"] :is(label, [data-slot="label"]) {
+    font-family: var(--font-sindhi) !important;
+  }
+  /* Sindhi placeholders */
+  [lang="sd"] ::placeholder,
+  [dir="rtl"] ::placeholder {
+    font-family: var(--font-sindhi) !important;
+    color: hsl(var(--text-muted)) !important;
+    opacity: 0.8;
+  }
   /* Modern Font System - Clean & Minimal */
   
-  /* English Font (Inter) */
+  /* English Font (Helvetica Now Text Regular) */
   .font-english {
     font-family: var(--font-inter);
     font-weight: 400;
@@ -241,9 +458,11 @@
     text-rendering: optimizeLegibility;
   }
 
-  /* Sindhi Font (MB Lateefi 2.0) */
-  .font-sindhi {
-    font-family: var(--font-sindhi);
+  /* Sindhi Font (MB Lateefi) - Enhanced specificity */
+  .font-sindhi,
+  [lang="sd"] .font-sindhi,
+  [dir="rtl"] .font-sindhi {
+    font-family: var(--font-sindhi) !important;
     font-weight: 400;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -251,7 +470,29 @@
     font-feature-settings: 'kern' 1, 'liga' 1;
   }
 
+  /* Utility: force Sindhi font where needed (e.g., hero buttons on /sd) */
+  .auto-sindhi-font,
+  [lang="sd"] .auto-sindhi-font,
+  [dir="rtl"] .auto-sindhi-font {
+    font-family: var(--font-sindhi) !important;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
   /* ===== MODERN TYPOGRAPHY SYSTEM ===== */
+  
+  /* Sindhi Hero Title - Specific styling for /sd locale */
+  .sd-hero-title {
+    font-size: clamp(2.5rem, 5vw, 3.5rem);
+    line-height: 1.1;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    font-family: var(--font-sindhi) !important;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
   
   /* Modern Typography Scale - Clean & Consistent */
   .text-display {
@@ -486,7 +727,7 @@
   [lang="sd"] .text-2xl,
   [dir="rtl"] .text-2xl {
     font-family: var(--font-sindhi) !important;
-    font-size: 1.5rem !important;
+    font-size: 1.875rem !important;
     line-height: 1.9 !important;
   }
 
@@ -556,21 +797,31 @@
   /* Modern Number Typography - Clean & Consistent */
   .number {
     font-family: var(--font-inter) !important;
-    font-variant-numeric: tabular-nums;
     font-weight: 500;
   }
 
-  /* Force Inter font for numbers in Sindhi locale */
+  /* Force Helvetica Now Text Regular font for numbers in Sindhi locale */
   [lang="sd"] .number,
   [dir="rtl"] .number,
   [lang="sd"] [data-number="true"],
   [dir="rtl"] [data-number="true"] {
     font-family: var(--font-inter) !important;
-    font-variant-numeric: tabular-nums;
     font-weight: 500;
   }
 
-  /* Force Inter font for English characters in Sindhi locale */
+  /* Override all Sindhi font rules for numbers */
+  [lang="sd"] .number,
+  [dir="rtl"] .number,
+  [lang="sd"] [data-number="true"],
+  [dir="rtl"] [data-number="true"],
+  [lang="sd"] .number *,
+  [dir="rtl"] .number *,
+  [lang="sd"] [data-number="true"] *,
+  [dir="rtl"] [data-number="true"] * {
+    font-family: var(--font-inter) !important;
+  }
+
+  /* Force Helvetica Now Text Regular font for English characters in Sindhi locale */
   [lang="sd"] .font-inter,
   [dir="rtl"] .font-inter {
     font-family: var(--font-inter) !important;
@@ -587,7 +838,6 @@
   [lang="en"] .number,
   [dir="ltr"] .number {
     font-family: var(--font-inter) !important;
-    font-variant-numeric: tabular-nums;
     font-weight: 500;
   }
 
@@ -633,6 +883,7 @@
     .text-h2 { font-size: 1.5rem; }
     .text-h3 { font-size: 1.25rem; }
     .text-h4 { font-size: 1.125rem; }
+    
   }
 
   @media (min-width: 1024px) {
@@ -641,6 +892,7 @@
     .text-h2 { font-size: 2rem; }
     .text-h3 { font-size: 1.5rem; }
     .text-h4 { font-size: 1.25rem; }
+    
   }
 
   /* Custom range input styling */
@@ -774,5 +1026,24 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* CRITICAL: Force Sindhi font for /sd locale - Highest priority */
+[lang="sd"] * {
+  font-family: var(--font-sindhi) !important;
+}
+
+/* CRITICAL: Force Helvetica Now Text Regular font for numbers - Override everything */
+.number, [data-number="true"] {
+  font-family: var(--font-inter) !important;
+}
+
+/* Utility classes */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
+  scrollbar-width: none;  /* Firefox */
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Safari and Chrome */
 }
 

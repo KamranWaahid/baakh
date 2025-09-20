@@ -82,6 +82,33 @@ export default function SearchInterface() {
 
   const placeholders = isSindhi ? sindhiPlaceholders : rotatingPlaceholders;
 
+  // Render helper to keep numbers in Inter even in Sindhi placeholder
+  const renderWithNumberFont = (text: string) => {
+    // Match ASCII digits, Arabic-Indic (\u0660-\u0669) and Eastern Arabic-Indic (\u06F0-\u06F9)
+    const regex = /([0-9]+|[\u0660-\u0669]+|[\u06F0-\u06F9]+)/g;
+    const parts: Array<string | { num: string; key: number }> = [];
+    let lastIndex = 0;
+    let match: RegExpExecArray | null;
+    let key = 0;
+    while ((match = regex.exec(text)) !== null) {
+      if (match.index > lastIndex) {
+        parts.push(text.slice(lastIndex, match.index));
+      }
+      parts.push({ num: match[0], key: key++ });
+      lastIndex = regex.lastIndex;
+    }
+    if (lastIndex < text.length) {
+      parts.push(text.slice(lastIndex));
+    }
+    return parts.map((part, idx) =>
+      typeof part === 'string' ? (
+        <span key={`t-${idx}`}>{part}</span>
+      ) : (
+        <span key={`n-${part.key}`} className="number" data-number="true">{part.num}</span>
+      )
+    );
+  };
+
   // Rotate placeholders
   useEffect(() => {
     const interval = setInterval(() => {
@@ -285,13 +312,14 @@ export default function SearchInterface() {
               }
             }}
             className={`w-full h-14 text-lg border border-gray-200 bg-white rounded-full px-6 ${isRTL ? 'pr-14' : 'pl-14'} hover:border-gray-100 focus:border-gray-300 focus:ring-0 focus-visible:ring-0 focus:outline-none shadow-none focus:shadow-none focus-visible:shadow-none transition-colors duration-150 ${isSindhi ? 'auto-sindhi-font search-placeholder' : ''}`}
-            style={isSindhi ? { fontFamily: 'var(--font-sindhi-primary)' } : {}}
+            style={isSindhi ? { fontFamily: 'var(--font-sindhi)' } : {}}
             dir={isRTL ? 'rtl' : 'ltr'}
           />
           
           {/* Placeholder Text with Writing Animation - Only show when input is empty */}
           {!query && (
-            <div className={`absolute top-1/2 transform -translate-y-1/2 pointer-events-none ${isRTL ? 'right-14' : 'left-14'} text-gray-400 ${isSindhi ? 'auto-sindhi-font search-placeholder' : ''}`}>
+            <div className={`absolute top-1/2 transform -translate-y-1/2 pointer-events-none ${isRTL ? 'right-14' : 'left-14'} text-gray-400 ${isSindhi ? 'auto-sindhi-font search-placeholder' : ''}`}
+                 style={isSindhi ? { fontFamily: 'var(--font-sindhi)' } : {}}>
               <AnimatePresence mode="wait">
                 <motion.span
                   key={currentPlaceholder}
@@ -307,7 +335,7 @@ export default function SearchInterface() {
                   }}
                   className="block"
                 >
-                  {placeholders[currentPlaceholder].text}
+                  {isSindhi ? renderWithNumberFont(placeholders[currentPlaceholder].text) : placeholders[currentPlaceholder].text}
                 </motion.span>
               </AnimatePresence>
             </div>

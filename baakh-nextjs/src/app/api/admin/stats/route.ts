@@ -4,6 +4,9 @@ import { createAdminClient } from '@/lib/supabase/admin';
 export async function GET(request: NextRequest) {
   try {
     const supabase = createAdminClient();
+    const now = Date.now();
+    const last7Start = new Date(now - 7 * 24 * 60 * 60 * 1000).toISOString();
+    const prev7Start = new Date(now - 14 * 24 * 60 * 60 * 1000).toISOString();
     
     // Fetch various statistics from the database
     const [
@@ -14,7 +17,18 @@ export async function GET(request: NextRequest) {
       coupletsCount,
       recentPoets,
       recentPoetry,
-      recentTags
+      recentTags,
+      recentCategories,
+      // Weekly counts (current 7 days)
+      poetsWeek,
+      poetryWeek,
+      tagsWeek,
+      coupletsWeek,
+      // Previous 7 days window
+      poetsPrevWeek,
+      poetryPrevWeek,
+      tagsPrevWeek,
+      coupletsPrevWeek
     ] = await Promise.all([
       // Total poets count
       supabase
@@ -23,7 +37,7 @@ export async function GET(request: NextRequest) {
       
       // Total poetry count
       supabase
-        .from('poetry')
+        .from('poetry_main')
         .select('id', { count: 'exact', head: true }),
       
       // Total tags count
@@ -38,22 +52,22 @@ export async function GET(request: NextRequest) {
       
       // Total couplets count
       supabase
-        .from('couplets')
+        .from('poetry_couplets')
         .select('id', { count: 'exact', head: true }),
       
-      // Recent poets (last 7 days)
+      // Recent poets (last 7 days) - alias columns to match frontend expectations
       supabase
         .from('poets')
-        .select('id, name, slug, created_at')
-        .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
+        .select('id, name:english_name, slug:poet_slug, created_at')
+        .gte('created_at', last7Start)
         .order('created_at', { ascending: false })
         .limit(5),
       
-      // Recent poetry (last 7 days)
+      // Recent poetry (last 7 days) - alias columns to match frontend expectations
       supabase
-        .from('poetry')
-        .select('id, title, slug, created_at, poets(name, slug)')
-        .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
+        .from('poetry_main')
+        .select('id, title:english_title, slug:poetry_slug, created_at, poets(name:english_name, slug:poet_slug)')
+        .gte('created_at', last7Start)
         .order('created_at', { ascending: false })
         .limit(5),
       
@@ -61,17 +75,43 @@ export async function GET(request: NextRequest) {
       supabase
         .from('tags')
         .select('id, label, slug, created_at')
-        .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
+        .gte('created_at', last7Start)
         .order('created_at', { ascending: false })
-        .limit(5)
+        .limit(5),
+
+      // Recent categories (last 7 days)
+      supabase
+        .from('categories')
+        .select('id, label, slug, created_at')
+        .gte('created_at', last7Start)
+        .order('created_at', { ascending: false })
+        .limit(5),
+
+      // Counts for current 7 days
+      supabase.from('poets').select('id', { head: true, count: 'exact' }).gte('created_at', last7Start),
+      supabase.from('poetry_main').select('id', { head: true, count: 'exact' }).gte('created_at', last7Start),
+      supabase.from('tags').select('id', { head: true, count: 'exact' }).gte('created_at', last7Start),
+      supabase.from('poetry_couplets').select('id', { head: true, count: 'exact' }).gte('created_at', last7Start),
+
+      // Counts for previous 7-day window
+      supabase.from('poets').select('id', { head: true, count: 'exact' }).gte('created_at', prev7Start).lt('created_at', last7Start),
+      supabase.from('poetry_main').select('id', { head: true, count: 'exact' }).gte('created_at', prev7Start).lt('created_at', last7Start),
+      supabase.from('tags').select('id', { head: true, count: 'exact' }).gte('created_at', prev7Start).lt('created_at', last7Start),
+      supabase.from('poetry_couplets').select('id', { head: true, count: 'exact' }).gte('created_at', prev7Start).lt('created_at', last7Start)
     ]);
 
-    // Calculate weekly changes (mock for now, can be enhanced with actual analytics)
+    // Calculate weekly change percentages
+    function growth(current?: number | null, previous?: number | null) {
+      const c = current || 0;
+      const p = previous || 0;
+      if (p === 0) return p === c ? 0 : 100; // if no items previous week, treat any new as 100%
+      return Math.round(((c - p) / p) * 100);
+    }
     const weeklyChanges = {
-      poets: '+12%',
-      poetry: '+8%',
-      tags: '+5%',
-      views: '+23%'
+      poets: `${growth(poetsWeek.count, poetsPrevWeek.count)}%`,
+      poetry: `${growth(poetryWeek.count, poetryPrevWeek.count)}%`,
+      tags: `${growth(tagsWeek.count, tagsPrevWeek.count)}%`,
+      couplets: `${growth(coupletsWeek.count, coupletsPrevWeek.count)}%`
     };
 
     // Format the response
@@ -82,10 +122,17 @@ export async function GET(request: NextRequest) {
       totalCategories: categoriesCount.count || 0,
       totalCouplets: coupletsCount.count || 0,
       weeklyChanges,
+      weeklyCounts: {
+        poets: poetsWeek.count || 0,
+        poetry: poetryWeek.count || 0,
+        tags: tagsWeek.count || 0,
+        couplets: coupletsWeek.count || 0,
+      },
       recentActivity: {
         poets: recentPoets.data || [],
         poetry: recentPoetry.data || [],
-        tags: recentTags.data || []
+        tags: recentTags.data || [],
+        categories: recentCategories.data || []
       }
     };
 

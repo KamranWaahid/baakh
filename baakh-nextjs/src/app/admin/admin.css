@@ -101,20 +101,20 @@
 
 /* ===== SINDHI FONT SUPPORT ===== */
 .admin-sindhi-text {
-  font-family: 'MB Lateefi SK 2.0', 'Noto Naskh Arabic', serif;
+  font-family: 'MB Lateefi', 'Noto Naskh Arabic', serif;
   font-feature-settings: 'kern' 1, 'liga' 1;
   text-rendering: optimizeLegibility;
 }
 
 .admin-sindhi-heading {
-  font-family: 'MB Lateefi SK 2.0', 'Noto Naskh Arabic', serif;
+  font-family: 'MB Lateefi', 'Noto Naskh Arabic', serif;
   font-weight: 600;
   font-feature-settings: 'kern' 1, 'liga' 1;
   text-rendering: optimizeLegibility;
 }
 
 .admin-sindhi-body {
-  font-family: 'MB Lateefi SK 2.0', 'Noto Naskh Arabic', serif;
+  font-family: 'MB Lateefi', 'Noto Naskh Arabic', serif;
   font-size: 1.125rem;
   line-height: 1.8;
   font-feature-settings: 'kern' 1, 'liga' 1;
@@ -122,7 +122,7 @@
 }
 
 .admin-sindhi-caption {
-  font-family: 'MB Lateefi SK 2.0', 'Noto Naskh Arabic', serif;
+  font-family: 'MB Lateefi', 'Noto Naskh Arabic', serif;
   font-size: 0.875rem;
   line-height: 1.6;
   font-feature-settings: 'kern' 1, 'liga' 1;
@@ -138,7 +138,7 @@
 
 /* Sindhi Input Styling */
 .admin-sindhi-input {
-  font-family: 'MB Lateefi SK 2.0', 'Noto Naskh Arabic', serif;
+  font-family: 'MB Lateefi', 'Noto Naskh Arabic', serif;
   font-size: 1rem;
   line-height: 1.6;
   font-feature-settings: 'kern' 1, 'liga' 1;
@@ -147,7 +147,7 @@
 
 /* Sindhi Label Styling */
 .admin-sindhi-label {
-  font-family: 'MB Lateefi SK 2.0', 'Noto Naskh Arabic', serif;
+  font-family: 'MB Lateefi', 'Noto Naskh Arabic', serif;
   font-weight: 500;
   font-feature-settings: 'kern' 1, 'liga' 1;
   text-rendering: optimizeLegibility;
@@ -167,6 +167,27 @@
   box-shadow: var(--admin-shadow-sm);
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   backdrop-filter: blur(8px);
+}
+
+/* Enhanced Card Content Padding */
+.admin-card-content {
+  padding: var(--admin-space-xl);
+}
+
+.admin-card-content-sm {
+  padding: var(--admin-space-lg);
+}
+
+.admin-card-content-lg {
+  padding: calc(var(--admin-space-xl) + var(--admin-space-md));
+}
+
+.admin-card-header {
+  padding: var(--admin-space-xl) var(--admin-space-xl) var(--admin-space-lg) var(--admin-space-xl);
+}
+
+.admin-card-footer {
+  padding: var(--admin-space-lg) var(--admin-space-xl) var(--admin-space-xl) var(--admin-space-xl);
 }
 
 .admin-card:hover {
@@ -455,6 +476,57 @@
   margin-top: var(--admin-radius-2xl);
 }
 
+/* Enhanced Padding Utilities */
+.admin-p-6 {
+  padding: var(--admin-space-lg);
+}
+
+.admin-p-8 {
+  padding: var(--admin-space-xl);
+}
+
+.admin-p-12 {
+  padding: calc(var(--admin-space-xl) + var(--admin-space-lg));
+}
+
+.admin-px-6 {
+  padding-left: var(--admin-space-lg);
+  padding-right: var(--admin-space-lg);
+}
+
+.admin-px-8 {
+  padding-left: var(--admin-space-xl);
+  padding-right: var(--admin-space-xl);
+}
+
+.admin-py-6 {
+  padding-top: var(--admin-space-lg);
+  padding-bottom: var(--admin-space-lg);
+}
+
+.admin-py-8 {
+  padding-top: var(--admin-space-xl);
+  padding-bottom: var(--admin-space-xl);
+}
+
+.admin-py-12 {
+  padding-top: calc(var(--admin-space-xl) + var(--admin-space-lg));
+  padding-bottom: calc(var(--admin-space-xl) + var(--admin-space-lg));
+}
+
+/* Card Content Spacing */
+.admin-card-spacing {
+  padding: var(--admin-space-xl);
+}
+
+.admin-card-spacing-sm {
+  padding: var(--admin-space-lg);
+}
+
+.admin-card-spacing-lg {
+  padding: calc(var(--admin-space-xl) + var(--admin-space-md));
+}
+
 /* ===== IMPROVED GRID SYSTEM ===== */
 .admin-grid-stats {
   display: grid;
@@ -585,14 +657,24 @@
   background: var(--admin-border);
 }
 
+/* Hide scrollbar utility */
+.no-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
 /* ===== COMPREHENSIVE SINDHI FONT UTILITIES ===== */
 
 /* Base Sindhi Font Classes */
 .sindhi-text {
-  font-family: 'MB Lateefi SK 2.0', 'Noto Naskh Arabic', serif;
+  font-family: 'MB Lateefi', 'Noto Naskh Arabic', serif;
   font-feature-settings: 'kern' 1, 'liga' 1;
   text-rendering: optimizeLegibility;
 }
+
 
 /* Ensure proper line break handling for all textareas */
 textarea.sindhi-text,
@@ -604,14 +686,14 @@ textarea.sindhi-textarea {
 }
 
 .sindhi-heading {
-  font-family: 'MB Lateefi SK 2.0', 'Noto Naskh Arabic', serif;
+  font-family: 'MB Lateefi', 'Noto Naskh Arabic', serif;
   font-weight: 600;
   font-feature-settings: 'kern' 1, 'liga' 1;
   text-rendering: optimizeLegibility;
 }
 
 .sindhi-body {
-  font-family: 'MB Lateefi SK 2.0', 'Noto Naskh Arabic', serif;
+  font-family: 'MB Lateefi', 'Noto Naskh Arabic', serif;
   font-size: 1.125rem;
   line-height: 1.8;
   font-feature-settings: 'kern' 1, 'liga' 1;
@@ -619,7 +701,7 @@ textarea.sindhi-textarea {
 }
 
 .sindhi-caption {
-  font-family: 'MB Lateefi SK 2.0', 'Noto Naskh Arabic', serif;
+  font-family: 'MB Lateefi', 'Noto Naskh Arabic', serif;
   font-size: 0.875rem;
   line-height: 1.6;
   font-feature-settings: 'kern' 1, 'liga' 1;
@@ -635,7 +717,7 @@ textarea.sindhi-textarea {
 
 /* Sindhi Form Elements */
 .sindhi-input {
-  font-family: 'MB Lateefi SK 2.0', 'Noto Naskh Arabic', serif;
+  font-family: 'MB Lateefi', 'Noto Naskh Arabic', serif;
   font-size: 1rem;
   line-height: 1.6;
   font-feature-settings: 'kern' 1, 'liga' 1;
@@ -643,14 +725,14 @@ textarea.sindhi-textarea {
 }
 
 .sindhi-label {
-  font-family: 'MB Lateefi SK 2.0', 'Noto Naskh Arabic', serif;
+  font-family: 'MB Lateefi', 'Noto Naskh Arabic', serif;
   font-weight: 500;
   font-feature-settings: 'kern' 1, 'liga' 1;
   text-rendering: optimizeLegibility;
 }
 
 .sindhi-textarea {
-  font-family: 'MB Lateefi SK 2.0', 'Noto Naskh Arabic', serif;
+  font-family: 'MB Lateefi', 'Noto Naskh Arabic', serif;
   font-size: 1rem;
   line-height: 1.6;
   font-feature-settings: 'kern' 1, 'liga' 1;
@@ -663,38 +745,38 @@ textarea.sindhi-textarea {
 
 /* Sindhi Typography Sizes */
 .sindhi-text-xs {
-  font-family: 'MB Lateefi SK 2.0', 'Noto Naskh Arabic', serif;
+  font-family: 'MB Lateefi', 'Noto Naskh Arabic', serif;
   font-size: 0.75rem;
   line-height: 1.4;
 }
 
 .sindhi-text-sm {
-  font-family: 'MB Lateefi SK 2.0', 'Noto Naskh Arabic', serif;
+  font-family: 'MB Lateefi', 'Noto Naskh Arabic', serif;
   font-size: 0.875rem;
   line-height: 1.5;
 }
 
 .sindhi-text-base {
-  font-family: 'MB Lateefi SK 2.0', 'Noto Naskh Arabic', serif;
+  font-family: 'MB Lateefi', 'Noto Naskh Arabic', serif;
   font-size: 1rem;
   line-height: 1.6;
 }
 
 .sindhi-text-lg {
-  font-family: 'MB Lateefi SK 2.0', 'Noto Naskh Arabic', serif;
+  font-family: 'MB Lateefi', 'Noto Naskh Arabic', serif;
   font-size: 1.125rem;
   line-height: 1.7;
 }
 
 .sindhi-text-xl {
-  font-family: 'MB Lateefi SK 2.0', 'Noto Naskh Arabic', serif;
+  font-family: 'MB Lateefi', 'Noto Naskh Arabic', serif;
   font-size: 1.25rem;
   line-height: 1.8;
 }
 
 .sindhi-text-2xl {
-  font-family: 'MB Lateefi SK 2.0', 'Noto Naskh Arabic', serif;
-  font-size: 1.5rem;
+  font-family: 'MB Lateefi', 'Noto Naskh Arabic', serif;
+  font-size: 1.875rem;
   line-height: 1.9;
 }
 
@@ -804,7 +886,7 @@ textarea.sindhi-textarea {
 /* Responsive Sindhi Text */
 @media (max-width: 768px) {
   .sindhi-text-2xl {
-    font-size: 1.25rem;
+    font-size: 1.5rem;
   }
   
   .sindhi-text-xl {
@@ -814,4 +896,6 @@ textarea.sindhi-textarea {
   .sindhi-text-lg {
     font-size: 1rem;
   }
+  
 }
+

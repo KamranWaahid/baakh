@@ -18,6 +18,7 @@ const categoryRoutes = require('./routes/categories');
 const periodRoutes = require('./routes/periods');
 const searchRoutes = require('./routes/search');
 const adminRoutes = require('./routes/admin');
+const timelineRoutes = require('./routes/timeline');
 
 const app = express();
 
@@ -78,6 +79,7 @@ app.use('/api/couplets', coupletRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/periods', periodRoutes);
 app.use('/api/search', searchRoutes);
+app.use('/api/timeline', timelineRoutes);
 app.use('/api/admin', authMiddleware.authenticateToken, authMiddleware.requireAdmin, adminRoutes);
 
 // 404 handler

@@ -2,7 +2,9 @@
 
 import { useParams, usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { Heart, Share2, MessageCircle, BookOpen, Clock, User, Tag, Calendar, ChevronRight, Eye } from 'lucide-react';
+import { Heart, Share2, MessageCircle, BookOpen, Clock, User, Tag, Calendar, ChevronRight, Eye, Flag, MoreHorizontal, AlertTriangle, Shield, MessageSquare, X } from 'lucide-react';
+import { useReports } from '@/hooks/useReports';
+import { ReportCategory, ReportReason } from '@/types/reports';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { getSmartFontClass, processMixedContent } from '@/lib/sindhi-font-utils';
@@ -30,6 +32,13 @@ interface PoetryData {
     english_tagline?: string;
     sindhi_tagline?: string;
     file_url?: string; // Added for poet image
+    birth_date?: string;
+    death_date?: string;
+    birth_place?: string;
+    death_place?: string;
+    sindhi_details?: string;
+    english_details?: string;
+    tags?: string[];
   };
   categories?: {
     id: string;
@@ -143,6 +152,65 @@ export default function PoetryPage() {
   
   // Detect current locale
   const isSindhi = pathname?.startsWith('/sd');
+
+  // Page-specific styles for sindhi-text spans in poetry content only
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = `
+      /* Poetry page specific - Enhanced sindhi-text spans in poetry content only */
+      [lang="sd"] .poetry-content span.sindhi-text,
+      [dir="rtl"] .poetry-content span.sindhi-text {
+        font-size: clamp(0.875rem, 2vw, 1.125rem) !important;
+        line-height: 1.7 !important;
+      }
+      
+      /* Ensure numbers never get Sindhi font on this page */
+      [lang="sd"] .number,
+      [dir="rtl"] .number,
+      [lang="sd"] [data-number="true"],
+      [dir="rtl"] [data-number="true"],
+      [lang="sd"] .number-font,
+      [dir="rtl"] .number-font {
+        font-family: var(--font-inter) !important;
+        font-weight: 500 !important;
+      }
+      
+      /* Slightly increase time indicators like "منٽ" */
+      [lang="sd"] span.sindhi-text:not(.poetry-content span),
+      [dir="rtl"] span.sindhi-text:not(.poetry-content span) {
+        font-size: 1.125rem !important;
+      }
+      
+      @media (max-width: 640px) {
+        [lang="sd"] .poetry-content span.sindhi-text,
+        [dir="rtl"] .poetry-content span.sindhi-text {
+          font-size: clamp(0.75rem, 2.5vw, 1rem) !important;
+        }
+        
+        [lang="sd"] span.sindhi-text:not(.poetry-content span),
+        [dir="rtl"] span.sindhi-text:not(.poetry-content span) {
+          font-size: 1rem !important;
+        }
+      }
+      
+      @media (min-width: 1024px) {
+        [lang="sd"] .poetry-content span.sindhi-text,
+        [dir="rtl"] .poetry-content span.sindhi-text {
+          font-size: clamp(1rem, 1.5vw, 1.375rem) !important;
+        }
+        
+        [lang="sd"] span.sindhi-text:not(.poetry-content span),
+        [dir="rtl"] span.sindhi-text:not(.poetry-content span) {
+          font-size: 1.25rem !important;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+    
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
   const isRTL = isSindhi;
   const currentLang = isSindhi ? 'sd' : 'en';
 
@@ -164,18 +232,41 @@ export default function PoetryPage() {
     view: isSindhi ? 'ڏٺل' : 'View',
     linkCopied: isSindhi ? '✓ ڳنڍڻو ڪاپي ٿي ويو!' : '✓ Link copied!',
     tags: isSindhi ? 'ٽڪليون' : 'Tags',
-    about: isSindhi ? 'اسان بابت' : 'About',
+    about: isSindhi ? 'بابت' : 'About',
     talentedPoet: isSindhi ? 'هڪ قابل شاعر' : 'A talented poet',
     knownFor: isSindhi ? 'جيڪو ان جي ڪم لاءِ مشهور آهي' : 'known for their work in',
     variousForms: isSindhi ? 'مختلف صنفون' : 'various forms',
     contributingHeritage: isSindhi ? 'سنڌي شاعري جي امير ورثي ۾ حصو وٺي رهيو آهي.' : 'contributing to the rich heritage of Sindhi poetry.',
-    sindhiPoetryArchive: isSindhi ? 'سنڌي شاعري جو آرڪائيو' : 'Sindhi Poetry Archive',
     min: isSindhi ? 'منٽ' : 'min',
     otherPoetry: isSindhi ? 'ٻي شاعري' : 'Other Poetry',
     nextPoetry: isSindhi ? 'اڳيان واري شاعري' : 'Next Poetry',
     previousPoetry: isSindhi ? 'پوئين شاعري' : 'Previous Poetry',
     noMorePoetry: isSindhi ? 'وڌيڪ شاعري نه آهي' : 'No more poetry available',
-    exploreMore: isSindhi ? 'وڌيڪ ڳوليو' : 'Explore More'
+    exploreMore: isSindhi ? 'وڌيڪ ڳوليو' : 'Explore More',
+    report: isSindhi ? 'رپورٽ' : 'Report',
+    reportPoetry: isSindhi ? 'شاعري رپورٽ ڪريو' : 'Report Poetry',
+    reportCategories: {
+      common: isSindhi ? 'عام رپورٽ جا اختيار' : 'Common Reporting Options',
+      additional: isSindhi ? 'اضافي اختيار' : 'Additional Options'
+    },
+    reportReasons: {
+      contentError: isSindhi ? 'مواد ۾ غلطي – حقيقتي/گرامر غلطيون، ٽٽل فارميٽ، يا غلط نسبت' : 'Content Error – factual/grammatical issues, broken formatting, or wrong attribution',
+      offensive: isSindhi ? 'نازيبا / نامناسب مواد – نفرت ڀريو خطاب، غير اخلاقي مواد، يا هراساڻي' : 'Offensive / Inappropriate Content – hate speech, explicit content, harassment, etc.',
+      copyright: isSindhi ? 'ڪاپي رائيٽ / چوري ٿيل مواد – جيڪڏهن نظم چوري ٿيل يا غلط طريقي سان منسوب ٿيل هجي' : 'Copyright / Plagiarism – if the poem is stolen or improperly credited',
+      spam: isSindhi ? 'اسپام / غير لاڳاپيل مواد – اشتهار، غير لاڳاپيل متن، يا بيڪار ورجايل مواد' : 'Spam / Irrelevant Content – advertisements, unrelated text, or repeated junk',
+      misinformation: isSindhi ? 'غلط ڄاڻ – ڪوڙو دعويٰ جيڪو حقيقت طور پيش ڪيو ويو هجي' : 'Misinformation – false claims presented as facts',
+      lowQuality: isSindhi ? 'گهٽ معيار / نظم نه آهي – بي ترتيب لفظ، بڪواس، يا غير شاعراڻو مواد' : 'Low Quality / Not a Poem – random text, gibberish, or non-poetry content',
+      wrongPoet: isSindhi ? 'غلط شاعر – نظم غلط شاعر سان منسوب ٿيل' : 'Wrong Poet – poem attributed to the wrong poet',
+      triggering: isSindhi ? 'حساس / ڏک پهچائيندڙ مواد – خودڪشي، تشدد وغيره جا حوالا' : 'Triggering / Sensitive Content – mentions of self-harm, violence, etc.',
+      wrongCategory: isSindhi ? 'غلط درجو / ٽيگ – نظم غلط صنف ۾ رکيل' : 'Wrong Category / Tag – poem placed in the wrong genre',
+      duplicate: isSindhi ? 'ورجايل داخلا – هي نظم اڳ ۾ ئي موجود آهي' : 'Duplicate Entry – already exists on the platform',
+      other: isSindhi ? 'ٻيو (آزاد لکت) – جيڪو مٿي بيان ٿيل ناهي' : 'Other (Free Text) – for anything not covered'
+    },
+    reportDescription: isSindhi ? 'تفصيل (اختياري)' : 'Description (optional)',
+    submitReport: isSindhi ? 'رپورٽ موڪليو' : 'Submit Report',
+    cancel: isSindhi ? 'منسوخ' : 'Cancel',
+    reportSubmitted: isSindhi ? 'رپورٽ موڪلي ويو' : 'Report submitted',
+    thankYou: isSindhi ? 'شڪريا' : 'Thank you'
   };
 
   const [poetry, setPoetry] = useState<PoetryData | null>(null);
@@ -186,6 +277,15 @@ export default function PoetryPage() {
   const [showShareFeedback, setShowShareFeedback] = useState(false);
   const [otherPoetry, setOtherPoetry] = useState<PoetryData[]>([]);
   const [loadingOtherPoetry, setLoadingOtherPoetry] = useState(false);
+  const [showReportDropdown, setShowReportDropdown] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [selectedReportCategory, setSelectedReportCategory] = useState<ReportCategory | ''>('');
+  const [selectedReportReason, setSelectedReportReason] = useState<ReportReason | ''>('');
+  const [reportDescription, setReportDescription] = useState('');
+  const [reportSubmitted, setReportSubmitted] = useState(false);
+
+  // Use the reports hook
+  const { submitReport, loading: reportLoading, error: reportError } = useReports();
 
   // Fetch poetry data from database
   const fetchPoetry = async () => {
@@ -206,7 +306,6 @@ export default function PoetryPage() {
       }
       
       const data = await response.json();
-      console.log('API response:', data);
       setPoetry(data.poetry);
     } catch (error) {
       console.error('Error fetching poetry:', error);
@@ -247,24 +346,143 @@ export default function PoetryPage() {
   };
 
   useEffect(() => {
-    fetchPoetry();
-    fetchOtherPoetry();
+    const loadData = async () => {
+      try {
+        await fetchPoetry();
+        await fetchOtherPoetry();
+      } catch (error) {
+        console.error('Error loading poetry data:', error);
+      }
+    };
+    
+    loadData();
   }, [poetrySlug, poetId, formSlug, currentLang]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showReportDropdown) {
+        const target = event.target as Element;
+        if (!target.closest('.report-dropdown-container')) {
+          setShowReportDropdown(false);
+        }
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showReportDropdown]);
+
+  // Note: Global error handling is now handled by GlobalErrorHandler component
 
   const handleLike = () => {
     setLiked(!liked);
     setLikes(liked ? likes - 1 : likes + 1);
   };
 
-  const handleShare = () => {
-    navigator.clipboard.writeText(window.location.href);
-    setShowShareFeedback(true);
-    setTimeout(() => setShowShareFeedback(false), 2000);
+  const handleShare = async () => {
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(window.location.href);
+      } else {
+        // Fallback for older browsers or non-secure contexts
+        const textArea = document.createElement('textarea');
+        textArea.value = window.location.href;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        textArea.style.top = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+      }
+      setShowShareFeedback(true);
+      setTimeout(() => setShowShareFeedback(false), 2000);
+    } catch (error) {
+      console.error('Failed to copy to clipboard:', error);
+      // Still show feedback even if copy fails
+      setShowShareFeedback(true);
+      setTimeout(() => setShowShareFeedback(false), 2000);
+    }
   };
 
   const handleView = () => {
     // Handle view functionality - could scroll to top or show view stats
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleReportClick = () => {
+    setShowReportDropdown(!showReportDropdown);
+  };
+
+  const handleReportCategoryClick = (category: ReportCategory) => {
+    setSelectedReportCategory(category);
+    setShowReportDropdown(false);
+    setShowReportModal(true);
+  };
+
+  const handleReportReasonClick = (reason: ReportReason) => {
+    setSelectedReportReason(reason);
+  };
+
+  const handleReportSubmit = async () => {
+    if (!poetry?.id || !selectedReportCategory || !selectedReportReason) {
+      return;
+    }
+
+    try {
+      console.log('Submitting report with data:', {
+        poetry_id: poetry.id.toString(),
+        category: selectedReportCategory,
+        reason: selectedReportReason,
+        description: reportDescription
+      });
+
+      const result = await submitReport({
+        poetry_id: poetry.id.toString(), // Ensure it's a string
+        category: selectedReportCategory as ReportCategory,
+        reason: selectedReportReason as ReportReason,
+        description: reportDescription || undefined
+      });
+
+      console.log('Report submission result:', result);
+
+      if (result.success) {
+        setReportSubmitted(true);
+        setShowReportModal(false);
+        setSelectedReportCategory('');
+        setSelectedReportReason('');
+        setReportDescription('');
+        
+        // Show success message
+        setTimeout(() => {
+          setReportSubmitted(false);
+        }, 3000);
+      } else {
+        console.error('Report submission failed:', result.error);
+        console.error('Full result object:', result);
+        alert(`Report submission failed: ${result.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Error submitting report:', error);
+      console.error('Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+        error: error
+      });
+      const errorMessage = error instanceof Error ? error.message : 'An error occurred while submitting the report';
+      alert(`Error: ${errorMessage}`);
+    }
+  };
+
+  const handleReportCancel = () => {
+    setShowReportModal(false);
+    setSelectedReportCategory('');
+    setSelectedReportReason('');
+    setReportDescription('');
   };
 
   // Calculate reading time based on content length
@@ -332,12 +550,77 @@ export default function PoetryPage() {
     return isSindhi ? 'شاعري جو مواد هتي ڏيکاريو ويندو جڏهن بيت دستياب هوندا.' : 'Poetry content will be displayed here once couplets are available.';
   };
 
+  // Get couplets with language indicators
+  const getCoupletsWithLanguageTags = () => {
+    if (poetry?.poetry_couplets && poetry.poetry_couplets.length > 0) {
+      // Filter couplets based on current locale
+      let filteredCouplets = poetry.poetry_couplets;
+      
+      // If in Sindhi locale (/sd), remove English couplets
+      if (isSindhi) {
+        filteredCouplets = poetry.poetry_couplets.filter(couplet => couplet.lang !== 'en');
+      }
+      
+      // Group couplets by their text content to identify which languages are available
+      const coupletGroups = new Map();
+      
+      filteredCouplets.forEach(couplet => {
+        const key = couplet.couplet_text;
+        if (!coupletGroups.has(key)) {
+          coupletGroups.set(key, []);
+        }
+        coupletGroups.get(key).push(couplet.lang);
+      });
+      
+      // Create display rows with language tags
+      return Array.from(coupletGroups.entries()).map(([coupletText, languages]) => ({
+        text: coupletText,
+        languages: languages.sort(), // Sort languages consistently
+        hasEn: languages.includes('en'),
+        hasSd: languages.includes('sd')
+      }));
+    }
+    return [];
+  };
+
   // Get tags from poetry_tags field
   const getTags = () => {
     if (poetry?.poetry_tags) {
-      return poetry.poetry_tags.split(',').map(tag => tag.trim()).filter(Boolean);
+      // Split comma-separated tags and clean them
+      return poetry.poetry_tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
     }
     return [];
+  };
+
+  // Translate tag to Sindhi if needed
+  const translateTag = (tag: string) => {
+    if (!isSindhi) return tag;
+    
+    const tagTranslations: { [key: string]: string } = {
+      'love': 'محبت',
+      'romance': 'رومانس',
+      'nature': 'فطرت',
+      'life': 'زندگي',
+      'sadness': 'غم',
+      'happiness': 'خوشي',
+      'friendship': 'دوستي',
+      'family': 'خاندان',
+      'religion': 'مذهب',
+      'spiritual': 'روحاني',
+      'philosophy': 'فلسفو',
+      'wisdom': 'حڪمت',
+      'beauty': 'خوبصورتي',
+      'peace': 'امن',
+      'war': 'جنگ',
+      'freedom': 'آزادي',
+      'patriotism': 'وطن پرستي',
+      'homeland': 'وطن',
+      'nostalgia': 'يادگيري',
+      'hope': 'اميد',
+      'despair': 'نااميدي'
+    };
+    
+    return tagTranslations[tag.toLowerCase()] || tag;
   };
 
   // Get poet name in specified language (prefer laqab)
@@ -359,6 +642,33 @@ export default function PoetryPage() {
     }
     const candidate = poetry.poets.english_name?.trim() || '';
     return candidate && candidate !== primary ? candidate : null;
+  };
+
+  // Generate short description for poet
+  const getShortDescription = () => {
+    if (!poetry?.poets) return '';
+    
+    const poet = poetry.poets;
+    const parts = [];
+    
+    // Add period information
+    if (poet.birth_date) {
+      const birthYear = poet.birth_date.split('-')[0];
+      const deathYear = poet.death_date && poet.death_date !== 'NULL' ? poet.death_date.split('-')[0] : null;
+      
+      if (deathYear) {
+        parts.push(`${birthYear}-${deathYear}`);
+      } else {
+        parts.push(`${birthYear}-${isSindhi ? 'جيئرو' : 'alive'}`);
+      }
+    }
+    
+    // Add location if available
+    if (poet.birth_place) {
+      parts.push(poet.birth_place);
+    }
+    
+    return parts.join(' • ');
   };
 
   const getPoetTagline = () => {
@@ -405,7 +715,7 @@ export default function PoetryPage() {
     
     switch (alignment) {
       case 'centered':
-        return 'text-center mx-auto max-w-2xl';
+        return 'text-center mx-auto max-w-4xl';
       case 'left-aligned':
         return 'text-left';
       case 'right-aligned':
@@ -427,13 +737,30 @@ export default function PoetryPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center" dir={isRTL ? 'rtl' : 'ltr'}>
         <div className="text-center max-w-md mx-auto px-6">
           <div className="text-red-500 text-6xl mb-6">⚠️</div>
-          <h1 className={`text-3xl font-bold text-gray-900 mb-4 ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+          <h1 className={`text-3xl font-light text-gray-900 mb-4 ${isSindhi ? 'auto-sindhi-font' : ''}`} style={{
+            fontFeatureSettings: '"kern" 1, "liga" 1',
+            letterSpacing: isSindhi ? '0.01em' : '0.01em'
+          }}>
             {multiLangContent.errorLoading}
           </h1>
-          <p className={`text-gray-600 mb-8 text-lg ${isSindhi ? 'auto-sindhi-font' : ''}`}>{error}</p>
+          <p className={`text-gray-600 mb-8 text-lg font-light ${isSindhi ? 'auto-sindhi-font' : ''}`} style={{
+            fontFeatureSettings: '"kern" 1, "liga" 1',
+            letterSpacing: isSindhi ? '0.01em' : '0.01em',
+            lineHeight: '1.6'
+          }}>{error}</p>
           <button 
-            onClick={() => fetchPoetry()} 
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+            onClick={async () => {
+              try {
+                await fetchPoetry();
+              } catch (error) {
+                console.error('Error retrying fetch:', error);
+              }
+            }} 
+            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-light"
+            style={{
+              fontFeatureSettings: '"kern" 1, "liga" 1',
+              letterSpacing: '0.01em'
+            }}
           >
             {multiLangContent.tryAgain}
           </button>
@@ -448,10 +775,17 @@ export default function PoetryPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center" dir={isRTL ? 'rtl' : 'ltr'}>
         <div className="text-center max-w-md mx-auto px-6">
           <div className="text-gray-500 text-6xl mb-6">📝</div>
-          <h1 className={`text-3xl font-bold text-gray-900 mb-4 ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+          <h1 className={`text-3xl font-light text-gray-900 mb-4 ${isSindhi ? 'auto-sindhi-font' : ''}`} style={{
+            fontFeatureSettings: '"kern" 1, "liga" 1',
+            letterSpacing: isSindhi ? '0.01em' : '0.01em'
+          }}>
             {multiLangContent.poetryNotFound}
           </h1>
-          <p className={`text-gray-600 text-lg ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+          <p className={`text-gray-600 text-lg font-light ${isSindhi ? 'auto-sindhi-font' : ''}`} style={{
+            fontFeatureSettings: '"kern" 1, "liga" 1',
+            letterSpacing: isSindhi ? '0.01em' : '0.01em',
+            lineHeight: '1.6'
+          }}>
             {multiLangContent.poetryNotExist}
           </p>
         </div>
@@ -462,6 +796,7 @@ export default function PoetryPage() {
   const title = getTitle();
   const description = getDescription();
   const poetryContent = getContent();
+  const coupletsWithTags = getCoupletsWithLanguageTags();
   const tags = getTags();
   const readingTime = calculateReadingTime(poetryContent);
 
@@ -491,14 +826,23 @@ export default function PoetryPage() {
           >
             {/* Title - Refined, modern typography */}
             {title && (
-              <h1 className={`${isSindhi ? 'text-6xl md:text-7xl font-extrabold leading-[1.1]' : 'text-3xl md:text-4xl font-light leading-[1.2]'} text-gray-900 mb-6 tracking-normal ${getSmartFontClass(title, { baseClass: 'sindhi-heading-1', isHeading: true })}`}>
+              <h1 className={`${isSindhi ? 'text-3xl md:text-4xl font-normal leading-[1.1]' : 'text-2xl md:text-3xl font-light leading-[1.15] tracking-tight'} text-gray-900 mb-8 ${getSmartFontClass(title, { baseClass: 'sindhi-heading-1', isHeading: true })}`} style={{
+                fontFeatureSettings: '"kern" 1, "liga" 1, "calt" 1',
+                letterSpacing: isSindhi ? '0.01em' : '-0.02em',
+                wordSpacing: '0.02em'
+              }}>
+              
                 {title}
               </h1>
             )}
 
             {/* Description - Only if meaningful content exists */}
             {description && description.trim() !== '' && (
-              <p className={`text-base text-gray-600 mb-10 leading-[1.6] max-w-xl font-light ${getSmartFontClass(description, { baseClass: 'sindhi-text-base' })}`}>
+              <p className={`text-lg text-gray-600 mb-12 leading-[1.7] max-w-2xl font-light ${getSmartFontClass(description, { baseClass: 'sindhi-text-base' })}`} style={{
+                fontFeatureSettings: '"kern" 1, "liga" 1',
+                letterSpacing: isSindhi ? '0.01em' : '0.01em',
+                wordSpacing: '0.03em'
+              }}>
                 {description}
               </p>
             )}
@@ -509,10 +853,17 @@ export default function PoetryPage() {
                 <div className="text-gray-400 mb-3">
                   <BookOpen className="h-12 w-12 mx-auto" />
                 </div>
-                <h3 className={`text-lg font-medium text-gray-600 mb-2 ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+                <h3 className={`text-lg font-light text-gray-600 mb-2 ${isSindhi ? 'auto-sindhi-font' : ''}`} style={{
+                  fontFeatureSettings: '"kern" 1, "liga" 1',
+                  letterSpacing: isSindhi ? '0.01em' : '0.01em'
+                }}>
                   {isSindhi ? 'شاعري جو عنوان ۽ تفصيل دستياب ناهي' : 'Poetry title and description not available'}
                 </h3>
-                <p className={`text-sm text-gray-500 ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+                <p className={`text-sm text-gray-500 font-light ${isSindhi ? 'auto-sindhi-font' : ''}`} style={{
+                  fontFeatureSettings: '"kern" 1, "liga" 1',
+                  letterSpacing: isSindhi ? '0.01em' : '0.01em',
+                  lineHeight: '1.6'
+                }}>
                   {isSindhi ? 'هن شاعري لاءِ عنوان يا تفصيل اڃا شامل نه ڪيو ويو آهي' : 'Title or description for this poetry has not been added yet'}
                 </p>
               </div>
@@ -549,17 +900,28 @@ export default function PoetryPage() {
                   </motion.div>
                   <div>
                     {getPrimaryPoetTitle() && (
-                      <h3 className={`text-sm font-semibold text-gray-900 ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+                      <h3 className={`text-sm font-medium text-gray-900 ${isSindhi ? 'auto-sindhi-font' : ''}`} style={{
+                        fontFeatureSettings: '"kern" 1, "liga" 1',
+                        letterSpacing: isSindhi ? '0.01em' : '0.01em'
+                      }}>
                         {getPrimaryPoetTitle()}
                       </h3>
                     )}
                     {getSecondaryPoetSubtitle() && (
-                      <p className={`text-xs text-gray-600 ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+                      <p className={`text-xs text-gray-600 font-light ${isSindhi ? 'auto-sindhi-font' : ''}`} style={{
+                        fontFeatureSettings: '"kern" 1, "liga" 1',
+                        letterSpacing: isSindhi ? '0.01em' : '0.01em',
+                        lineHeight: '1.5'
+                      }}>
                         {getSecondaryPoetSubtitle()}
                       </p>
                     )}
                     {getPoetTagline() && (
-                      <p className={`text-xs text-gray-500 mt-0.5 ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+                      <p className={`text-xs text-gray-500 mt-1 font-light ${isSindhi ? 'auto-sindhi-font' : ''}`} style={{
+                        fontFeatureSettings: '"kern" 1, "liga" 1',
+                        letterSpacing: isSindhi ? '0.01em' : '0.01em',
+                        lineHeight: '1.4'
+                      }}>
                         {getPoetTagline()}
                       </p>
                     )}
@@ -577,46 +939,64 @@ export default function PoetryPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <Calendar className="h-3 w-3" />
-                    <span className={`${getSmartFontClass(new Date(poetry.created_at).toLocaleDateString(currentLang === 'sd' ? 'sd' : 'en-US', { 
-                        month: 'short', 
-                        day: 'numeric', 
-                        year: 'numeric' 
-                      }), { baseClass: 'sindhi-text-sm' })}`}>
-                      {new Date(poetry.created_at).toLocaleDateString(currentLang === 'sd' ? 'sd' : 'en-US', { 
+                    <MixedContentWithNumbers 
+                      text={new Date(poetry.created_at).toLocaleDateString(currentLang === 'sd' ? 'sd' : 'en-US', { 
                         month: 'short', 
                         day: 'numeric', 
                         year: 'numeric' 
                       })}
-                    </span>
+                      className="text-xs"
+                      sindhiClass="sindhi-text-sm"
+                      englishClass="text-sm"
+                      numberClass="number text-xs"
+                    />
                   </div>
                 </div>
               </div>
             )}
           </motion.div>
 
-          {/* Poetry Content - Refined typography */}
-          {poetryContent && poetryContent.trim() !== '' && !poetryContent.includes('will be displayed here') && !poetryContent.includes('هتي ڏيکاريو ويندو') ? (
+          {/* Poetry Content - Plain Couplets */}
+          {coupletsWithTags.length > 0 ? (
             <motion.article 
               className="mb-20"
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ duration: 0.6, delay: 0.3 }}
             >
-              <div className={`text-lg leading-[1.75] text-gray-800 font-serif ${getAlignmentClasses()} ${isSindhi ? 'auto-sindhi-font' : ''}`}>
-                {/* Preserve line breaks and stanza spacing */}
-                {poetryContent.split('\n\n').map((stanza, index) => (
+              <div className={`poetry-content text-2xl md:text-3xl leading-[1.7] text-gray-900 font-light tracking-wide ${getAlignmentClasses()}`} style={{ 
+                textAlign: getTextAlignment().replace('text-', '') as 'left' | 'right' | 'center' | 'justify',
+                fontFeatureSettings: '"kern" 1, "liga" 1, "calt" 1',
+                letterSpacing: isSindhi ? '0.01em' : '0.015em',
+                wordSpacing: '0.04em',
+                lineHeight: '1.7',
+                wordBreak: 'keep-all',
+                overflowWrap: 'break-word'
+              }}>
+                {/* Display each couplet as plain text */}
+                {coupletsWithTags.map((couplet, index) => (
                   <motion.div 
                     key={index} 
-                    className="mb-10 last:mb-0"
+                    className="mb-8 last:mb-0"
                     initial={{ y: 20, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ duration: 0.5, delay: 0.4 + (index * 0.1) }}
                   >
-                    {stanza.split('\n').map((line, lineIndex) => (
-                      <p key={lineIndex} className="mb-2 last:mb-0">
-                        {line}
-                      </p>
-                    ))}
+                    <p className={`${getSmartFontClass(couplet.text, { baseClass: isSindhi ? 'sindhi-text-2xl' : 'text-2xl' })}`} style={{
+                      letterSpacing: isSindhi ? '0.01em' : '0.015em',
+                      wordSpacing: '0.04em',
+                      whiteSpace: 'pre-line',
+                      wordBreak: 'keep-all',
+                      overflowWrap: 'break-word',
+                      lineHeight: isSindhi ? '1.8' : '1.7',
+                      fontSize: isSindhi ? '1.875rem' : '1.5rem'
+                    }}>
+                      <MixedContentWithNumbers 
+                        text={couplet.text} 
+                        className={`${getSmartFontClass(couplet.text, { baseClass: isSindhi ? 'sindhi-text-2xl' : 'text-2xl' })}`}
+                        style={{ fontSize: isSindhi ? '1.875rem' : '1.5rem' }}
+                      />
+                    </p>
                   </motion.div>
                 ))}
               </div>
@@ -626,17 +1006,24 @@ export default function PoetryPage() {
               <div className="text-gray-400 mb-4">
                 <BookOpen className="h-16 w-16 mx-auto" />
               </div>
-              <h3 className={`text-lg font-medium text-gray-600 mb-2 ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+              <h3 className={`text-lg font-light text-gray-600 mb-2 ${isSindhi ? 'auto-sindhi-font' : ''}`} style={{
+                fontFeatureSettings: '"kern" 1, "liga" 1',
+                letterSpacing: isSindhi ? '0.01em' : '0.01em'
+              }}>
                 {isSindhi ? 'شاعري جو مواد دستياب ناهي' : 'Poetry content not available'}
               </h3>
-              <p className={`text-sm text-gray-500 ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+              <p className={`text-sm text-gray-500 font-light ${isSindhi ? 'auto-sindhi-font' : ''}`} style={{
+                fontFeatureSettings: '"kern" 1, "liga" 1',
+                letterSpacing: isSindhi ? '0.01em' : '0.01em',
+                lineHeight: '1.6'
+              }}>
                 {isSindhi ? 'هن شاعري لاءِ بيت يا مواد اڃا شامل نه ڪيو ويو آهي' : 'Couplets or content for this poetry have not been added yet'}
               </p>
             </div>
           )}
 
           {/* Interaction Bar - Ultra minimal */}
-          {poetryContent && poetryContent.trim() !== '' && !poetryContent.includes('will be displayed here') && !poetryContent.includes('هتي ڏيکاريو ويندو') && (
+          {coupletsWithTags.length > 0 && (
             <motion.div 
               className="flex items-center justify-center space-x-6 py-10 border-y border-gray-100 mb-20"
               initial={{ y: 20, opacity: 0 }}
@@ -654,7 +1041,10 @@ export default function PoetryPage() {
                 whileTap={{ scale: 0.95 }}
               >
                 <Heart className={`h-4 w-4 ${liked ? 'fill-current' : ''}`} />
-                <span className={`text-sm font-medium ${isSindhi ? 'auto-sindhi-font' : ''}`}>{likes}</span>
+                <span className={`text-sm font-light ${isSindhi ? 'auto-sindhi-font' : ''}`} style={{
+                  fontFeatureSettings: '"kern" 1, "liga" 1',
+                  letterSpacing: '0.01em'
+                }}>{likes}</span>
               </motion.button>
               
               <motion.button
@@ -664,7 +1054,10 @@ export default function PoetryPage() {
                 whileTap={{ scale: 0.95 }}
               >
                 <Eye className="h-4 w-4" />
-                <span className={`text-sm font-medium ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+                <span className={`text-sm font-light ${isSindhi ? 'auto-sindhi-font' : ''}`} style={{
+                  fontFeatureSettings: '"kern" 1, "liga" 1',
+                  letterSpacing: '0.01em'
+                }}>
                   {multiLangContent.view}
                 </span>
               </motion.button>
@@ -676,15 +1069,69 @@ export default function PoetryPage() {
                 whileTap={{ scale: 0.95 }}
               >
                 <Share2 className="h-4 w-4" />
-                <span className={`text-sm font-medium ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+                <span className={`text-sm font-light ${isSindhi ? 'auto-sindhi-font' : ''}`} style={{
+                  fontFeatureSettings: '"kern" 1, "liga" 1',
+                  letterSpacing: '0.01em'
+                }}>
                   {multiLangContent.share}
                 </span>
               </motion.button>
+
+              {/* Report Button with Dropdown */}
+              <div className="relative report-dropdown-container">
+                <motion.button
+                  onClick={handleReportClick}
+                  className="flex items-center gap-2 px-4 py-2 rounded-full text-gray-500 hover:text-gray-700 transition-all duration-200"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Flag className="h-4 w-4" />
+                  <span className={`text-sm font-light ${isSindhi ? 'auto-sindhi-font' : ''}`} style={{
+                    fontFeatureSettings: '"kern" 1, "liga" 1',
+                    letterSpacing: '0.01em'
+                  }}>
+                    {multiLangContent.report}
+                  </span>
+                </motion.button>
+
+                {/* Dropdown Menu */}
+                <AnimatePresence>
+                  {showReportDropdown && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                      transition={{ duration: 0.2 }}
+                      className="absolute top-full right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50"
+                    >
+                      <button
+                        onClick={() => handleReportCategoryClick('common')}
+                        className="w-full px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-3 border-b border-gray-100"
+                      >
+                        <AlertTriangle className="h-4 w-4 text-orange-500" />
+                        <span className={isSindhi ? 'auto-sindhi-font' : ''}>{multiLangContent.reportCategories.common}</span>
+                      </button>
+                      
+                      <button
+                        onClick={() => handleReportCategoryClick('additional')}
+                        className="w-full px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-3"
+                      >
+                        <MoreHorizontal className="h-4 w-4 text-gray-500" />
+                        <span className={isSindhi ? 'auto-sindhi-font' : ''}>{multiLangContent.reportCategories.additional}</span>
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
               
               <AnimatePresence>
                 {showShareFeedback && (
                   <motion.span 
-                    className={`text-sm text-green-600 font-medium ${isSindhi ? 'auto-sindhi-font' : ''}`}
+                    className={`text-sm text-green-600 font-light ${isSindhi ? 'auto-sindhi-font' : ''}`}
+                    style={{
+                      fontFeatureSettings: '"kern" 1, "liga" 1',
+                      letterSpacing: '0.01em'
+                    }}
                     initial={{ scale: 0.8, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     exit={{ scale: 0.8, opacity: 0 }}
@@ -705,24 +1152,32 @@ export default function PoetryPage() {
               animate={{ y: 0, opacity: 1 }}
               transition={{ duration: 0.6, delay: 0.6 }}
             >
-              <div className="flex items-center space-x-2 mb-4">
-                <Tag className="h-4 w-4 text-gray-400" />
-                <h3 className={`text-sm font-medium text-gray-700 uppercase tracking-wide ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+              <div className="flex items-center space-x-4 mb-4">
+                <Tag className="h-4 w-4 text-gray-400 mx-2" />
+                <h3 className={`text-sm font-light text-gray-700 uppercase tracking-wide ${isSindhi ? 'auto-sindhi-font' : ''}`} style={{
+                  fontFeatureSettings: '"kern" 1, "liga" 1',
+                  letterSpacing: '0.05em'
+                }}>
                   {multiLangContent.tags}
                 </h3>
               </div>
               <div className="flex flex-wrap gap-3">
-                {tags.map((tag, index) => (
+                {tags.map((tag: string, index: number) => (
                   <motion.span
                     key={index}
-                    className={`px-3 py-2 bg-gray-50 text-gray-600 text-xs rounded-full hover:bg-gray-100 transition-colors border border-gray-200 ${isSindhi ? 'auto-sindhi-font' : ''}`}
+                    className={`px-3 py-2 bg-gray-50 text-gray-600 text-xs rounded-full hover:bg-gray-100 transition-colors border border-gray-200 font-light ${isSindhi ? 'auto-sindhi-font' : ''}`}
+                    style={{
+                      fontFeatureSettings: '"kern" 1, "liga" 1',
+                      letterSpacing: '0.01em',
+                      lineHeight: '1.4'
+                    }}
                     initial={{ scale: 0.8, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ duration: 0.4, delay: 0.7 + (index * 0.1) }}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
-                    {tag}
+                    {translateTag(tag)}
                   </motion.span>
                 ))}
               </div>
@@ -764,39 +1219,139 @@ export default function PoetryPage() {
                   </div>
                 </motion.div>
                 <div className="flex-1 min-w-0">
-                  <h3 className={`text-base font-medium text-gray-900 mb-3 ${isSindhi ? 'auto-sindhi-font' : ''}`}>
-                    {multiLangContent.about} {getPrimaryPoetTitle()}
+                  <h3 className={`text-base font-light text-gray-900 mb-3 ${isSindhi ? 'auto-sindhi-font' : ''}`} style={{
+                    fontFeatureSettings: '"kern" 1, "liga" 1',
+                    letterSpacing: '0.01em'
+                  }}>
+                    {isSindhi ? `${getPrimaryPoetTitle()} ${multiLangContent.about}` : `${multiLangContent.about} ${getPrimaryPoetTitle()}`}
                   </h3>
-                  <p className={`text-sm text-gray-600 leading-relaxed ${isSindhi ? 'auto-sindhi-font' : ''}`}>
-                    {poetry.poets.english_laqab || poetry.poets.sindhi_laqab 
-                      ? `${multiLangContent.talentedPoet} ${multiLangContent.knownFor} ${poetry.categories?.name || multiLangContent.variousForms}.`
-                      : `${multiLangContent.talentedPoet} ${multiLangContent.contributingHeritage}`
-                    }
-                  </p>
+                  
+                  {/* Real poet data */}
+                  <div className={`text-sm text-gray-600 leading-relaxed space-y-2 font-light ${isSindhi ? 'auto-sindhi-font' : ''}`} style={{
+                    fontFeatureSettings: '"kern" 1, "liga" 1',
+                    letterSpacing: '0.01em',
+                    lineHeight: '1.6'
+                  }}>
+                    {/* Short description */}
+                    {getShortDescription() && (
+                      <p className="text-xs text-gray-500 font-light" style={{
+                        fontFeatureSettings: '"kern" 1, "liga" 1',
+                        letterSpacing: '0.01em',
+                        lineHeight: '1.5'
+                      }}>
+                        {(() => {
+                          const poet = poetry.poets;
+                          const parts = [];
+                          
+                          // Add period information with NumberFont
+                          if (poet.birth_date) {
+                            const birthYear = poet.birth_date.split('-')[0];
+                            const deathYear = poet.death_date && poet.death_date !== 'NULL' ? poet.death_date.split('-')[0] : null;
+                            
+                            if (deathYear) {
+                              parts.push(
+                                <>
+                                  <NumberFont>{birthYear}</NumberFont> - <NumberFont>{deathYear}</NumberFont>
+                                </>
+                              );
+                            } else {
+                              parts.push(
+                                <>
+                                  <NumberFont>{birthYear}</NumberFont> - <span className={isSindhi ? 'auto-sindhi-font' : ''}>{isSindhi ? 'جيئرو' : 'alive'}</span>
+                                </>
+                              );
+                            }
+                          }
+                          
+                          // Add location if available
+                          if (poet.birth_place) {
+                            parts.push(poet.birth_place);
+                          }
+                          
+                          return parts.length > 0 ? parts.map((part, index) => (
+                            <span key={index}>
+                              {part}
+                              {index < parts.length - 1 && ' • '}
+                            </span>
+                          )) : null;
+                        })()}
+                      </p>
+                    )}
+                    
+                    {/* Poet description if available */}
+                    {(poetry.poets.sindhi_details || poetry.poets.english_details || poetry.poets.sindhi_tagline || poetry.poets.english_tagline) ? (
+                      <div className="space-y-2">
+                        {/* Show detailed description if available */}
+                        {(poetry.poets.sindhi_details || poetry.poets.english_details) && (
+                          <p>
+                            {isSindhi ? poetry.poets.sindhi_details : poetry.poets.english_details}
+                          </p>
+                        )}
+                        
+                        {/* Show tagline if available and no detailed description */}
+                        {!(poetry.poets.sindhi_details || poetry.poets.english_details) && getPoetTagline() && (
+                          <p className="italic text-gray-700">
+                            "{getPoetTagline()}"
+                          </p>
+                        )}
+                      </div>
+                    ) : (
+                      /* Enhanced fallback with more meaningful information */
+                      <div className="space-y-2">
+                        {/* Show tagline if available */}
+                        {getPoetTagline() && (
+                          <p className="italic text-gray-700">
+                            "{getPoetTagline()}"
+                          </p>
+                        )}
+                        
+                        
+                        {/* Show category-specific information */}
+                        <p>
+                          {isSindhi ? (
+                            <>
+                              {poetry.poets.english_laqab || poetry.poets.sindhi_laqab 
+                                ? `هي قابل شاعر ${poetry.categories?.slug === 'chausittaa' ? 'چوڱيتا' : poetry.categories?.slug === 'ghazal' ? 'غزل' : poetry.categories?.slug === 'nazm' ? 'نظم' : poetry.categories?.slug || 'مختلف صنفن'} ۾ پنهنجي فن جو مظاهرو ڪيو آهي.`
+                                : `هي قابل شاعر سنڌي شاعري جي امير ورثي ۾ حصو وٺي رهيو آهي.`
+                              }
+                            </>
+                          ) : (
+                            <>
+                              {poetry.poets.english_laqab || poetry.poets.sindhi_laqab 
+                                ? `A talented poet known for their work in ${poetry.categories?.slug === 'chausittaa' ? 'Chausittaa' : poetry.categories?.slug === 'ghazal' ? 'Ghazal' : poetry.categories?.slug === 'nazm' ? 'Nazm' : poetry.categories?.slug || 'various forms'}.`
+                                : `A talented poet contributing to the rich heritage of Sindhi poetry.`
+                              }
+                            </>
+                          )}
+                        </p>
+                        
+                        {/* Show tags if available */}
+                        {poetry.poets.tags && poetry.poets.tags.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-2">
+                            {poetry.poets.tags.slice(0, 3).map((tag: string, index: number) => (
+                              <span 
+                                key={index}
+                                className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full"
+                              >
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </motion.div>
           )}
 
           {/* Footer - Ultra minimal */}
-          <motion.footer 
-            className="text-center text-xs text-gray-400 border-t border-gray-100 pt-8"
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.8 }}
-          >
-            <div className="inline-flex items-center space-x-2">
-              <BookOpen className="h-3 w-3" />
-              <span className={isSindhi ? 'auto-sindhi-font' : ''}>
-                {multiLangContent.sindhiPoetryArchive}
-              </span>
-            </div>
-          </motion.footer>
         </motion.div>
       </main>
 
       {/* Mobile Action Bar - Minimal and unobtrusive */}
-      {poetryContent && poetryContent.trim() !== '' && !poetryContent.includes('will be displayed here') && !poetryContent.includes('هتي ڏيکاريو ويندو') && (
+      {coupletsWithTags.length > 0 && (
         <motion.div 
           className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 md:hidden shadow-lg"
           initial={{ y: 100, opacity: 0 }}
@@ -813,7 +1368,10 @@ export default function PoetryPage() {
               whileTap={{ scale: 0.9 }}
             >
               <Heart className={`h-6 w-6 ${liked ? 'fill-current' : ''}`} />
-              <span className={`text-xs font-medium ${isSindhi ? 'auto-sindhi-font' : ''}`}>{likes}</span>
+              <span className={`text-xs font-light ${isSindhi ? 'auto-sindhi-font' : ''}`} style={{
+                fontFeatureSettings: '"kern" 1, "liga" 1',
+                letterSpacing: '0.01em'
+              }}>{likes}</span>
             </motion.button>
             <motion.button
               onClick={handleView}
@@ -822,7 +1380,10 @@ export default function PoetryPage() {
               whileTap={{ scale: 0.9 }}
             >
               <Eye className="h-6 w-6" />
-              <span className={`text-xs font-medium ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+              <span className={`text-xs font-light ${isSindhi ? 'auto-sindhi-font' : ''}`} style={{
+                fontFeatureSettings: '"kern" 1, "liga" 1',
+                letterSpacing: '0.01em'
+              }}>
                 {multiLangContent.view}
               </span>
             </motion.button>
@@ -833,13 +1394,351 @@ export default function PoetryPage() {
               whileTap={{ scale: 0.9 }}
             >
               <Share2 className="h-6 w-6" />
-              <span className={`text-xs font-medium ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+              <span className={`text-xs font-light ${isSindhi ? 'auto-sindhi-font' : ''}`} style={{
+                fontFeatureSettings: '"kern" 1, "liga" 1',
+                letterSpacing: '0.01em'
+              }}>
                 {multiLangContent.share}
               </span>
             </motion.button>
           </div>
         </motion.div>
       )}
+
+      {/* Success Notification */}
+      <AnimatePresence>
+        {reportSubmitted && (
+          <motion.div
+            initial={{ opacity: 0, y: 50, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 50, scale: 0.9 }}
+            className="fixed bottom-6 right-6 bg-green-500 text-white px-6 py-4 rounded-lg shadow-lg z-50 max-w-sm"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-6 h-6 bg-green-400 rounded-full flex items-center justify-center">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <div>
+                <p className={`font-medium ${isSindhi ? 'auto-sindhi-font' : ''}`} style={{
+                  fontFeatureSettings: '"kern" 1, "liga" 1',
+                  letterSpacing: '0.01em'
+                }}>
+                  {multiLangContent.reportSubmitted}
+                </p>
+                <p className={`text-sm text-green-100 ${isSindhi ? 'auto-sindhi-font' : ''}`} style={{
+                  fontFeatureSettings: '"kern" 1, "liga" 1',
+                  letterSpacing: '0.01em'
+                }}>
+                  {isSindhi ? 'شڪريا! اسان جلد ئي هن مسئلي کي حل ڪنداسين' : 'Thank you! We will review this issue soon.'}
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Report Modal */}
+      <AnimatePresence>
+        {showReportModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            onClick={(e) => e.target === e.currentTarget && handleReportCancel()}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-2xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto"
+            >
+              <div className="p-6">
+                {/* Header */}
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className={`text-xl font-semibold text-gray-900 ${isSindhi ? 'auto-sindhi-font' : ''}`} style={{
+                    fontFeatureSettings: '"kern" 1, "liga" 1',
+                    letterSpacing: '0.01em'
+                  }}>
+                    {multiLangContent.reportPoetry}
+                  </h3>
+                  <button
+                    onClick={handleReportCancel}
+                    className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                  >
+                    <X className="h-5 w-5 text-gray-500" />
+                  </button>
+                </div>
+
+                {/* Selected Category */}
+                <div className="mb-6">
+                  <label className={`block text-sm font-medium text-gray-700 mb-2 ${isSindhi ? 'auto-sindhi-font' : ''}`} style={{
+                    fontFeatureSettings: '"kern" 1, "liga" 1',
+                    letterSpacing: '0.01em'
+                  }}>
+                    {isSindhi ? 'رپورٽ جو قسم' : 'Report Category'}
+                  </label>
+                  <div className="p-3 bg-gray-50 rounded-lg border">
+                    <span className={`text-sm text-gray-900 ${isSindhi ? 'auto-sindhi-font' : ''}`} style={{
+                      fontFeatureSettings: '"kern" 1, "liga" 1',
+                      letterSpacing: '0.01em'
+                    }}>
+                      {multiLangContent.reportCategories[selectedReportCategory as keyof typeof multiLangContent.reportCategories]}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Report Reasons */}
+                <div className="mb-6">
+                  <label className={`block text-sm font-medium text-gray-700 mb-3 ${isSindhi ? 'auto-sindhi-font' : ''}`} style={{
+                    fontFeatureSettings: '"kern" 1, "liga" 1',
+                    letterSpacing: '0.01em'
+                  }}>
+                    {isSindhi ? 'رپورٽ جو سبب چونڊيو' : 'Select reason for reporting'}
+                  </label>
+                  <div className="space-y-2 max-h-64 overflow-y-auto">
+                    {selectedReportCategory === 'common' && (
+                      <>
+                        <button
+                          onClick={() => handleReportReasonClick('contentError')}
+                          className={`w-full p-3 text-left text-sm rounded-lg border transition-colors ${
+                            selectedReportReason === 'contentError' 
+                              ? 'bg-blue-50 border-blue-200 text-blue-900' 
+                              : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
+                          }`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <AlertTriangle className="h-4 w-4 text-orange-500 mt-0.5 flex-shrink-0" />
+                            <span className={isSindhi ? 'auto-sindhi-font' : ''}>{multiLangContent.reportReasons.contentError}</span>
+                          </div>
+                        </button>
+                        
+                        <button
+                          onClick={() => handleReportReasonClick('offensive')}
+                          className={`w-full p-3 text-left text-sm rounded-lg border transition-colors ${
+                            selectedReportReason === 'offensive' 
+                              ? 'bg-blue-50 border-blue-200 text-blue-900' 
+                              : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
+                          }`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <X className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
+                            <span className={isSindhi ? 'auto-sindhi-font' : ''}>{multiLangContent.reportReasons.offensive}</span>
+                          </div>
+                        </button>
+                        
+                        <button
+                          onClick={() => handleReportReasonClick('copyright')}
+                          className={`w-full p-3 text-left text-sm rounded-lg border transition-colors ${
+                            selectedReportReason === 'copyright' 
+                              ? 'bg-blue-50 border-blue-200 text-blue-900' 
+                              : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
+                          }`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <Flag className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                            <span className={isSindhi ? 'auto-sindhi-font' : ''}>{multiLangContent.reportReasons.copyright}</span>
+                          </div>
+                        </button>
+                        
+                        <button
+                          onClick={() => handleReportReasonClick('spam')}
+                          className={`w-full p-3 text-left text-sm rounded-lg border transition-colors ${
+                            selectedReportReason === 'spam' 
+                              ? 'bg-blue-50 border-blue-200 text-blue-900' 
+                              : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
+                          }`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <MessageSquare className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
+                            <span className={isSindhi ? 'auto-sindhi-font' : ''}>{multiLangContent.reportReasons.spam}</span>
+                          </div>
+                        </button>
+                        
+                        <button
+                          onClick={() => handleReportReasonClick('misinformation')}
+                          className={`w-full p-3 text-left text-sm rounded-lg border transition-colors ${
+                            selectedReportReason === 'misinformation' 
+                              ? 'bg-blue-50 border-blue-200 text-blue-900' 
+                              : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
+                          }`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <AlertTriangle className="h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0" />
+                            <span className={isSindhi ? 'auto-sindhi-font' : ''}>{multiLangContent.reportReasons.misinformation}</span>
+                          </div>
+                        </button>
+                        
+                        <button
+                          onClick={() => handleReportReasonClick('lowQuality')}
+                          className={`w-full p-3 text-left text-sm rounded-lg border transition-colors ${
+                            selectedReportReason === 'lowQuality' 
+                              ? 'bg-blue-50 border-blue-200 text-blue-900' 
+                              : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
+                          }`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <BookOpen className="h-4 w-4 text-gray-500 mt-0.5 flex-shrink-0" />
+                            <span className={isSindhi ? 'auto-sindhi-font' : ''}>{multiLangContent.reportReasons.lowQuality}</span>
+                          </div>
+                        </button>
+                        
+                        <button
+                          onClick={() => handleReportReasonClick('wrongPoet')}
+                          className={`w-full p-3 text-left text-sm rounded-lg border transition-colors ${
+                            selectedReportReason === 'wrongPoet' 
+                              ? 'bg-blue-50 border-blue-200 text-blue-900' 
+                              : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
+                          }`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <User className="h-4 w-4 text-purple-500 mt-0.5 flex-shrink-0" />
+                            <span className={isSindhi ? 'auto-sindhi-font' : ''}>{multiLangContent.reportReasons.wrongPoet}</span>
+                          </div>
+                        </button>
+                      </>
+                    )}
+                    
+                    {selectedReportCategory === 'additional' && (
+                      <>
+                        <button
+                          onClick={() => handleReportReasonClick('triggering')}
+                          className={`w-full p-3 text-left text-sm rounded-lg border transition-colors ${
+                            selectedReportReason === 'triggering' 
+                              ? 'bg-blue-50 border-blue-200 text-blue-900' 
+                              : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
+                          }`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <Shield className="h-4 w-4 text-purple-600 mt-0.5 flex-shrink-0" />
+                            <span className={isSindhi ? 'auto-sindhi-font' : ''}>{multiLangContent.reportReasons.triggering}</span>
+                          </div>
+                        </button>
+                        
+                        <button
+                          onClick={() => handleReportReasonClick('wrongCategory')}
+                          className={`w-full p-3 text-left text-sm rounded-lg border transition-colors ${
+                            selectedReportReason === 'wrongCategory' 
+                              ? 'bg-blue-50 border-blue-200 text-blue-900' 
+                              : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
+                          }`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <Tag className="h-4 w-4 text-indigo-500 mt-0.5 flex-shrink-0" />
+                            <span className={isSindhi ? 'auto-sindhi-font' : ''}>{multiLangContent.reportReasons.wrongCategory}</span>
+                          </div>
+                        </button>
+                        
+                        <button
+                          onClick={() => handleReportReasonClick('duplicate')}
+                          className={`w-full p-3 text-left text-sm rounded-lg border transition-colors ${
+                            selectedReportReason === 'duplicate' 
+                              ? 'bg-blue-50 border-blue-200 text-blue-900' 
+                              : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
+                          }`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <MessageCircle className="h-4 w-4 text-cyan-500 mt-0.5 flex-shrink-0" />
+                            <span className={isSindhi ? 'auto-sindhi-font' : ''}>{multiLangContent.reportReasons.duplicate}</span>
+                          </div>
+                        </button>
+                        
+                        <button
+                          onClick={() => handleReportReasonClick('other')}
+                          className={`w-full p-3 text-left text-sm rounded-lg border transition-colors ${
+                            selectedReportReason === 'other' 
+                              ? 'bg-blue-50 border-blue-200 text-blue-900' 
+                              : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
+                          }`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <MoreHorizontal className="h-4 w-4 text-gray-500 mt-0.5 flex-shrink-0" />
+                            <span className={isSindhi ? 'auto-sindhi-font' : ''}>{multiLangContent.reportReasons.other}</span>
+                          </div>
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {/* Description */}
+                <div className="mb-6">
+                  <label className={`block text-sm font-medium text-gray-700 mb-2 ${isSindhi ? 'auto-sindhi-font' : ''}`} style={{
+                    fontFeatureSettings: '"kern" 1, "liga" 1',
+                    letterSpacing: '0.01em'
+                  }}>
+                    {multiLangContent.reportDescription}
+                  </label>
+                  <textarea
+                    value={reportDescription}
+                    onChange={(e) => setReportDescription(e.target.value)}
+                    className="w-full p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    rows={4}
+                    placeholder={isSindhi ? 'وڌيڪ تفصيل لکيو...' : 'Please provide more details...'}
+                    style={{
+                      fontFamily: isSindhi ? 'var(--font-sindhi)' : 'inherit',
+                      direction: isSindhi ? 'rtl' : 'ltr'
+                    }}
+                  />
+                </div>
+
+                {/* Error Display */}
+                {reportError && (
+                  <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <p className={`text-sm text-red-700 ${isSindhi ? 'auto-sindhi-font' : ''}`} style={{
+                      fontFeatureSettings: '"kern" 1, "liga" 1',
+                      letterSpacing: '0.01em'
+                    }}>
+                      {reportError}
+                    </p>
+                  </div>
+                )}
+
+                {/* Action Buttons */}
+                <div className="flex gap-3">
+                  <button
+                    onClick={handleReportCancel}
+                    className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors font-medium"
+                  >
+                    <span className={isSindhi ? 'auto-sindhi-font' : ''} style={{
+                      fontFeatureSettings: '"kern" 1, "liga" 1',
+                      letterSpacing: '0.01em'
+                    }}>
+                      {multiLangContent.cancel}
+                    </span>
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleReportSubmit().catch(error => {
+                        console.error('Unhandled promise rejection in handleReportSubmit:', error);
+                      });
+                    }}
+                    disabled={!selectedReportReason || reportLoading}
+                    className={`flex-1 px-4 py-2 rounded-lg transition-colors font-medium flex items-center justify-center gap-2 ${
+                      selectedReportReason && !reportLoading
+                        ? 'bg-red-600 hover:bg-red-700 text-white' 
+                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    }`}
+                  >
+                    {reportLoading && (
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    )}
+                    <span className={isSindhi ? 'auto-sindhi-font' : ''} style={{
+                      fontFeatureSettings: '"kern" 1, "liga" 1',
+                      letterSpacing: '0.01em'
+                    }}>
+                      {reportLoading ? (isSindhi ? 'موڪلي رهيو...' : 'Submitting...') : multiLangContent.submitReport}
+                    </span>
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Other Poetry Section - Matching Main Page Design */}
       {otherPoetry.length > 0 && (
@@ -856,10 +1755,17 @@ export default function PoetryPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.3 }}
             >
-              <h2 className={`${isSindhi ? 'sd-title' : 'text-[22px] leading-snug text-gray-900 font-normal'} mb-2`}>
+              <h2 className={`${isSindhi ? 'sd-title' : 'text-[22px] leading-snug text-gray-900 font-light'} mb-2`} style={{
+                fontFeatureSettings: '"kern" 1, "liga" 1',
+                letterSpacing: isSindhi ? '0.01em' : '0.01em'
+              }}>
                 {multiLangContent.otherPoetry}
               </h2>
-              <p className={`${isSindhi ? 'sd-subtitle' : 'text-[16px] leading-7 text-gray-600 font-light'} max-w-2xl mx-auto`}>
+              <p className={`${isSindhi ? 'sd-subtitle' : 'text-[16px] leading-7 text-gray-600 font-light'} max-w-2xl mx-auto`} style={{
+                fontFeatureSettings: '"kern" 1, "liga" 1',
+                letterSpacing: isSindhi ? '0.01em' : '0.01em',
+                lineHeight: '1.7'
+              }}>
                 {isSindhi 
                   ? 'هن شاعر جي ٻي شاعري ڏسو' 
                   : 'Explore more poetry from this poet'
@@ -912,11 +1818,18 @@ export default function PoetryPage() {
                         {/* Poetry Content */}
                         <div className="space-y-2 mb-6">
                           <div className="text-center space-y-1">
-                            <h3 className={`text-lg font-medium text-black leading-relaxed ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+                            <h3 className={`text-lg font-light text-black leading-relaxed ${isSindhi ? 'auto-sindhi-font' : ''}`} style={{
+                              fontFeatureSettings: '"kern" 1, "liga" 1',
+                              letterSpacing: isSindhi ? '0.01em' : '0.01em'
+                            }}>
                               {isSindhi ? poem.poetry_translations?.find(t => t.lang === 'sd')?.title : poem.poetry_translations?.find(t => t.lang === 'en')?.title || 'Untitled'}
                             </h3>
                             {poem.poetry_translations?.[0]?.info && (
-                              <p className={`text-sm text-gray-600 leading-relaxed ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+                              <p className={`text-sm text-gray-600 leading-relaxed font-light ${isSindhi ? 'auto-sindhi-font' : ''}`} style={{
+                                fontFeatureSettings: '"kern" 1, "liga" 1',
+                                letterSpacing: isSindhi ? '0.01em' : '0.01em',
+                                lineHeight: '1.6'
+                              }}>
                                 {poem.poetry_translations[0].info}
                               </p>
                             )}
@@ -929,17 +1842,26 @@ export default function PoetryPage() {
                             <Avatar className="w-8 h-8 bg-background border border-border/20 shadow-sm">
                               <AvatarImage src={poetry.poets?.file_url || undefined} alt={getPrimaryPoetTitle() || 'Poet'} />
                               <AvatarFallback className={cn(
-                                "text-sm font-medium text-foreground",
+                                "text-sm font-light text-foreground",
                                 isSindhi ? 'auto-sindhi-font' : ''
-                              )}>
+                              )} style={{
+                                fontFeatureSettings: '"kern" 1, "liga" 1',
+                                letterSpacing: '0.01em'
+                              }}>
                                 {getPrimaryPoetTitle()?.charAt(0) || 'P'}
                               </AvatarFallback>
                             </Avatar>
-                            <span className={`text-sm text-gray-700 font-medium ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+                            <span className={`text-sm text-gray-700 font-light ${isSindhi ? 'auto-sindhi-font' : ''}`} style={{
+                              fontFeatureSettings: '"kern" 1, "liga" 1',
+                              letterSpacing: '0.01em'
+                            }}>
                               {getPrimaryPoetTitle()}
                             </span>
                           </div>
-                          <div className="flex items-center gap-2 text-xs text-gray-500">
+                          <div className="flex items-center gap-2 text-xs text-gray-500 font-light" style={{
+                            fontFeatureSettings: '"kern" 1, "liga" 1',
+                            letterSpacing: '0.01em'
+                          }}>
                             <Clock className="h-4 w-4" />
                             <MixedContentWithNumbers 
                               text={`${Math.ceil((poem.poetry_couplets?.length || 0) * 0.5)} ${multiLangContent.min}`}
@@ -958,7 +1880,10 @@ export default function PoetryPage() {
                               <Share2 className="h-4 w-4 text-gray-600 hover:text-green-500" />
                             </button>
                           </div>
-                          <div className="flex items-center gap-1 text-xs text-gray-500">
+                          <div className="flex items-center gap-1 text-xs text-gray-500 font-light" style={{
+                            fontFeatureSettings: '"kern" 1, "liga" 1',
+                            letterSpacing: '0.01em'
+                          }}>
                             <Eye className="h-4 w-4" />
                             <NumberFont size="xs">{Math.floor(Math.random() * 100) + 50}</NumberFont>
                           </div>
@@ -968,7 +1893,11 @@ export default function PoetryPage() {
                         <div className="pt-4">
                           <Link 
                             href={`/${isSindhi ? 'sd' : 'en'}/poets/${poetId}/form/${poem.categories?.slug || formSlug}/${poem.poetry_slug}`}
-                            className="block w-full text-center py-2 px-4 bg-gray-900 hover:bg-gray-800 text-white rounded-lg transition-colors font-medium text-sm"
+                            className="block w-full text-center py-2 px-4 bg-gray-900 hover:bg-gray-800 text-white rounded-lg transition-colors font-light text-sm"
+                            style={{
+                              fontFeatureSettings: '"kern" 1, "liga" 1',
+                              letterSpacing: '0.01em'
+                            }}
                           >
                             {isSindhi ? 'پڙهو' : 'Read'} →
                           </Link>
@@ -984,7 +1913,11 @@ export default function PoetryPage() {
             <div className="text-center mt-16">
               <Link 
                 href={`/${isSindhi ? 'sd' : 'en'}/poets/${poetId}`}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-gray-900 hover:bg-gray-800 text-white rounded-full transition-colors font-medium"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-gray-900 hover:bg-gray-800 text-white rounded-full transition-colors font-light"
+                style={{
+                  fontFeatureSettings: '"kern" 1, "liga" 1',
+                  letterSpacing: '0.01em'
+                }}
               >
                 {multiLangContent.exploreMore}
                 <ChevronRight className="h-4 w-4" />

@@ -1,225 +1,249 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { createAdminClient } from '@/lib/supabase/admin';
 
-export async function GET(req: Request) {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
-  // Helper: build mock response compatible with topics page expectations
-  const buildMockResponse = (limit: number, offset: number, type: string | null) => {
-    const mockTags = [
-      {
-        id: '1',
-        slug: 'love',
-        label: 'محبت',
-        tag_type: 'Topic',
-        created_at: new Date().toISOString(),
-        tags_translations: [
-          { lang_code: 'en', title: 'Love', detail: 'Poetry about love and romance' },
-          { lang_code: 'sd', title: 'محبت', detail: 'محبت ۽ رومانس بابت شاعري' }
-        ],
-        englishTitle: 'Love',
-        sindhiTitle: 'محبت',
-        englishDetail: 'Poetry about love and romance',
-        sindhiDetail: 'محبت ۽ رومانس بابت شاعري'
-      },
-      {
-        id: '2',
-        slug: 'nature',
-        label: 'طبيعت',
-        tag_type: 'Topic',
-        created_at: new Date().toISOString(),
-        tags_translations: [
-          { lang_code: 'en', title: 'Nature', detail: 'Poetry about nature and landscapes' },
-          { lang_code: 'sd', title: 'طبيعت', detail: 'طبيعت ۽ منظرن بابت شاعري' }
-        ],
-        englishTitle: 'Nature',
-        sindhiTitle: 'طبيعت',
-        englishDetail: 'Poetry about nature and landscapes',
-        sindhiDetail: 'طبيعت ۽ منظرن بابت شاعري'
-      },
-      {
-        id: '3',
-        slug: 'religion',
-        label: 'مذهب',
-        tag_type: 'Topic',
-        created_at: new Date().toISOString(),
-        tags_translations: [
-          { lang_code: 'en', title: 'Religion', detail: 'Spiritual and religious poetry' },
-          { lang_code: 'sd', title: 'مذهب', detail: 'روحاني ۽ مذهبي شاعري' }
-        ],
-        englishTitle: 'Religion',
-        sindhiTitle: 'مذهب',
-        englishDetail: 'Spiritual and religious poetry',
-        sindhiDetail: 'روحاني ۽ مذهبي شاعري'
-      },
-      {
-        id: '4',
-        slug: 'ghazal',
-        label: 'غزل',
-        tag_type: 'Form',
-        created_at: new Date().toISOString(),
-        tags_translations: [
-          { lang_code: 'en', title: 'Ghazal', detail: 'Traditional poetic form' },
-          { lang_code: 'sd', title: 'غزل', detail: 'روايتي شاعري جو انداز' }
-        ],
-        englishTitle: 'Ghazal',
-        sindhiTitle: 'غزل',
-        englishDetail: 'Traditional poetic form',
-        sindhiDetail: 'روايتي شاعري جو انداز'
-      },
-      {
-        id: '5',
-        slug: 'culture',
-        label: 'ثقافت',
-        tag_type: 'Topic',
-        created_at: new Date().toISOString(),
-        tags_translations: [
-          { lang_code: 'en', title: 'Culture', detail: 'Cultural themes and traditions' },
-          { lang_code: 'sd', title: 'ثقافت', detail: 'ثقافتي موضوع ۽ روايتون' }
-        ],
-        englishTitle: 'Culture',
-        sindhiTitle: 'ثقافت',
-        englishDetail: 'Cultural themes and traditions',
-        sindhiDetail: 'ثقافتي موضوع ۽ روايتون'
-      },
-      {
-        id: '6',
-        slug: 'homeland',
-        label: 'وطن',
-        tag_type: 'Topic',
-        created_at: new Date().toISOString(),
-        tags_translations: [
-          { lang_code: 'en', title: 'Homeland', detail: 'Poetry about homeland and identity' },
-          { lang_code: 'sd', title: 'وطن', detail: 'وطن ۽ سڃاڻپ بابت شاعري' }
-        ],
-        englishTitle: 'Homeland',
-        sindhiTitle: 'وطن',
-        englishDetail: 'Poetry about homeland and identity',
-        sindhiDetail: 'وطن ۽ سڃاڻپ بابت شاعري'
-      }
-    ];
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    let filtered = mockTags;
-    if (type) {
-      filtered = filtered.filter(t => t.tag_type === type);
-    }
-    const total = filtered.length;
-    const items = filtered.slice(offset, offset + limit);
-    return NextResponse.json({ items, total }, { status: 200 });
-  };
-
-  // If env missing, return mock instead of failing
-  if (!url || !serviceKey) {
-    const { searchParams } = new URL(req.url);
-    const limit = Math.max(1, Math.min(48, Number(searchParams.get('limit') || 12)));
-    const offset = Math.max(0, Number(searchParams.get('offset') || 0));
-    const type = searchParams.get('type') || null;
-    return buildMockResponse(limit, offset, type);
-  }
-
-  // Use shared admin client factory for consistency
-  let admin;
+export async function GET(request: NextRequest) {
   try {
-    admin = createAdminClient();
-  } catch (e: any) {
-    return NextResponse.json({ error: 'Supabase admin init failed' }, { status: 500 });
-  }
-
-  try {
-    const { searchParams } = new URL(req.url);
-    const limit = Math.max(1, Math.min(48, Number(searchParams.get('limit') || 12)));
-    const offset = Math.max(0, Number(searchParams.get('offset') || 0));
+    const { searchParams } = new URL(request.url);
     const lang = searchParams.get('lang') || 'en';
-    const type = searchParams.get('type') || null;
-    const to = offset + limit - 1;
-    
-    // Build the base query with JOIN to tags_translations
-    let query = admin
+    const tagTypeRaw = searchParams.get('type') || 'Poet';
+    const normalizedType = (tagTypeRaw || '').trim().toLowerCase();
+    const tagType = normalizedType === 'topic' || normalizedType === 'topics'
+      ? 'Topic'
+      : normalizedType === 'poet' || normalizedType === 'poets'
+        ? 'Poet'
+        : tagTypeRaw;
+    const limitParam = parseInt(searchParams.get('limit') || '18', 10);
+    const offsetParam = parseInt(searchParams.get('offset') || '0', 10);
+    const limit = Math.min(100, Math.max(1, isNaN(limitParam) ? 18 : limitParam));
+    const offset = Math.max(0, isNaN(offsetParam) ? 0 : offsetParam);
+
+    console.log('=== TAGS API ROUTE STARTED ===');
+    console.log('Language:', lang);
+    console.log('Tag Type:', tagType);
+
+    // Check if Supabase is configured
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL === 'your_supabase_project_url_here') {
+      console.warn('Supabase not configured - returning 503');
+      return NextResponse.json({ 
+        error: 'Database not configured',
+        message: 'Please configure Supabase environment variables'
+      }, { status: 503 });
+    }
+
+    // Fetch tags with their translations
+    const { data: tags, error: tagsError } = await supabase
       .from('tags')
       .select(`
-        id, 
-        slug, 
-        label, 
-        tag_type, 
+        id,
+        slug,
+        label,
+        tag_type,
         created_at,
         tags_translations(
           lang_code,
           title,
           detail
         )
-      `);
-    
-    // Add type filter if specified
-    if (type) {
-      query = query.ilike('tag_type', type);
-    }
-    
-    // Add ordering and range
-    query = query.order('created_at', { ascending: false }).range(offset, to);
-    
-    const { data, error } = await query;
+      `)
+      .ilike('tag_type', tagType)
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
 
-    if (error) {
-      console.error('Tags API - Database error:', error);
-      return buildMockResponse(limit, offset, type);
+    if (tagsError) {
+      console.error('Error fetching tags:', tagsError);
+      return NextResponse.json({ 
+        error: 'Failed to fetch tags',
+        details: tagsError.message 
+      }, { status: 500 });
     }
-    
-    // Check if we have any data - if not, use mock data
-    if (!data || data.length === 0) {
-      console.log('Tags API - No data found, returning empty list');
-      return NextResponse.json({ items: [], total: 0 }, { status: 200 });
-    }
-    
-    // Get total count for pagination (with type filter if specified)
-    let countQuery = admin
-      .from('tags')
-      .select('*', { head: true, count: 'exact' });
-    
-    if (type) {
-      countQuery = countQuery.ilike('tag_type', type);
-    }
-    const { count: total } = await countQuery;
-    
-    let items = (data || []).map((tag: any) => {
-      const translations = Array.isArray(tag.tags_translations) ? tag.tags_translations : [];
-      const en = translations.find((t: any) => t.lang_code === 'en');
-      const sd = translations.find((t: any) => t.lang_code === 'sd');
-      
-      const processed = {
-        id: String(tag.id),
+
+    // Fallback Sindhi titles for common slugs when translations are missing
+    const sdFallback: Record<string, string> = {
+      'love': 'محبت',
+      'wisdom': 'حڪمت',
+      'life': 'زندگي',
+      'death': 'موت',
+      'faith': 'ايمان',
+      'hope': 'اميد',
+      'patience': 'صبرو',
+      'friendship': 'دوستي',
+      'nature': 'فطرت',
+      'freedom': 'آزادي',
+      'justice': 'انصاف',
+      'peace': 'امن',
+      'social-justice': 'سماجي انصاف',
+      'sufism': 'تصوف',
+      'homeland': 'وطن',
+      'culture': 'ثقافت',
+      'religion': 'مذهب',
+      'poetry': 'شاعري',
+      'literature': 'ادب',
+      'beauty': 'خوبصورتي',
+      'sorrow': 'غم',
+      'happiness': 'خوشي',
+      'time': 'وقت',
+      'youth': 'جواني',
+      'old-age': 'ڏاڙهپ',
+      'mother': 'ماءُ',
+      'father': 'پيءُ',
+      'child': 'ٻار',
+      'woman': 'عورت',
+      'man': 'مرد',
+      'heart': 'دل',
+      'soul': 'روح',
+      'mind': 'دماغ',
+      'eyes': 'اکيون',
+      'tears': 'آنسو',
+      'smile': 'مسڪر',
+      'dream': 'سپنو',
+      'reality': 'حقيقت',
+      'truth': 'سچ',
+      'lie': 'ڪوڙ',
+      'good': 'سٺو',
+      'bad': 'خراب',
+      'right': 'صحيح',
+      'wrong': 'غلط',
+      'light': 'روشني',
+      'darkness': 'اندھيرو',
+      'day': 'ڏينهن',
+      'night': 'رات',
+      'morning': 'صبح',
+      'evening': 'شام',
+      'spring': 'بسنت',
+      'summer': 'گرمي',
+      'winter': 'سردي',
+      'autumn': 'خزاں',
+      'rain': 'مينهن',
+      'sun': 'سج',
+      'moon': 'چنڊ',
+      'stars': 'تارا',
+      'sky': 'آسمان',
+      'earth': 'زمين',
+      'water': 'پاڻي',
+      'fire': 'باڻ',
+      'wind': 'هوا',
+      'flower': 'پھول',
+      'tree': 'وڻ',
+      'bird': 'پکي',
+      'river': 'درياءُ',
+      'mountain': 'پهاڙ',
+      'sea': 'سمنڊ',
+      'desert': 'ريگستان',
+      'forest': 'جنگل',
+      'garden': 'باغ',
+      'home': 'گھر',
+      'village': 'ڳوٺ',
+      'city': 'شھر',
+      'country': 'ملڪ',
+      'world': 'دنيا',
+      'universe': 'ڪائنات'
+    };
+
+    // Transform the data to a more usable format
+    const transformedTags = tags?.map(tag => {
+      const translations = Array.isArray(tag.tags_translations) ? [...tag.tags_translations] : [];
+      const existing = translations.find((t: any) => t.lang_code === lang);
+      const fallbackTitle = lang === 'sd' ? (sdFallback[tag.slug] || tag.label) : tag.label;
+      // Use fallback if existing title is just the slug (not a proper translation)
+      const title = (existing?.title && existing.title !== tag.slug) ? existing.title : fallbackTitle;
+      const detail = existing?.detail || '';
+
+      // Ensure a translation object exists for the requested lang so UI can pick it
+      if (!existing) {
+        translations.push({ lang_code: lang, title, detail });
+      }
+
+      return {
+        id: tag.id,
         slug: tag.slug,
         label: tag.label,
         tag_type: tag.tag_type,
         created_at: tag.created_at,
         tags_translations: translations,
-        // For backward compatibility, also include direct fields
-        englishTitle: en?.title || tag.label,
-        sindhiTitle: sd?.title || tag.label,
-        englishDetail: en?.detail || '',
-        sindhiDetail: sd?.detail || ''
+        title,
+        detail,
+        lang_code: lang
       };
-      
-      return processed;
+    }) || [];
+
+    console.log('=== TAGS API SUCCESS ===');
+    console.log('Tags fetched:', transformedTags.length);
+
+    return NextResponse.json({
+      tags: transformedTags,
+      total: transformedTags.length,
+      language: lang,
+      type: tagType,
+      limit,
+      offset
     });
-    
-    // Filter tags based on requested language if needed
-    if (lang === 'sd') {
-      // For Sindhi locale, prioritize tags that have Sindhi translations
-      items.sort((a, b) => {
-        const aHasSindhi = a.tags_translations.some((t: any) => t.lang_code === 'sd');
-        const bHasSindhi = b.tags_translations.some((t: any) => t.lang_code === 'sd');
-        if (aHasSindhi && !bHasSindhi) return -1;
-        if (!aHasSindhi && bHasSindhi) return 1;
-        return 0;
-      });
+
+  } catch (error) {
+    console.error('Tags API Error:', error);
+    return NextResponse.json({ 
+      error: 'Internal server error',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { slug, label, tag_type = 'Poet', translations } = body;
+
+    if (!slug || !label || !translations) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
-    
-    const response = { items, total: total ?? items.length };
-    return NextResponse.json(response, { status: 200 });
-  } catch (err: any) {
-    console.error('Tags API - Error:', err);
-    return NextResponse.json({ error: String(err?.message || err) }, { status: 500 });
+
+    // Insert the main tag
+    const { data: tagData, error: tagError } = await supabase
+      .from('tags')
+      .insert({
+        slug,
+        label,
+        tag_type
+      })
+      .select('id')
+      .single();
+
+    if (tagError) {
+      console.error('Error creating tag:', tagError);
+      return NextResponse.json({ error: 'Failed to create tag' }, { status: 500 });
+    }
+
+    // Insert translations
+    const translationInserts = Object.entries(translations).map(([lang_code, translation]: [string, any]) => ({
+      tag_id: tagData.id,
+      lang_code,
+      title: translation.title,
+      detail: translation.detail || ''
+    }));
+
+    const { error: translationError } = await supabase
+      .from('tags_translations')
+      .insert(translationInserts);
+
+    if (translationError) {
+      console.error('Error creating translations:', translationError);
+      return NextResponse.json({ error: 'Failed to create translations' }, { status: 500 });
+    }
+
+    return NextResponse.json({ 
+      message: 'Tag created successfully', 
+      id: tagData.id 
+    });
+
+  } catch (error) {
+    console.error('Create tag error:', error);
+    return NextResponse.json({ 
+      error: 'Internal server error',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
   }
 }

@@ -33,6 +33,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import AdminLayout from "@/components/layouts/AdminLayout";
+import AdminPageHeader from "@/components/ui/AdminPageHeader";
 
 interface CoupletItem {
   id: number;
@@ -53,10 +54,21 @@ interface CoupletItem {
     poet_slug: string;
     sindhi_name: string;
     english_name: string;
+    sindhi_laqab: string;
+    english_laqab: string;
   } | null;
   categories?: {
     id: number;
     slug: string;
+  } | null;
+  english_couplet?: {
+    id: number;
+    couplet_text: string;
+    couplet_slug: string;
+    couplet_tags: string;
+    lang: string;
+    created_at: string;
+    updated_at: string;
   } | null;
 }
 
@@ -88,8 +100,8 @@ export default function AdminCoupletsListPage() {
 
   // Calculate counts for stats cards
   const totalCouplets = total;
-  const sindhiCouplets = items.filter(item => item.lang === 'sd').length;
-  const englishCouplets = items.filter(item => item.lang === 'en').length;
+  const sindhiCouplets = items.length; // All items are now Sindhi couplets
+  const englishCouplets = items.filter(item => item.english_couplet).length; // Count items with English translations
   const totalPoetry = items.reduce((sum, item) => sum + (item.poetry_main ? 1 : 0), 0);
 
   const fetchCouplets = useCallback(async (page: number = 1, search: string = "", reset: boolean = false) => {
@@ -158,33 +170,20 @@ export default function AdminCoupletsListPage() {
     fetchCouplets(page, searchTerm);
   };
 
-  // Group duplicate couplets (sd/en) into a single row with combined language tags
+  // Since we now only fetch Sindhi couplets as primary entries with English data included,
+  // we can simplify the grouping logic
   const groupedItems = useMemo(() => {
-    const groups: Record<string, {
-      base: CoupletItem;
-      langs: Set<string>;
-      textsByLang: Record<string, string>;
-    }> = {};
-    for (const it of items) {
-      const key = `${it.poetry_main?.id || 'x'}::${it.couplet_slug}`;
-      if (!groups[key]) {
-        groups[key] = { base: it, langs: new Set(), textsByLang: {} };
+    return items.map(item => {
+      const languages = ['sd']; // All items are Sindhi
+      if (item.english_couplet) {
+        languages.push('en');
       }
-      groups[key].langs.add(it.lang);
-      groups[key].textsByLang[it.lang] = it.couplet_text;
-      // Prefer filling missing base poet/category/poetry if any are null
-      if (!groups[key].base.poets && it.poets) groups[key].base.poets = it.poets;
-      if (!groups[key].base.categories && it.categories) groups[key].base.categories = it.categories;
-      if (!groups[key].base.poetry_main && it.poetry_main) groups[key].base.poetry_main = it.poetry_main;
-    }
-    return Object.values(groups).map(g => {
-      const hasSd = g.langs.has('sd');
-      const displayText = hasSd ? (g.textsByLang['sd'] || g.base.couplet_text) : (g.textsByLang['en'] || g.base.couplet_text);
+      
       return {
-        ...g.base,
-        couplet_text: displayText,
-        _languages: Array.from(g.langs).sort(),
-      } as CoupletItem & { _languages: string[] };
+        ...item,
+        _languages: languages,
+        _coupletIds: [item.id, ...(item.english_couplet ? [item.english_couplet.id] : [])],
+      } as CoupletItem & { _languages: string[]; _coupletIds: number[] };
     });
   }, [items]);
 
@@ -240,6 +239,56 @@ export default function AdminCoupletsListPage() {
     return colors[lang as keyof typeof colors] || colors['sd'];
   };
 
+  const getTagPills = (couplet: CoupletItem) => {
+    if (!couplet.couplet_tags) return null;
+    
+    // Parse tags from comma-separated string
+    const tags = couplet.couplet_tags.split(',').map(tag => tag.trim()).filter(tag => tag);
+    
+    // Define tag colors for specific themes
+    const getTagColor = (tag: string) => {
+      const lowerTag = tag.toLowerCase();
+      if (lowerTag.includes('nature') || lowerTag.includes('فطرت')) {
+        return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+      }
+      if (lowerTag.includes('wisdom') || lowerTag.includes('حڪمت') || lowerTag.includes('philosophy') || lowerTag.includes('فلسفو')) {
+        return 'bg-amber-50 text-amber-700 border-amber-200';
+      }
+      if (lowerTag.includes('romance') || lowerTag.includes('محبت') || lowerTag.includes('love') || lowerTag.includes('رومانس')) {
+        return 'bg-rose-50 text-rose-700 border-rose-200';
+      }
+      if (lowerTag.includes('sadness') || lowerTag.includes('غم')) {
+        return 'bg-slate-50 text-slate-700 border-slate-200';
+      }
+      if (lowerTag.includes('happiness') || lowerTag.includes('خوشي')) {
+        return 'bg-yellow-50 text-yellow-700 border-yellow-200';
+      }
+      if (lowerTag.includes('spiritual') || lowerTag.includes('روحاني')) {
+        return 'bg-purple-50 text-purple-700 border-purple-200';
+      }
+      // Default color for other tags
+      return 'bg-gray-50 text-gray-700 border-gray-200';
+    };
+    
+    return (
+      <div className="flex flex-wrap gap-1 mt-1">
+        {tags.slice(0, 3).map((tag, index) => (
+          <span
+            key={`${couplet.id}-tag-${index}`}
+            className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getTagColor(tag)}`}
+          >
+            {tag}
+          </span>
+        ))}
+        {tags.length > 3 && (
+          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 border border-gray-200">
+            +{tags.length - 3}
+          </span>
+        )}
+      </div>
+    );
+  };
+
   if (error) {
     return (
       <AdminLayout>
@@ -258,379 +307,275 @@ export default function AdminCoupletsListPage() {
 
   return (
     <AdminLayout>
-      <div className="container mx-auto px-4 py-10 space-y-10">
-        {/* Header */}
-        <div className="bg-white border-b border-[#E5E5E5] px-6 py-6">
-          <div className="max-w-7xl mx-auto">
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <Badge variant="secondary" className="rounded-full px-3 py-1 text-xs font-medium bg-[#F4F4F5] text-[#1F1F1F] border border-[#E5E5E5]">
-                  <Quote className="w-4 h-4 mr-2" />
-                  Couplets Management
-                </Badge>
-              </div>
-              <div className="space-y-2">
-                <h1 className="text-3xl font-bold text-[#1F1F1F]">Couplets Management</h1>
-                <p className="text-lg text-[#6B6B6B] max-w-2xl">
-                  Manage and view all couplets in the system with comprehensive tools
-                </p>
-              </div>
+      <div className="min-h-screen bg-[#F9F9F9]">
+        <AdminPageHeader
+          title="Couplets Collection"
+          subtitle="Couplets Management"
+          subtitleIcon={<Quote className="w-4 h-4" />}
+          description="Manage your couplets collection with translations and poetry associations. Organize content with structured classification system."
+          action={
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+              <Button 
+                asChild
+                variant="outline"
+                className="h-10 px-6 rounded-lg border-[#E5E5E5] text-[#1F1F1F] hover:bg-[#F4F4F5] hover:border-[#D4D4D8] transition-colors"
+              >
+                <Link href="/admin/poetry/couplets/create">
+                  <Plus className="w-4 h-4 mr-2" /> New Couplet
+                </Link>
+              </Button>
             </div>
+          }
+        />
+
+        {/* Main Content */}
+        <div className="max-w-7xl mx-auto px-6 py-8">
+          {/* Insights */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <Card className="bg-white border-[#E5E5E5] rounded-lg shadow-sm">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-[#F4F4F5] rounded-lg flex items-center justify-center">
+                    <Quote className="w-5 h-5 text-[#1F1F1F]" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-[#6B6B6B] font-medium">Total Couplets</p>
+                    <p className="text-2xl font-bold text-[#1F1F1F]">{totalCouplets}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="bg-white border-[#E5E5E5] rounded-lg shadow-sm">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-[#F4F4F5] rounded-lg flex items-center justify-center">
+                    <Globe className="w-5 h-5 text-[#1F1F1F]" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-[#6B6B6B] font-medium">Sindhi Couplets</p>
+                    <p className="text-2xl font-bold text-[#1F1F1F]">{sindhiCouplets}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="bg-white border-[#E5E5E5] rounded-lg shadow-sm">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-[#F4F4F5] rounded-lg flex items-center justify-center">
+                    <Globe className="w-5 h-5 text-[#1F1F1F]" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-[#6B6B6B] font-medium">English Couplets</p>
+                    <p className="text-2xl font-bold text-[#1F1F1F]">{englishCouplets}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="bg-white border-[#E5E5E5] rounded-lg shadow-sm">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-[#F4F4F5] rounded-lg flex items-center justify-center">
+                    <BookOpen className="w-5 h-5 text-[#1F1F1F]" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-[#6B6B6B] font-medium">Total Poetry</p>
+                    <p className="text-2xl font-bold text-[#1F1F1F]">{totalPoetry}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
-        </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card className="bg-white border-[#E5E5E5] rounded-lg shadow-sm">
+          {/* Controls */}
+          <Card className="bg-white border-[#E5E5E5] rounded-lg shadow-sm mb-8">
             <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-[#6B6B6B]">Total Couplets</p>
-                  <p className="text-2xl font-semibold text-[#1F1F1F]">{totalCouplets}</p>
-                </div>
-                <div className="w-10 h-10 bg-[#F4F4F5] rounded-lg flex items-center justify-center">
-                  <Quote className="w-5 h-5 text-[#1F1F1F]" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white border-[#E5E5E5] rounded-lg shadow-sm">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-[#6B6B6B]">Sindhi Couplets</p>
-                  <p className="text-2xl font-semibold text-[#1F1F1F]">{sindhiCouplets}</p>
-                </div>
-                <div className="w-10 h-10 bg-[#F4F4F5] rounded-lg flex items-center justify-center">
-                  <Globe className="w-5 h-5 text-[#1F1F1F]" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white border-[#E5E5E5] rounded-lg shadow-sm">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-[#6B6B6B]">English Couplets</p>
-                  <p className="text-2xl font-semibold text-[#1F1F1F]">{englishCouplets}</p>
-                </div>
-                <div className="w-10 h-10 bg-[#F4F4F5] rounded-lg flex items-center justify-center">
-                  <Globe className="w-5 h-5 text-[#1F1F1F]" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white border-[#E5E5E5] rounded-lg shadow-sm">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-[#6B6B6B]">Total Poetry</p>
-                  <p className="text-2xl font-semibold text-[#1F1F1F]">{totalPoetry}</p>
-                </div>
-                <div className="w-10 h-10 bg-[#F4F4F5] rounded-lg flex items-center justify-center">
-                  <BookOpen className="w-5 h-5 text-[#1F1F1F]" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Search and Filters */}
-        <div className="space-y-4">
-          <Card className="bg-white border-[#E5E5E5] rounded-lg shadow-sm">
-            <CardContent className="p-6">
-              <div className="flex flex-col lg:flex-row lg:items-center gap-4">
-                <div className="relative flex-1 max-w-md">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#6B6B6B] w-4 h-4" />
-                  <Input
-                    placeholder="Search couplets by text, slug, or tags..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 h-10 rounded-lg border-[#E5E5E5] bg-white text-[#1F1F1F] placeholder:text-[#6B6B6B] focus:border-[#1F1F1F] focus:ring-[#1F1F1F]"
-                  />
+              <div className="flex flex-col lg:flex-row lg:items-center gap-6">
+                <div className="flex items-center gap-3 text-sm">
+                  <span className="text-[#6B6B6B] font-medium">Show</span>
+                  <select
+                    value={COUPLETS_PER_PAGE}
+                    onChange={(e) => {
+                      // This is a static value for now, but we could implement pagination changes here
+                      console.log('Per page changed to:', e.target.value);
+                    }}
+                    className="h-9 w-[90px] rounded-lg border-[#E5E5E5] focus:border-[#1F1F1F] focus:ring-[#1F1F1F] bg-white hover:bg-[#F4F4F5] transition-colors px-3 py-2 text-sm"
+                  >
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                  </select>
+                  <span className="text-[#6B6B6B] font-medium">entries</span>
                 </div>
                 
-                {/* Filter Controls */}
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                   <select
                     value={filterLanguage}
                     onChange={(e) => setFilterLanguage(e.target.value as 'all' | 'sd' | 'en')}
-                    className="px-3 py-2 text-sm border border-[#E5E5E5] rounded-lg bg-white text-[#1F1F1F] focus:outline-none focus:ring-2 focus:ring-[#1F1F1F] focus:border-[#1F1F1F]"
+                    className="h-9 w-[120px] rounded-lg border-[#E5E5E5] focus:border-[#1F1F1F] focus:ring-[#1F1F1F] bg-white hover:bg-[#F4F4F5] transition-colors px-3 py-2 text-sm"
                   >
                     <option value="all">All Languages</option>
                     <option value="sd">Sindhi</option>
                     <option value="en">English</option>
                   </select>
-
+                  
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value as 'created_at' | 'couplet_slug' | 'lang')}
-                    className="px-3 py-2 text-sm border border-[#E5E5E5] rounded-lg bg-white text-[#1F1F1F] focus:outline-none focus:ring-2 focus:ring-[#1F1F1F] focus:border-[#1F1F1F]"
+                    className="h-9 w-[120px] rounded-lg border-[#E5E5E5] focus:border-[#1F1F1F] focus:ring-[#1F1F1F] bg-white hover:bg-[#F4F4F5] transition-colors px-3 py-2 text-sm"
                   >
                     <option value="created_at">Date Created</option>
                     <option value="couplet_slug">Slug</option>
                     <option value="lang">Language</option>
                   </select>
-
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
-                    className="h-10 w-10 p-0 border-[#E5E5E5] bg-white text-[#1F1F1F] hover:bg-[#F4F4F5] hover:border-[#E5E5E5]"
-                  >
-                    {sortOrder === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                  </Button>
                 </div>
-              </div>
-              
-              <div className="flex items-center gap-2 text-sm text-[#6B6B6B] mt-3">
-                <Filter className="w-4 h-4" />
-                <span>Showing {items.length} of {total} couplets</span>
-                {searchTerm && <span>• Filtered by &quot;{searchTerm}&quot;</span>}
+                
+                <div className="relative md:ml-auto">
+                  <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6B6B6B]" />
+                  <Input 
+                    value={searchTerm} 
+                    onChange={(e)=>{setSearchTerm(e.target.value);}} 
+                    placeholder="Search couplets..." 
+                    className="pl-9 h-9 rounded-lg border-[#E5E5E5] focus:border-[#1F1F1F] focus:ring-[#1F1F1F] bg-white hover:bg-[#F4F4F5] transition-colors" 
+                  />
+                </div>
               </div>
             </CardContent>
           </Card>
-        </div>
 
-        {/* Couplets Table */}
-        <div className="space-y-4">
-          <Card className="bg-white border-[#E5E5E5] rounded-lg shadow-sm">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-[#1F1F1F]">Couplets List</CardTitle>
-                <Button
-                  onClick={() => router.push('/admin/poetry/couplets/create')}
-                  className="bg-[#1F1F1F] hover:bg-[#404040] text-white h-10 px-4 rounded-lg transition-colors"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Couplet
-                </Button>
-              </div>
-              <CardDescription className="text-[#6B6B6B]">
-                Manage and view all couplets in the system
-              </CardDescription>
+          {/* Content */}
+          <Card className="bg-white border-[#E5E5E5] rounded-lg shadow-sm overflow-hidden">
+            <CardHeader className="py-4">
+              <CardTitle className="text-base text-[#1F1F1F]">Couplets List</CardTitle>
+              <CardDescription className="text-[#6B6B6B]">Comprehensive table with couplet information and actions.</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-0">
               {loading ? (
-                <div className="p-4 space-y-3">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <div key={`skeleton-row-${i}`} className="flex items-center gap-4">
-                      <Skeleton className="h-4 w-8" />
-                      <Skeleton className="h-4 w-32" />
-                      <Skeleton className="h-4 w-24" />
-                      <Skeleton className="h-4 w-20" />
-                      <Skeleton className="h-4 w-16" />
-                      <Skeleton className="h-4 w-20" />
-                    </div>
+                <div className="p-4 space-y-2">
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <Skeleton key={i} className="h-9 w-full bg-[#F4F4F5]" />
                   ))}
-                </div>
-              ) : items.length === 0 ? (
-                <div className="text-center py-12">
-                  <Quote className="w-12 h-12 text-[#6B6B6B] mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-[#1F1F1F] mb-2">No couplets found</h3>
-                  <p className="text-[#6B6B6B] mb-4">
-                    {searchTerm ? `No couplets match "${searchTerm}"` : 'Get started by adding your first couplet'}
-                  </p>
-                  <Button asChild>
-                    <Link href="/admin/poetry/couplets/create">
-                      <PlusCircle className="w-4 h-4 mr-2" />
-                      Add Couplet
-                    </Link>
-                  </Button>
                 </div>
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b border-[#E5E5E5] bg-[#F9F9F9]">
-                        <th className="text-left px-4 py-3 text-sm font-medium text-[#1F1F1F]">Couplet</th>
-                        <th className="text-left px-4 py-3 text-sm font-medium text-[#1F1F1F]">Poetry</th>
-                        <th className="text-left px-4 py-3 text-sm font-medium text-[#1F1F1F]">Poet</th>
-                        <th className="text-left px-4 py-3 text-sm font-medium text-[#1F1F1F]">Category</th>
-                        <th className="text-left px-4 py-3 text-sm font-medium text-[#1F1F1F]">Language</th>
-                        <th className="text-left px-4 py-3 text-sm font-medium text-[#1F1F1F]">Created</th>
-                        <th className="text-left px-4 py-3 text-sm font-medium text-[#1F1F1F]">Actions</th>
+                  <table className="w-full text-sm min-w-[900px]">
+                    <thead className="bg-[#F9F9F9] text-[#1F1F1F]">
+                      <tr className="border-b border-[#E5E5E5]">
+                        <th className="text-left font-medium px-3 py-2 cursor-pointer select-none text-[#1F1F1F]">ID</th>
+                        <th className="text-left font-medium px-3 py-2 cursor-pointer select-none text-[#1F1F1F]">Couplet</th>
+                        <th className="text-left font-medium px-3 py-2 cursor-pointer select-none text-[#1F1F1F]">Poetry</th>
+                        <th className="text-left font-medium px-3 py-2 cursor-pointer select-none text-[#1F1F1F]">Poet</th>
+                        <th className="text-left font-medium px-3 py-2 cursor-pointer select-none text-[#1F1F1F]">Category</th>
+                        <th className="text-left font-medium px-3 py-2 cursor-pointer select-none text-[#1F1F1F]">Languages</th>
+                        <th className="text-left font-medium px-3 py-2 cursor-pointer select-none text-[#1F1F1F]">Created</th>
+                        <th className="text-right font-medium px-3 py-2">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {groupedItems.map((item) => (
-                        <tr key={item.id} className="border-b border-[#E5E5E5] hover:bg-[#F4F4F5] transition-colors">
-                          <td className="px-4 py-3">
-                            <div className="space-y-3">
-                              {/* Couplet Text - Minimal */}
-                              <div className={`text-lg font-medium text-[#1F1F1F] leading-7 max-w-md whitespace-pre-wrap ${Array.isArray((item as any)._languages) && (item as any)._languages.includes('sd') ? 'sindhi-text text-right' : ''}`} dir={(Array.isArray((item as any)._languages) && (item as any)._languages.includes('sd')) ? 'rtl' : 'ltr'}>
-                                {item.couplet_text}
-                              </div>
-                              
-                              {/* Copyable URL Structure - Minimal, Coding Font */}
-                              <div 
-                                className="relative font-mono text-xs text-[#1F1F1F] bg-[#F4F4F5] px-2 py-1.5 rounded border border-[#E5E5E5] select-all cursor-pointer hover:bg-[#EDEDED] transition-colors group"
-                                onClick={() => {
-                                  const poetSlug = item.poets?.poet_slug || 'unknown-poet';
-                                  const url = `/${poetSlug}/${item.categories?.slug || 'no-category'}/${item.poetry_main?.poetry_slug || 'no-poetry'}/couplet/${item.couplet_slug}`;
-                                  navigator.clipboard.writeText(url);
-                                }}
-                                title="Click to copy URL"
-                              >
-                                <span className="text-[#6B6B6B]">
-                                  {item.poets?.poet_slug || 'unknown-poet'}
-                                </span>
-                                <span className="text-[#9A9A9A] mx-1">/</span>
-                                <span className="text-[#1F1F1F]">
-                                  {item.categories?.slug || 'no-category'}
-                                </span>
-                                <span className="text-[#9A9A9A] mx-1">/</span>
-                                <span className="text-[#1F1F1F]">
-                                  {item.poetry_main?.poetry_slug || 'no-poetry'}
-                                </span>
-                                <span className="text-[#9A9A9A] mx-1">/</span>
-                                <span className="text-[#1F1F1F]">
-                                  couplet/{item.couplet_slug}
-                                </span>
-                                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-[#1F1F1F]/80 rounded">
-                                  <span className="text-xs text-white font-medium">Click to Copy</span>
-                                </div>
-                              </div>
-                              
-                              {/* Copy Button */}
-                              <div className="flex items-center gap-2">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => {
-                                    const poetSlug = item.poets?.poet_slug || 'unknown-poet';
-                                    const url = `/${poetSlug}/${item.categories?.slug || 'no-category'}/${item.poetry_main?.poetry_slug || 'no-poetry'}/couplet/${item.couplet_slug}`;
-                                    navigator.clipboard.writeText(url);
-                                  }}
-                                  className="h-7 px-2 text-xs text-[#6B6B6B] hover:text-[#1F1F1F] hover:bg-[#F4F4F5]"
-                                >
-                                  Copy URL
-                                </Button>
-                                <span className="text-xs text-[#9A9A9A]">Click to copy the couplet URL</span>
-                              </div>
-                              
-                              {/* Tags as small badges */}
-                              {item.couplet_tags && (
-                                <div className="flex flex-wrap gap-1">
-                                  {item.couplet_tags.split(',').map((tag, index) => (
-                                    <span 
-                                      key={index}
-                                      className="inline-block px-2 py-1 text-xs bg-slate-700/50 text-slate-300 rounded-md border border-slate-600/30"
-                                    >
-                                      {tag.trim()}
-                                    </span>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                          </td>
-                          
-                          <td className="px-4 py-3">
-                            <div className="text-sm">
-                              <div className="font-medium text-[#1F1F1F]">
-                                {item.poetry_main?.poetry_slug || 'No Poetry'}
-                              </div>
-                              {item.poetry_main?.poetry_tags && (
-                                <div className="text-slate-400 text-xs">
-                                  {item.poetry_main.poetry_tags}
-                                </div>
-                              )}
-                            </div>
-                          </td>
-                          
-                          <td className="px-4 py-3">
-                            <div className="text-sm">
-                              <div className="font-medium text-[#1F1F1F] sindhi-text" dir="rtl">
-                                {item.poets?.sindhi_name || 'Unknown'}
-                              </div>
-                              {item.poets?.english_name && (
-                                <div className="text-slate-600 text-xs">
-                                  {item.poets.english_name}
-                                </div>
-                              )}
-                            </div>
-                          </td>
-                          
-                          <td className="px-4 py-3">
-                            <div className="text-sm">
-                              <div className="font-medium text-white">
-                                {item.categories?.slug || 'No Category'}
-                              </div>
-                            </div>
-                          </td>
-                          
-                          <td className="px-4 py-3">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              {((item as any)._languages || [item.lang]).map((lg: string) => (
-                                <Badge key={lg} className={`text-xs ${getLanguageBadge(lg)}`}>
-                                  {lg.toUpperCase()}
-                                </Badge>
-                              ))}
-                            </div>
-                          </td>
-                          
-                          <td className="px-4 py-3">
-                            <div className="text-sm text-slate-400">
-                              {new Date(item.created_at).toLocaleDateString('en-US', {
-                                year: 'numeric',
-                                month: 'short',
-                                day: 'numeric'
-                              })}
-                            </div>
-                          </td>
-                          
-                          <td className="px-4 py-3">
-                            <div className="flex items-center gap-2">
-                              {item.poetry_main && (
-                                <>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => handleToggleVisibility(item.poetry_main!.id)}
-                                    className="h-8 w-8 p-0 text-[#6B6B6B] hover:text-[#1F1F1F] hover:bg-[#F4F4F5]"
-                                    title={item.poetry_main.visibility ? 'Hide poetry' : 'Show poetry'}
-                                  >
-                                    {item.poetry_main.visibility ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-                                  </Button>
-                                  
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => handleToggleFeatured(item.poetry_main!.id)}
-                                    className="h-8 w-8 p-0 text-[#6B6B6B] hover:text-[#1F1F1F] hover:bg-[#F4F4F5]"
-                                    title={item.poetry_main.is_featured ? 'Remove from featured' : 'Add to featured'}
-                                  >
-                                    {item.poetry_main.is_featured ? <Star className="w-4 h-4 text-yellow-500" /> : <StarOff className="w-4 h-4" />}
-                                  </Button>
-                                </>
-                              )}
-                              
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                asChild
-                                className="h-8 w-8 p-0 text-[#6B6B6B] hover:text-[#1F1F1F] hover:bg-[#F4F4F5]"
-                              >
-                                <Link href={`/admin/poetry/couplets/${item.id}/edit`}>
-                                  <Edit className="w-4 h-4" />
-                                </Link>
-                              </Button>
-                              
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-50"
-                                title="Delete couplet"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          </td>
+                      {groupedItems.length === 0 ? (
+                        <tr className="border-t border-[#E5E5E5]">
+                          <td colSpan={8} className="px-4 py-10 text-center text-[#6B6B6B]">No couplets found</td>
                         </tr>
-                      ))}
+                      ) : (
+                        groupedItems.map((item) => (
+                          <tr key={item.id} className="border-b border-[#E5E5E5] hover:bg-[#F4F4F5] transition-colors duration-200">
+                            <td className="px-3 py-2">
+                              <div className="text-xs text-[#6B6B6B]">
+                                {item.id}
+                                {(item as any)._coupletIds?.length > 1 && (
+                                  <div className="text-[10px] text-gray-400">
+                                    +{(item as any)._coupletIds.length - 1} more
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                            <td className="px-3 py-2">
+                              <div className="space-y-2">
+                                {/* Sindhi Couplet Text */}
+                                <div className={`text-[#1F1F1F] leading-6 max-w-md whitespace-pre-wrap sindhi-text text-right font-sindhi`} dir="rtl" lang="sd">
+                                  {item.couplet_text}
+                                </div>
+                                
+                                {/* English Couplet Text (if available) */}
+                                {item.english_couplet && (
+                                  <div className="text-[#6B6B6B] leading-5 max-w-md whitespace-pre-wrap text-sm" dir="ltr" lang="en">
+                                    {item.english_couplet.couplet_text}
+                                  </div>
+                                )}
+                                
+                                {getTagPills(item)}
+                              </div>
+                            </td>
+                            <td className="px-3 py-2">
+                              <div className="text-xs text-[#6B6B6B]">
+                                {item.couplet_slug || '—'}
+                              </div>
+                            </td>
+                            <td className="px-3 py-2">
+                              <div className="text-xs text-[#6B6B6B]">
+                                {item.poets?.english_laqab || item.poets?.sindhi_laqab || '—'}
+                              </div>
+                            </td>
+                            <td className="px-3 py-2">
+                              <div className="flex items-center">
+                                {item.categories?.slug ? (
+                                  <div className="text-xs text-[#6B6B6B]">
+                                    {item.categories.slug}
+                                  </div>
+                                ) : (
+                                  <Badge variant="secondary" className="text-xs bg-gray-100 text-gray-600 border-gray-200">
+                                    Independent Couplet
+                                  </Badge>
+                                )}
+                              </div>
+                            </td>
+                            <td className="px-3 py-2">
+                              <div className="flex flex-wrap gap-1">
+                                {/* Show both languages if English couplet is available, otherwise show only the main language */}
+                                {item.english_couplet ? (
+                                  <>
+                                    <div className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[#1F1F1F] text-white">
+                                      SD
+                                    </div>
+                                    <div className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-white text-[#1F1F1F] border border-[#E5E5E5]">
+                                      EN
+                                    </div>
+                                  </>
+                                ) : (
+                                  <div className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[#1F1F1F] text-white">
+                                    {item.lang.toUpperCase()}
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                            <td className="px-3 py-2">
+                              <div className="text-xs text-[#6B6B6B]">
+                                {new Date(item.created_at).toLocaleDateString('en-US', {
+                                  year: 'numeric',
+                                  month: 'short',
+                                  day: 'numeric'
+                                })}
+                              </div>
+                            </td>
+                            <td className="px-3 py-2 text-right">
+                              <div className="inline-flex items-center gap-1">
+                                <Button variant="ghost" size="sm" className="h-9 w-9 p-0 hover:bg-[#F4F4F5] text-[#6B6B6B] hover:text-[#1F1F1F] transition-colors" asChild>
+                                  <Link href={`/admin/poetry/couplets/${item.couplet_slug}/edit`}>
+                                    <Edit className="w-4 h-4" />
+                                  </Link>
+                                </Button>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className="h-9 w-9 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 transition-colors" 
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      )}
                     </tbody>
                   </table>
                 </div>
@@ -639,48 +584,37 @@ export default function AdminCoupletsListPage() {
           </Card>
         </div>
 
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-center gap-2">
-            <Button
-              variant="outline"
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-              className="border-[#E5E5E5] bg-white text-[#1F1F1F] hover:bg-[#F4F4F5] hover:border-[#E5E5E5]"
-            >
-              Previous
-            </Button>
-            
-            <div className="flex items-center gap-1">
-              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                const page = Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i;
-                return (
-                  <Button
-                    key={page}
-                    variant={page === currentPage ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => handlePageChange(page)}
-                    className={page === currentPage 
-                      ? "bg-[#1F1F1F] text-white" 
-                      : "border-[#E5E5E5] bg-white text-[#1F1F1F] hover:bg-[#F4F4F5] hover:border-[#E5E5E5]"
-                    }
-                  >
-                    {page}
-                  </Button>
-                );
-              })}
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between mt-8 pt-6 border-t border-[#E5E5E5]">
+              <div className="text-sm text-[#6B6B6B] font-medium">
+                Showing {((currentPage - 1) * COUPLETS_PER_PAGE) + 1} to {Math.min(currentPage * COUPLETS_PER_PAGE, total)} of {total} results
+              </div>
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-9 px-4 rounded-lg border-[#E5E5E5] text-[#6B6B6B] hover:bg-[#F4F4F5] transition-colors"
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                >
+                  Previous
+                </Button>
+                <span className="text-sm text-[#6B6B6B] font-medium">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-9 px-4 rounded-lg border-[#E5E5E5] text-[#6B6B6B] hover:bg-[#F4F4F5] transition-colors"
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                </Button>
+              </div>
             </div>
-            
-            <Button
-              variant="outline"
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
-              className="border-[#E5E5E5] bg-white text-[#1F1F1F] hover:bg-[#F4F5F5] hover:border-[#E5E5E5]"
-            >
-              Next
-            </Button>
-          </div>
-        )}
+          )}
       </div>
     </AdminLayout>
   );

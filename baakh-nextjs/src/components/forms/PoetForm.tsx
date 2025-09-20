@@ -29,7 +29,7 @@ const poetSchema = z.object({
   death_place: z.string().optional(),
   tags: z.array(z.string()), // Poet-specific tags only
   sindhi_name: z.string().min(1, "Sindhi name is required").max(100, "Name must be less than 100 characters"),
-  sindhi_laqab: z.string().max(50, "Laqab must be less than 50 characters").optional(),
+  sindhi_laqab: z.string().min(1, "Laqab is required").max(50, "Laqab must be less than 50 characters"),
   sindhi_takhalus: z.string().max(50, "Takhalus must be less than 50 characters").optional(),
   sindhi_tagline: z.string().max(200, "Tagline must be less than 200 characters").optional(),
   sindhi_details: z.string().min(1, "Sindhi details are required").min(10, "Details must be at least 10 characters").max(2000, "Details must be less than 2000 characters"),
@@ -73,6 +73,8 @@ export default function PoetForm({ mode, initialData }: PoetFormProps) {
   const [slugSuggestions, setSlugSuggestions] = useState<string[]>([]);
   const [showSlugSuggestions, setShowSlugSuggestions] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  const [validationStatus, setValidationStatus] = useState<'valid' | 'invalid'>('invalid');
+  const [submitAttempted, setSubmitAttempted] = useState(false);
   const [availableTags, setAvailableTags] = useState<Array<{id: number, slug: string, label: string, tag_type: string, sindhi: {title: string, details: string}, english: {title: string, details: string}}>>([]);
   const [tagsLoading, setTagsLoading] = useState(false);
   const [avatarColor, setAvatarColor] = useState<AvatarColor | null>(null);
@@ -120,6 +122,15 @@ export default function PoetForm({ mode, initialData }: PoetFormProps) {
       setSlugSuggestions(suggestions);
     }
   }, [watchedValues.english_name]);
+
+  // Live validation indicator (debounced)
+  useEffect(() => {
+    const t = setTimeout(() => {
+      const result = poetSchema.safeParse(watchedValues);
+      setValidationStatus(result.success ? 'valid' : 'invalid');
+    }, 300);
+    return () => clearTimeout(t);
+  }, [watchedValues]);
 
   // Set preview URL when editing with existing image
   useEffect(() => {
@@ -382,6 +393,7 @@ export default function PoetForm({ mode, initialData }: PoetFormProps) {
     }
   };
 
+
   const handleTagToggle = (tag: string) => {
     // Toggle poet tag selection
     const currentTags = form.getValues("tags") || [];
@@ -392,6 +404,7 @@ export default function PoetForm({ mode, initialData }: PoetFormProps) {
   };
 
   const onSubmit = async (data: PoetFormData) => {
+    setSubmitAttempted(true);
     console.log('Form submission started with data:', data);
     console.log('Date fields:', {
       birth_date: data.birth_date,
@@ -604,9 +617,9 @@ export default function PoetForm({ mode, initialData }: PoetFormProps) {
         )}
       </AnimatePresence>
 
-      {/* Validation Errors */}
+      {/* Validation Errors (Submit-triggered) */}
       <AnimatePresence>
-        {validationErrors.length > 0 && (
+        {submitAttempted && validationErrors.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -619,7 +632,7 @@ export default function PoetForm({ mode, initialData }: PoetFormProps) {
                 <h3 className="font-medium text-destructive mb-1">
                   Validation Errors
                 </h3>
-                <ul className="text-sm text-destructive/80 space-y-1 mb-3">
+                <ul className="text-sm text-destructive/80 space-y-1 mb-3 list-disc list-inside">
                   {validationErrors.map((error, index) => (
                     <li key={index}>• {error}</li>
                   ))}
@@ -673,8 +686,30 @@ export default function PoetForm({ mode, initialData }: PoetFormProps) {
         )}
       </AnimatePresence>
 
+      {/* Live Validation Identifier */}
+      <AnimatePresence>
+        <motion.div
+          key={validationStatus}
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs mb-4 ${
+            validationStatus === 'valid'
+              ? 'bg-green-500/10 text-green-700 border border-green-200'
+              : 'bg-amber-500/10 text-amber-700 border border-amber-200'
+          }`}
+        >
+          <span
+            className={`inline-block w-2 h-2 rounded-full ${
+              validationStatus === 'valid' ? 'bg-green-600' : 'bg-amber-600'
+            }`}
+          />
+          {validationStatus === 'valid' ? 'All required fields look complete' : 'Some required fields are missing'}
+        </motion.div>
+      </AnimatePresence>
+
       {/* Language Progress Overview */}
-      <Card className="bg-white border-[#E5E5E5] rounded-lg shadow-sm">
+      <Card className="bg-white border-[#E5E5E5] rounded-lg shadow-sm mt-6 mb-8">
         <CardHeader className="py-6">
           <CardTitle className="text-xl font-bold text-[#1F1F1F] flex items-center gap-2">
             <Languages className="w-5 h-5 text-primary" />
@@ -728,7 +763,7 @@ export default function PoetForm({ mode, initialData }: PoetFormProps) {
       </Card>
 
       {/* Basic Information */}
-      <Card className="bg-white border-[#E5E5E5] rounded-lg shadow-sm">
+      <Card className="bg-white border-[#E5E5E5] rounded-lg shadow-sm mt-6">
         <CardHeader className="py-6">
           <CardTitle className="text-xl font-bold text-[#1F1F1F]">Basic Information</CardTitle>
           <CardDescription className="text-base text-[#6B6B6B]">
@@ -847,7 +882,7 @@ export default function PoetForm({ mode, initialData }: PoetFormProps) {
               )}
             </div>
             <div className="w-full">
-              <Label htmlFor="death_date" className="text-sm font-medium text-[#1F1F1F]">Death Date (Optional - Leave empty for living poets)</Label>
+              <Label htmlFor="death_date" className="text-sm font-medium text-[#1F1F1F]">Death Date</Label>
               <div className="mt-2 w-full">
                 <DatePicker
                   date={form.watch("death_date") || undefined}
@@ -863,9 +898,7 @@ export default function PoetForm({ mode, initialData }: PoetFormProps) {
               {form.formState.errors.death_date && (
                 <p className="text-destructive text-sm mt-1">{form.formState.errors.death_date.message}</p>
               )}
-              <p className="text-xs text-muted-foreground mt-1">
-                Only fill this if the poet has passed away. Leave empty for living poets.
-              </p>
+             
             </div>
           </div>
 
@@ -972,12 +1005,11 @@ export default function PoetForm({ mode, initialData }: PoetFormProps) {
       </Card>
 
       {/* Language-specific Information */}
-      <div className="space-y-6">
+      <div className="space-y-6 mt-8">
         {/* Sindhi Information */}
-        <Card className="bg-white border-[#E5E5E5] rounded-lg shadow-sm">
+        <Card className="bg-white border-[#E5E5E5] rounded-lg shadow-sm font-sindhi" lang="sd">
           <CardHeader className="py-6 text-right" dir="rtl">
             <CardTitle className="text-xl font-bold text-[#1F1F1F] flex items-center gap-2 justify-end">
-              <span className="text-lg font-normal text-[#6B6B6B]">(Sindhi)</span>
               <span className="text-2xl">سنڌي</span>
             </CardTitle>
             <CardDescription className="text-right text-base text-[#6B6B6B]">
@@ -987,12 +1019,13 @@ export default function PoetForm({ mode, initialData }: PoetFormProps) {
           <CardContent className="p-6 space-y-6" dir="rtl">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="text-right">
-                <Label htmlFor="sindhi_name" className="text-sm font-medium text-[#1F1F1F] text-right block">نالو (Name) *</Label>
+                <Label htmlFor="sindhi_name" className="text-sm font-medium text-[#1F1F1F] text-right block !sindhi-label !font-sindhi !font-sindhi">نالو *</Label>
                 <Input
                   id="sindhi_name"
                   {...form.register("sindhi_name")}
                   placeholder="شاه عبداللطيف"
-                  className="mt-2 sindhi-text text-right border-[#E5E5E5] focus:border-[#1F1F1F] focus:ring-[#1F1F1F] bg-white hover:bg-[#F4F4F5] transition-colors"
+                  aria-invalid={!!form.formState.errors.sindhi_name}
+                  className="mt-2 sindhi-text sindhi-rtl text-right border-[#E5E5E5] focus:border-[#D4D4D8] bg-white hover:bg-[#F4F4F5] transition-colors font-sindhi"
                   dir="rtl"
                   style={{ direction: 'rtl', textAlign: 'right' }}
                 />
@@ -1001,49 +1034,56 @@ export default function PoetForm({ mode, initialData }: PoetFormProps) {
                 )}
               </div>
               <div className="text-right">
-                <Label htmlFor="sindhi_laqab" className="text-sm font-medium text-[#1F1F1F] text-right block">لقب (Laqab)</Label>
+                <Label htmlFor="sindhi_laqab" className="text-sm font-medium text-[#1F1F1F] text-right block sindhi-label font-sindhi !font-sindhi">لقب *</Label>
                 <Input
                   id="sindhi_laqab"
                   {...form.register("sindhi_laqab")}
                   placeholder="ڀٽائي"
-                  className="mt-2 sindhi-text text-right border-[#E5E5E5] focus:border-[#1F1F1F] focus:ring-[#1F1F1F] bg-white hover:bg-[#F4F4F5] transition-colors"
+                  aria-invalid={!!form.formState.errors.sindhi_laqab}
+                  className="mt-2 sindhi-text sindhi-rtl text-right border-[#E5E5E5] focus:border-[#D4D4D8] bg-white hover:bg-[#F4F4F5] transition-colors font-sindhi"
                   dir="rtl"
                   style={{ direction: 'rtl', textAlign: 'right' }}
                 />
+                {form.formState.errors.sindhi_laqab && (
+                  <p className="text-destructive text-sm mt-1 text-right">{form.formState.errors.sindhi_laqab.message}</p>
+                )}
               </div>
             </div>
 
             <div className="text-right">
-              <Label htmlFor="sindhi_takhalus" className="text-sm font-medium text-[#1F1F1F] text-right block">تخلص (Takhalus)</Label>
+              <Label htmlFor="sindhi_takhalus" className="text-sm font-medium text-[#1F1F1F] text-right block sindhi-label font-sindhi !font-sindhi">تخلص</Label>
               <Input
                 id="sindhi_takhalus"
                 {...form.register("sindhi_takhalus")}
                 placeholder="لطيف"
-                className="mt-2 sindhi-text text-right border-[#E5E5E5] focus:border-[#1F1F1F] focus:ring-[#1F1F1F] bg-white hover:bg-[#F4F4F5] transition-colors"
+                aria-invalid={!!form.formState.errors.sindhi_takhalus}
+                className="mt-2 sindhi-text sindhi-rtl text-right border-[#E5E5E5] focus:border-[#D4D4D8] bg-white hover:bg-[#F4F4F5] transition-colors font-sindhi"
                 dir="rtl"
                 style={{ direction: 'rtl', textAlign: 'right' }}
               />
             </div>
 
             <div className="text-right">
-              <Label htmlFor="sindhi_tagline" className="text-sm font-medium text-[#1F1F1F] text-right block">ٽيگ لائين (Tagline)</Label>
+              <Label htmlFor="sindhi_tagline" className="text-sm font-medium text-[#1F1F1F] text-right block sindhi-label font-sindhi !font-sindhi">ٽيگ لائين</Label>
               <Input
                 id="sindhi_tagline"
                 {...form.register("sindhi_tagline")}
                 placeholder="سنڌ جو عظيم شاعر"
-                className="mt-2 sindhi-text text-right border-[#E5E5E5] focus:border-[#1F1F1F] focus:ring-[#1F1F1F] bg-white hover:bg-[#F4F4F5] transition-colors"
+                aria-invalid={!!form.formState.errors.sindhi_tagline}
+                className="mt-2 sindhi-text sindhi-rtl text-right border-[#E5E5E5] focus:border-[#D4D4D8] bg-white hover:bg-[#F4F4F5] transition-colors font-sindhi"
                 dir="rtl"
                 style={{ direction: 'rtl', textAlign: 'right' }}
               />
             </div>
 
             <div className="text-right">
-              <Label htmlFor="sindhi_details" className="text-sm font-medium text-[#1F1F1F] text-right block">سوانح حيات (Biography) *</Label>
+              <Label htmlFor="sindhi_details" className="text-sm font-medium text-[#1F1F1F] text-right block sindhi-label font-sindhi !font-sindhi">سوانح حيات *</Label>
               <Textarea
                 id="sindhi_details"
                 {...form.register("sindhi_details")}
                 placeholder="شاه عبداللطيف ڀٽائي سنڌ جي عظيم صوفي شاعر ۽ عارف هو..."
-                className="mt-2 min-h-[120px] sindhi-text text-right border-[#E5E5E5] focus:border-[#1F1F1F] focus:ring-[#1F1F1F] bg-white hover:bg-[#F4F4F5] transition-colors"
+                aria-invalid={!!form.formState.errors.sindhi_details}
+                className="mt-2 min-h-[120px] sindhi-text sindhi-textarea sindhi-rtl text-right border-[#E5E5E5] focus:border-[#D4D4D8] bg-white hover:bg-[#F4F4F5] transition-colors font-sindhi"
                 dir="rtl"
                 style={{ direction: 'rtl', textAlign: 'right' }}
               />

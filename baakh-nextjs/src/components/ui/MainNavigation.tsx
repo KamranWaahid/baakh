@@ -171,29 +171,29 @@ export default function MainNavigation() {
                         damping: 30,
                         duration: 0.3
                       }}
-                      className={`absolute ${isRTL ? 'left-4' : 'right-4'} mt-3 w-64 bg-gradient-to-br from-background/95 to-background/90 backdrop-blur-2xl border border-border/15 rounded-2xl shadow-xl shadow-black/8 ring-1 ring-black/5 z-50 overflow-hidden`}
+                      className={`absolute ${isRTL ? 'left-4' : 'right-4'} mt-3 w-64 bg-white/95 backdrop-blur-xl border border-gray-100/50 rounded-xl shadow-lg shadow-gray-900/5 z-50 overflow-hidden`}
                     >
                       {/* User Info Section */}
                       <motion.div 
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.1, duration: 0.2 }}
-                        className="px-6 py-6 border-b border-border/12"
+                        className="px-6 py-6 border-b border-gray-100/30"
                       >
                         <div className="flex items-center gap-3">
                           <motion.div 
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
-                            className="h-11 w-11 rounded-full bg-gradient-to-br from-muted to-muted/60 flex items-center justify-center ring-1 ring-border/12"
+                            className="h-11 w-11 rounded-full bg-gray-50/50 flex items-center justify-center ring-1 ring-gray-100/30"
                           >
-                            <User className="w-5 h-5 text-muted-foreground" />
+                            <User className="w-5 h-5 text-gray-400" />
                           </motion.div>
                           <div className="flex-1 min-w-0">
                             <motion.p 
                               initial={{ opacity: 0, x: -10 }}
                               animate={{ opacity: 1, x: 0 }}
                               transition={{ delay: 0.15, duration: 0.2 }}
-                              className="text-sm font-medium text-foreground leading-tight"
+                              className="text-sm font-medium text-gray-900 leading-tight"
                             >
                               {getDisplayNameWithFont()}
                             </motion.p>
@@ -201,7 +201,7 @@ export default function MainNavigation() {
                               initial={{ opacity: 0, x: -10 }}
                               animate={{ opacity: 1, x: 0 }}
                               transition={{ delay: 0.2, duration: 0.2 }}
-                              className="text-xs text-muted-foreground mt-0.5"
+                              className="text-xs text-gray-500 mt-0.5"
                             >
                               {isRTL ? 'خوش آمديد' : 'Welcome back'}
                             </motion.p>
@@ -217,17 +217,17 @@ export default function MainNavigation() {
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 0.25, duration: 0.2 }}
                           >
-                            <Link href={isRTL ? "/sd/profile" : "/profile"}>
+                            <Link href={isRTL ? "/sd/dashboard" : "/en/dashboard"}>
                               <Button
                                 variant="ghost"
-                                className="w-full justify-start h-12 px-5 text-sm text-foreground hover:text-foreground hover:bg-accent/30 rounded-xl transition-all duration-200 group"
+                                className="w-full justify-start h-12 px-5 text-sm text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-xl transition-all duration-200 group"
                                 onClick={() => setIsAvatarMenuOpen(false)}
                               >
                                 <motion.div
                                   whileHover={{ scale: 1.1, rotate: 5 }}
-                                  className="w-8 h-8 rounded-lg bg-muted/40 flex items-center justify-center mr-3 group-hover:bg-muted/60 transition-colors duration-200"
+                                  className="w-8 h-8 flex items-center justify-center mr-4"
                                 >
-                                  <User className="w-4 h-4 text-muted-foreground" />
+                                  <User className="w-4 h-4 text-gray-500 group-hover:text-gray-700 transition-colors duration-200" />
                                 </motion.div>
                                 <span className={isRTL ? 'auto-sindhi-font' : ''}>
                                   {isRTL ? 'پروفائل' : 'Profile'}
@@ -244,14 +244,14 @@ export default function MainNavigation() {
                             <Link href={isRTL ? "/sd/likes" : "/en/likes"}>
                               <Button
                                 variant="ghost"
-                                className="w-full justify-start h-12 px-5 text-sm text-foreground hover:text-foreground hover:bg-accent/30 rounded-xl transition-all duration-200 group"
+                                className="w-full justify-start h-12 px-5 text-sm text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-xl transition-all duration-200 group"
                                 onClick={() => setIsAvatarMenuOpen(false)}
                               >
                                 <motion.div
                                   whileHover={{ scale: 1.1, rotate: -5 }}
-                                  className="w-8 h-8 rounded-lg bg-muted/40 flex items-center justify-center mr-3 group-hover:bg-muted/60 transition-colors duration-200"
+                                  className="w-8 h-8 flex items-center justify-center mr-4"
                                 >
-                                  <Heart className="w-4 h-4 text-muted-foreground" />
+                                  <Heart className="w-4 h-4 text-gray-500 group-hover:text-gray-700 transition-colors duration-200" />
                                 </motion.div>
                                 <span className={isRTL ? 'auto-sindhi-font' : ''}>
                                   {isRTL ? 'پسنديده' : 'Likes'}
@@ -268,14 +268,14 @@ export default function MainNavigation() {
                             <Link href={isRTL ? "/sd/bookmarks" : "/en/bookmarks"}>
                               <Button
                                 variant="ghost"
-                                className="w-full justify-start h-12 px-5 text-sm text-foreground hover:text-foreground hover:bg-accent/30 rounded-xl transition-all duration-200 group"
+                                className="w-full justify-start h-12 px-5 text-sm text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-xl transition-all duration-200 group"
                                 onClick={() => setIsAvatarMenuOpen(false)}
                               >
                                 <motion.div
                                   whileHover={{ scale: 1.1, rotate: 3 }}
-                                  className="w-8 h-8 rounded-lg bg-muted/40 flex items-center justify-center mr-3 group-hover:bg-muted/60 transition-colors duration-200"
+                                  className="w-8 h-8 flex items-center justify-center mr-4"
                                 >
-                                  <Bookmark className="w-4 h-4 text-muted-foreground" />
+                                  <Bookmark className="w-4 h-4 text-gray-500 group-hover:text-gray-700 transition-colors duration-200" />
                                 </motion.div>
                                 <span className={isRTL ? 'auto-sindhi-font' : ''}>
                                   {isRTL ? 'نشانيون' : 'Bookmarks'}
@@ -290,7 +290,7 @@ export default function MainNavigation() {
                           initial={{ opacity: 0, scaleX: 0 }}
                           animate={{ opacity: 1, scaleX: 1 }}
                           transition={{ delay: 0.4, duration: 0.3, ease: "easeOut" }}
-                          className="border-t border-border/12 my-3 mx-3"
+                          className="border-t border-gray-100/40 my-3 mx-3"
                         />
 
                         {/* Logout Section */}
@@ -302,14 +302,14 @@ export default function MainNavigation() {
                         >
                           <Button
                             variant="ghost"
-                                                            className="w-full justify-start h-12 px-5 text-sm text-destructive hover:text-destructive hover:bg-destructive/8 rounded-xl transition-all duration-200 group"
+                            className="w-full justify-start h-12 px-5 text-sm text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-xl transition-all duration-200 group"
                             onClick={handleLogout}
                           >
                             <motion.div
                               whileHover={{ scale: 1.1, rotate: -3 }}
-                              className="w-8 h-8 rounded-lg bg-destructive/8 flex items-center justify-center mr-3 group-hover:bg-destructive/15 transition-colors duration-200"
+                              className="w-8 h-8 flex items-center justify-center mr-4"
                             >
-                              <LogOut className="w-4 h-4 text-destructive" />
+                              <LogOut className="w-4 h-4 text-gray-500 group-hover:text-gray-700 transition-colors duration-200" />
                             </motion.div>
                             <span className={isRTL ? 'auto-sindhi-font' : ''}>
                               {isRTL ? 'خارج ٿيو' : 'Logout'}
@@ -472,19 +472,6 @@ export default function MainNavigation() {
                         </div>
                       </div>
                       
-                      <Link href={isRTL ? "/sd/profile" : "/en/profile"}>
-                        <Button
-                          variant="ghost"
-                          className="w-full justify-start h-10 px-4 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg dark:text-neutral-300 dark:hover:text-neutral-100 dark:hover:bg-neutral-800 transition-colors duration-200"
-                          onClick={() => setIsMobileMenuOpen(false)}
-                        >
-                          <User className="w-4 h-4 mr-3" />
-                          <span className={displayLanguage === 'sd' ? 'auto-sindhi-font' : ''}>
-                            {isRTL ? 'پروفائل' : 'Profile'}
-                          </span>
-                        </Button>
-                      </Link>
-
                       <Link href={isRTL ? "/sd/likes" : "/en/likes"}>
                         <Button
                           variant="ghost"

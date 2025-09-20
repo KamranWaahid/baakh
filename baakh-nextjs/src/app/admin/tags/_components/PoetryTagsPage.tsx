@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import AdminLayout from "@/components/layouts/AdminLayout";
+import AdminPageHeader from "@/components/ui/AdminPageHeader";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -164,22 +165,32 @@ export default function PoetryTagsPage() {
   return (
     <AdminLayout>
       <div className="min-h-screen bg-[#F9F9F9]">
-        <div className="bg-white border-b border-[#E5E5E5] px-6 py-6">
-          <div className="max-w-7xl mx-auto">
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <Badge variant="secondary" className="rounded-full px-4 py-2 text-sm font-medium bg-[#F4F4F5] text-[#1F1F1F] border border-[#E5E5E5]"><TagIcon className="w-4 h-4 mr-2" />Poetry Tags</Badge>
-              </div>
-              <div className="space-y-2">
-                <h1 className="text-3xl font-bold text-[#1F1F1F]">Tags & Topics</h1>
-                <p className="text-lg text-[#6B6B6B] max-w-2xl">Manage bilingual tags for poetry, topics, forms, and themes.</p>
-              </div>
-              <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                <Button onClick={() => setShowCreateModal(true)} className="bg-[#1F1F1F] hover:bg-[#404040] text-white h-10 px-6 rounded-lg"><Plus className="w-4 h-4 mr-2" /> New Tag</Button>
-              </div>
+        <AdminPageHeader
+          title="Tags & Topics"
+          subtitle="Poetry Tags"
+          subtitleIcon={<TagIcon className="w-4 h-4" />}
+          description="Manage bilingual tags for poetry, topics, forms, and themes. Organize content with structured classification system."
+          action={
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+              <Button 
+                onClick={() => setShowCreateModal(true)} 
+                variant="outline" 
+                className="h-10 px-6 rounded-lg border-[#E5E5E5] text-[#1F1F1F] hover:bg-[#F4F4F5] hover:border-[#D4D4D8] transition-colors"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Poetry Tag
+              </Button>
+              <Button 
+                onClick={() => setShowCreateModal(true)} 
+                variant="outline" 
+                className="h-10 px-6 rounded-lg border-[#E5E5E5] text-[#1F1F1F] hover:bg-[#F4F4F5] hover:border-[#D4D4D8] transition-colors"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Poet Tag
+              </Button>
             </div>
-          </div>
-        </div>
+          }
+        />
 
         <div className="max-w-7xl mx-auto px-6 py-8">
           <Card className="bg-white border-[#E5E5E5] rounded-lg shadow-sm mb-8">

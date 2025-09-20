@@ -18,7 +18,6 @@ export const NumberFont: React.FC<NumberFontProps> = ({
   className = '', 
   weight = 'medium', 
   size = 'base',
-  variant = 'mono',
   ...props 
 }) => {
   // Modern font system - Clean & Minimal
@@ -27,7 +26,11 @@ export const NumberFont: React.FC<NumberFontProps> = ({
   const weightClass = `font-${weight}`;
 
   return (
-    <span className={`${fontClass} ${sizeClass} ${weightClass} ${className}`} {...props}>
+    <span 
+      className={`${fontClass} ${sizeClass} ${weightClass} ${className}`} 
+      data-number="true"
+      {...props}
+    >
       {children}
     </span>
   );
@@ -36,7 +39,7 @@ export const NumberFont: React.FC<NumberFontProps> = ({
 /**
  * MixedContentWithNumbers Component
  * Handles mixed content (Sindhi/English/Numbers) with proper font application
- * Numbers always use monospace font regardless of locale
+ * Numbers always use Inter font regardless of locale
  */
 export const MixedContentWithNumbers: React.FC<{
   text: string;

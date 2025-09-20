@@ -1,12 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import AdminLayout from '@/components/layouts/AdminLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Search, Edit, Trash2, Globe } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Globe, ArrowLeft, Flag } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -140,33 +141,63 @@ export default function CountriesAdminPage() {
   }
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Countries</h1>
-        <Link href="/admin/locations/countries/create">
-          <Button>
-            <Plus className="w-4 h-4 mr-2" />
-            Add Country
-          </Button>
-        </Link>
-      </div>
+    <AdminLayout>
+      <div className="min-h-screen bg-[#F9F9F9]">
+        {/* Header Section */}
+        <div className="bg-white border-b border-[#E5E5E5] px-6 py-6">
+          <div className="max-w-7xl mx-auto">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <Button variant="ghost" size="sm" asChild className="text-[#6B6B6B] hover:bg-[#F1F1F1]">
+                  <Link href="/admin/locations">
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Back to Locations
+                  </Link>
+                </Button>
+              </div>
+              
+              <Button asChild className="bg-[#1F1F1F] hover:bg-[#2B2B2B] text-white border-0">
+                <Link href="/admin/locations/countries/create">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Country
+                </Link>
+              </Button>
+            </div>
+            
+            <div className="flex items-center gap-4 mt-4">
+              <div className="p-3 rounded-lg bg-blue-500/10">
+                <Flag className="w-8 h-8 text-blue-500" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold text-[#1F1F1F]">Countries</h1>
+                <p className="text-[#6B6B6B] text-lg">
+                  Manage countries and their details
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Content */}
+        <div className="max-w-7xl mx-auto px-6 py-8">
 
       {/* Search and Filters */}
-      <Card className="mb-6">
+      <Card className="mb-6 bg-white border border-gray-200">
         <CardContent className="pt-6">
           <form onSubmit={handleSearch} className="flex gap-4 items-end">
             <div className="flex-1">
-              <label className="text-sm font-medium mb-2 block">Search</label>
+              <label className="text-sm font-medium mb-2 block text-gray-700">Search</label>
               <Input
                 placeholder="Search countries, abbreviations, or descriptions..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                className="border border-gray-200 focus:border-gray-900 focus:ring-gray-900"
               />
             </div>
             <div>
-              <label className="text-sm font-medium mb-2 block">Language</label>
+              <label className="text-sm font-medium mb-2 block text-gray-700">Language</label>
               <Select value={selectedLang} onValueChange={setSelectedLang}>
-                <SelectTrigger className="w-32">
+                <SelectTrigger className="w-32 border border-gray-200">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -176,12 +207,12 @@ export default function CountriesAdminPage() {
                 </SelectContent>
               </Select>
             </div>
-            <Button type="submit">
+            <Button type="submit" className="bg-gray-900 text-white">
               <Search className="w-4 h-4 mr-2" />
               Search
             </Button>
             {(searchQuery || selectedLang !== 'all') && (
-              <Button type="button" variant="outline" onClick={clearFilters}>
+              <Button type="button" variant="outline" onClick={clearFilters} className="border border-gray-200 text-gray-700">
                 Clear Filters
               </Button>
             )}
@@ -228,12 +259,12 @@ export default function CountriesAdminPage() {
       ) : (
         <div className="grid gap-4">
           {countries.map((country) => (
-            <Card key={country.id}>
+            <Card key={country.id} className="bg-white border border-gray-200">
               <CardContent className="pt-6">
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-xl font-semibold">{country.countryname}</h3>
+                      <h3 className="text-xl font-semibold text-gray-900">{country.countryname}</h3>
                       {getLanguageDisplay(country)}
                     </div>
                     
@@ -270,16 +301,19 @@ export default function CountriesAdminPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => router.push(`/admin/locations/countries/edit/${country.id}`)}
+                      asChild
+                      className="border border-gray-200 text-gray-700"
                     >
-                      <Edit className="w-4 h-4 mr-1" />
-                      Edit
+                      <Link href={`/admin/locations/countries/${country.id}/edit`}>
+                        <Edit className="w-4 h-4 mr-1" />
+                        Edit
+                      </Link>
                     </Button>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => handleDelete(country.id)}
-                      className="text-red-600 hover:text-red-700"
+                      className="border border-gray-200 text-red-600"
                     >
                       <Trash2 className="w-4 h-4 mr-1" />
                       Delete
@@ -316,6 +350,8 @@ export default function CountriesAdminPage() {
           </Button>
         </div>
       )}
-    </div>
+        </div>
+      </div>
+    </AdminLayout>
   );
 }

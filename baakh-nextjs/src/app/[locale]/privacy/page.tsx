@@ -1,620 +1,845 @@
-"use client";
-import { getSmartFontClass } from "@/lib/font-detection-utils";
+"use client"
 
-import { motion } from "framer-motion";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { useEffect, useState } from 'react'
+import { useRouter, useParams } from 'next/navigation'
+import { useE2EEAuth } from '@/hooks/useE2EEAuth-new'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { motion, AnimatePresence } from 'framer-motion'
 import { 
+  Shield, 
+  Lock, 
+  Eye, 
+  EyeOff, 
+  Database, 
+  Key, 
+  Users, 
+  Heart, 
+  Bookmark, 
   ArrowLeft,
-  Shield,
-  Eye,
-  Lock,
-  Users,
-  Globe,
-  FileText,
-  Calendar,
-  Mail,
-  ArrowRight,
-  CheckCircle
-} from "lucide-react";
-import { usePathname } from "next/navigation";
+  ChevronLeft,
+  ChevronRight,
+  CheckCircle,
+  Info
+} from 'lucide-react'
 
 export default function PrivacyPage() {
-  const pathname = usePathname();
-  const isSindhi = pathname?.startsWith('/sd');
-  const isRTL = isSindhi;
-  const locale = isSindhi ? 'sd' : 'en';
+  const [isLoading, setIsLoading] = useState(true)
+  const [showEncryptedData, setShowEncryptedData] = useState(false)
+  const [hideEnglishName, setHideEnglishName] = useState(false)
+  const [hideSindhiName, setHideSindhiName] = useState(false)
+  const [hideUsername, setHideUsername] = useState(false)
+  const [encryptedData, setEncryptedData] = useState<any>(null)
+  const [dataSource, setDataSource] = useState<'server' | 'cache' | null>(null)
+  const { user, isAuthenticated, logout, isLoading: authLoading } = useE2EEAuth()
+  const router = useRouter()
+  const params = useParams()
+  const locale = params?.locale as string
+  const isSindhi = locale === 'sd'
 
-  // Multi-lingual content
-  const content = {
-    // Hero section
-    privacy: {
-      en: "Privacy",
-      sd: "رازداري"
-    },
-    privacyPolicy: {
-      en: "Privacy Policy",
-      sd: "رازداري جي پاليسي"
-    },
-    heroDescription: {
-      en: "How we protect and handle your information.",
-      sd: "اسان ڪيئن توهان جي معلومات کي محفوظ ۽ سنڀاليندا آهيون"
-    },
-    
-    // Last updated
-    lastUpdated: {
-      en: "Last updated:",
-      sd: "آخري اپڊيٽ:"
-    },
-    
-    // Privacy overview
-    yourPrivacyMatters: {
-      en: "Your Privacy Matters",
-      sd: "توهان جي رازداري اهم آهي"
-    },
-    privacyOverview: {
-      en: "We are committed to protecting your privacy and ensuring the security of your personal information. This policy explains how we collect, use, and safeguard your data.",
-      sd: "اسان توهان جي رازداري کي محفوظ ڪرڻ ۽ توهان جي ذاتي معلومات جي حفاظت کي يقيني بڻائڻ لاءِ پابند آهيون. هي پاليسي بيان ڪري ٿي ته اسان ڪيئن توهان جي ڊيٽا کي جمع ڪري، استعمال ڪري، ۽ محفوظ ڪريون ٿا"
-    },
-    
-    // Privacy principles
-    secure: {
-      title: {
-        en: "Secure",
-        sd: "محفوظ"
-      },
-      desc: {
-        en: "Your data is protected with industry‑standard measures.",
-        sd: "توهان جو ڊيٽا صنعتي معيار جي اقدامات سان محفوظ آهي"
-      }
-    },
-    transparent: {
-      title: {
-        en: "Transparent",
-        sd: "شفاف"
-      },
-      desc: {
-        en: "Clear information about how we use your data.",
-        sd: "توهان جي ڊيٽا کي ڪيئن استعمال ڪريون ٿا ان باري ۾ واضح معلومات"
-      }
-    },
-    private: {
-      title: {
-        en: "Private",
-        sd: "نجي"
-      },
-      desc: {
-        en: "Your personal info is never shared without consent.",
-        sd: "توهان جي نجي معلومات کي ڪڏهن به اجازت کان سواءِ شيئر نٿو ڪيو وڃي"
-      }
-    },
-    
-    // Information collection
-    informationWeCollect: {
-      en: "Information We Collect",
-      sd: "جنهن معلومات کي اسان جمع ڪريون ٿا"
-    },
-    personalInformation: {
-      en: "Personal Information",
-      sd: "ذاتي معلومات"
-    },
-    technicalInformation: {
-      en: "Technical Information",
-      sd: "تڪنيڪي معلومات"
-    },
-    
-    // Personal info items
-    personalInfoItems: {
-      nameEmail: {
-        en: "Name and email address (when you contact us)",
-        sd: "نالو ۽ اي ميل پتو (جڏهن توهان اسان سان رابطو ڪريو)"
-      },
-      usageData: {
-        en: "Usage data and preferences",
-        sd: "استعمال ڪيل ڊيٽا ۽ ترجيحون"
-      },
-      searchQueries: {
-        en: "Search queries and interactions",
-        sd: "ڳولھا جون درخواستون ۽ تعامل"
-      },
-      feedback: {
-        en: "Feedback and comments",
-        sd: "رايا ۽ تبصرا"
-      }
-    },
-    
-    // Technical info items
-    technicalInfoItems: {
-      ipAddress: {
-        en: "IP address and device information",
-        sd: "آءِ پي پتو ۽ ڊوائس جي معلومات"
-      },
-      browserType: {
-        en: "Browser type and version",
-        sd: "برائوزر جو قسم ۽ ورجن"
-      },
-      operatingSystem: {
-        en: "Operating system",
-        sd: "آپريٽنگ سسٽم"
-      },
-      pagesVisited: {
-        en: "Pages visited and time spent",
-        sd: "ملندڙ صفحا ۽ گذاريل وقت"
-      }
-    },
-    
-    // How we use information
-    howWeUseInfo: {
-      en: "How We Use Your Information",
-      sd: "اسان توهان جي معلومات کي ڪيئن استعمال ڪريون ٿا"
-    },
-    serviceImprovement: {
-      title: {
-        en: "Service Improvement",
-        sd: "خدمت جي بھتر بناوٽ"
-      },
-      desc: {
-        en: "We use your information to improve our website, add new features, and provide better user experience.",
-        sd: "اسان توهان جي معلومات کي اسان جي ويب سائيٽ کي بہتر بنائڻ، نيون خاصيتون شامل ڪرڻ، ۽ بهتر صارف تجربو فراهم ڪرڻ لاءِ استعمال ڪريون ٿا"
-      }
-    },
-    communication: {
-      title: {
-        en: "Communication",
-        sd: "مواصلات"
-      },
-      desc: {
-        en: "To respond to your inquiries, provide support, and send important updates about our service.",
-        sd: "توهان جي پڇ ڳڻن جو جواب ڏيڻ، مدد فراهم ڪرڻ، ۽ اسان جي خدمت باري ۾ اهم اپڊيٽس موڪلڻ لاءِ"
-      }
-    },
-    security: {
-      title: {
-        en: "Security",
-        sd: "حفاظت"
-      },
-      desc: {
-        en: "To protect against fraud, abuse, and security threats, and to ensure the integrity of our service.",
-        sd: "دغابازي، غلط استعمال، ۽ حفاظتي خطرن کان بچائڻ، ۽ اسان جي خدمت جي سالميت کي يقيني بڻائڻ لاءِ"
-      }
-    },
-    
-    // Data protection
-    dataProtection: {
-      en: "Data Protection",
-      sd: "ڊيٽا جي حفاظت"
-    },
-    securityMeasures: {
-      en: "Security Measures",
-      sd: "حفاظتي اقدامات"
-    },
-    yourRights: {
-      en: "Your Rights",
-      sd: "توهان جا حق"
-    },
-    
-    // Security measures items
-    securityItems: {
-      sslEncryption: {
-        en: "SSL encryption for all data transmission",
-        sd: "سڀني ڊيٽا جي ٽرانسميشن لاءِ ايس ايس ايل انڪرپشن"
-      },
-      securityAudits: {
-        en: "Regular security audits and updates",
-        sd: "مستقل حفاظتي آڊٽس ۽ اپڊيٽس"
-      },
-      limitedAccess: {
-        en: "Limited access to personal data",
-        sd: "ذاتي ڊيٽا تي محدود رسائي"
-      },
-      dataBackups: {
-        en: "Regular data backups and recovery",
-        sd: "مستقل ڊيٽا بئڪ اپس ۽ بحالي"
-      }
-    },
-    
-    // User rights items
-    userRightsItems: {
-      accessData: {
-        en: "Access your personal data",
-        sd: "توهان جي ذاتي ڊيٽا تي رسائي"
-      },
-      requestCorrection: {
-        en: "Request data correction",
-        sd: "ڊيٽا جي درستي جي درخواست"
-      },
-      requestDeletion: {
-        en: "Request data deletion",
-        sd: "ڊيٽا جي ڊيليشن جي درخواست"
-      },
-      optOut: {
-        en: "Opt-out of communications",
-        sd: "مواصلات کان دستبردار ٿيڻ"
-      }
-    },
-    
-    // Contact section
-    questionsAboutPrivacy: {
-      en: "Questions About Privacy?",
-      sd: "رازداري باري ۾ سوال؟"
-    },
-    privacyQuestionsDesc: {
-      en: "If you have any questions about this privacy policy or how we handle your data, please don't hesitate to contact us.",
-      sd: "جيڪڏهن توهان کي هي رازداري جي پاليسي يا اسان ڪيئن توهان جي ڊيٽا کي سنڀاليندا آهيون ان باري ۾ ڪو سوال آهي ته مهرباني ڪري اسان سان رابطو ڪرڻ ۾ هچڪي نه ڪريو"
-    },
-    contactUs: {
-      en: "Contact Us",
-      sd: "اسان سان رابطو ڪريو"
+  useEffect(() => {
+    // Wait for auth to finish loading before checking authentication status
+    if (authLoading) {
+      return
     }
-  };
+    
+    if (!isAuthenticated) {
+      router.push(isSindhi ? '/sd/login' : '/en/login')
+      return
+    }
+    setIsLoading(false)
+  }, [isAuthenticated, authLoading, router, isSindhi])
 
-  // Apply Sindhi font only if text contains Arabic/Sindhi characters
-  const sd = (text?: string | null) => (text && /[\u0600-\u06FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(text) ? 'auto-sindhi-font' : '');
+  useEffect(() => {
+    if (user && isAuthenticated) {
+      // Get encrypted data to show user - check both possible localStorage keys
+      let userData = localStorage.getItem('e2ee_user_data')
+      if (!userData) {
+        userData = localStorage.getItem('e2ee_user')
+      }
+      
+      if (userData) {
+        try {
+          const parsed = JSON.parse(userData)
+          console.log('Loaded user data from localStorage:', parsed)
+          setEncryptedData(parsed)
+        } catch (e) {
+          console.error('Error parsing user data:', e)
+        }
+      } else {
+        console.warn('No user data found in localStorage')
+      }
+    }
+  }, [user, isAuthenticated])
+
+  const handleShowEncryptedData = async () => {
+    if (!showEncryptedData) {
+      // Fetch fresh data from server when showing
+      try {
+        // Get JWT token from localStorage
+        const token = localStorage.getItem('e2ee_jwt_token')
+        
+        if (!token) {
+          console.warn('No JWT token found, using cached data from localStorage')
+          // Fallback to localStorage data - check both possible keys
+          let userData = localStorage.getItem('e2ee_user_data')
+          if (!userData) {
+            userData = localStorage.getItem('e2ee_user')
+          }
+          
+          if (userData) {
+            try {
+              const parsed = JSON.parse(userData)
+              console.log('Using cached data from localStorage:', parsed)
+              setEncryptedData(parsed)
+              setDataSource('cache')
+            } catch (e) {
+              console.error('Error parsing user data:', e)
+            }
+          } else {
+            console.warn('No cached user data found in localStorage')
+          }
+          setShowEncryptedData(true)
+          return
+        }
+
+        const response = await fetch('/api/auth/user-data', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+        })
+        
+        if (response.ok) {
+          const result = await response.json()
+          if (result.success) {
+            setEncryptedData(result.data)
+            setDataSource('server')
+          } else {
+            console.warn('API error:', result.message, '- falling back to cached data')
+            // Fallback to localStorage data - check both possible keys
+            let userData = localStorage.getItem('e2ee_user_data')
+            if (!userData) {
+              userData = localStorage.getItem('e2ee_user')
+            }
+            
+            if (userData) {
+              try {
+                const parsed = JSON.parse(userData)
+                setEncryptedData(parsed)
+                setDataSource('cache')
+              } catch (e) {
+                console.error('Error parsing user data:', e)
+              }
+            } else {
+              console.warn('No cached user data available for fallback')
+            }
+          }
+        } else {
+          console.warn('HTTP error:', response.status, '- falling back to cached data')
+          // Fallback to localStorage data - check both possible keys
+          let userData = localStorage.getItem('e2ee_user_data')
+          if (!userData) {
+            userData = localStorage.getItem('e2ee_user')
+          }
+          
+          if (userData) {
+            try {
+              const parsed = JSON.parse(userData)
+              setEncryptedData(parsed)
+              setDataSource('cache')
+            } catch (e) {
+              console.error('Error parsing user data:', e)
+            }
+          } else {
+            console.warn('No cached user data available for fallback')
+          }
+        }
+      } catch (error) {
+        console.warn('Error fetching encrypted data:', error, '- falling back to cached data')
+        // Fallback to localStorage data - check both possible keys
+        let userData = localStorage.getItem('e2ee_user_data')
+        if (!userData) {
+          userData = localStorage.getItem('e2ee_user')
+        }
+        
+        if (userData) {
+          try {
+            const parsed = JSON.parse(userData)
+            setEncryptedData(parsed)
+            setDataSource('cache')
+          } catch (e) {
+            console.error('Error parsing user data:', e)
+          }
+        } else {
+          console.warn('No cached user data available for fallback')
+        }
+      }
+    }
+    setShowEncryptedData(!showEncryptedData)
+  }
+
+  const handleLogout = () => {
+    logout()
+    router.push(isSindhi ? '/sd' : '/')
+  }
+
+  const handleBackToDashboard = () => {
+    router.push(isSindhi ? '/sd/dashboard' : '/en/dashboard')
+  }
+
+  if (isLoading || authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <motion.div 
+          className="text-center"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
+        >
+          <motion.div 
+            className="w-8 h-8 border-2 border-gray-200 border-t-gray-500 rounded-lg mx-auto mb-4"
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+          />
+          <p className={`text-gray-500 font-medium ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+            {isSindhi ? 'لوڊ ٿي رهيو آهي...' : 'Loading...'}
+          </p>
+        </motion.div>
+      </div>
+    )
+  }
+
+  const ChevronIcon = isSindhi ? ChevronLeft : ChevronRight
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50" dir={isRTL ? 'rtl' : 'ltr'}>
-      {/* Main Content */}
-      <main className="py-12">
-        <div className="max-w-6xl mx-auto px-6 sm:px-8 lg:px-12">
-          
-          {/* Hero Section */}
-          <section className="text-center py-16">
+    <div className={`min-h-screen bg-white ${isSindhi ? 'dir-rtl' : ''}`}>
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        {/* Header */}
             <motion.div
+          className="mb-8"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="space-y-6"
+          transition={{ duration: 0.4, ease: "easeOut" }}
+        >
+          <div className="flex items-center gap-4 mb-6">
+            <Button
+              onClick={handleBackToDashboard}
+              variant="outline"
+              className="border border-gray-200 hover:border-gray-300 bg-white text-gray-600 hover:text-gray-700 hover:bg-gray-50 px-3 py-2 rounded-xl transition-colors duration-200"
             >
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-full shadow-sm">
-                <Shield className="h-4 w-4 text-gray-600" />
-                <Badge variant="secondary" className="rounded-full px-3 py-1 text-xs font-medium">
-                  {content.privacy[locale]}
-                </Badge>
+              <ArrowLeft className={`w-4 h-4 ${isSindhi ? 'ml-2' : 'mr-2'}`} />
+              <span className={isSindhi ? 'auto-sindhi-font' : ''}>
+                {isSindhi ? 'واپس' : 'Back'}
+              </span>
+            </Button>
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center border border-gray-200">
+                <Shield className="w-6 h-6 text-gray-500" />
               </div>
-              
-              <h1 className={`text-5xl md:text-6xl font-bold tracking-tight text-gray-900 ${isRTL ? 'auto-sindhi-font' : 'font-extrabold'}`}>
-                {content.privacyPolicy[locale]}
+              <div>
+                <h1 className={`text-3xl font-bold text-gray-900 ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+                  {isSindhi ? 'رازداري ۽ حفاظت' : 'Privacy & Security'}
               </h1>
-              
-              <p className={`text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed ${getSmartFontClass(content.heroDescription[locale])} ${!isRTL ? 'font-light' : ''}`}>
-                {content.heroDescription[locale]}
-              </p>
-            </motion.div>
-          </section>
-
-          {/* Last Updated */}
-          <section className="py-8">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
-              viewport={{ once: true }}
-              className="text-center"
-            >
-              <p className={`text-gray-600 ${getSmartFontClass(content.lastUpdated[locale])} ${!isRTL ? 'font-medium' : ''}`}>
-                {content.lastUpdated[locale]} {new Date().toLocaleDateString()}
-              </p>
-            </motion.div>
-          </section>
-
-          {/* Privacy Overview */}
-          <section className="py-16">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
-              viewport={{ once: true }}
-              className="space-y-12"
-            >
-              <div className="text-center">
-                <h2 className={`text-3xl font-bold text-gray-900 mb-6 ${getSmartFontClass(content.yourPrivacyMatters[locale])} ${!isRTL ? 'font-bold tracking-tight' : ''}`}>
-                  {content.yourPrivacyMatters[locale]}
-                </h2>
-                <p className={`text-lg text-gray-600 max-w-4xl mx-auto leading-relaxed ${getSmartFontClass(content.privacyOverview[locale])} ${!isRTL ? 'font-light' : ''}`}>
-                  {content.privacyOverview[locale]}
+                <p className={`text-gray-500 font-medium ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+                  {isSindhi ? 'توهان جي ڊيٽا جي حفاظت ۽ ڪيئن اسان توهان جي رازداري کي محفوظ رکون ٿا' : 'How we protect your data and maintain your privacy'}
                 </p>
               </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                {[
-                  { 
-                    title: content.secure.title[locale], 
-                    Icon: Shield, 
-                    desc: content.secure.desc[locale] 
-                  }, 
-                  { 
-                    title: content.transparent.title[locale], 
-                    Icon: Eye, 
-                    desc: content.transparent.desc[locale] 
-                  }, 
-                  { 
-                    title: content.private.title[locale], 
-                    Icon: Lock, 
-                    desc: content.private.desc[locale] 
-                  }
-                ].map(({ title, Icon, desc }) => (
-                  <Card key={title} className="rounded-2xl border border-gray-200 bg-white/80 backdrop-blur-sm">
-                    <CardHeader className="text-center pb-6">
-                      <div className="mx-auto w-16 h-16 rounded-2xl bg-gray-100 border border-gray-200 flex items-center justify-center mb-6">
-                        <Icon className="w-8 h-8 text-gray-700" />
                       </div>
-                      <CardTitle className={`text-xl font-semibold ${getSmartFontClass(title)} ${!isRTL ? 'font-bold tracking-tight' : ''}`}>
-                        {title}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="text-center">
-                      <p className={`text-gray-600 leading-relaxed ${getSmartFontClass(desc)} ${!isRTL ? 'font-medium' : ''}`}>
-                        {desc}
-                      </p>
-                    </CardContent>
-                  </Card>
-                ))}
               </div>
             </motion.div>
-          </section>
 
-          {/* Information We Collect */}
-          <section className="py-16">
+        {/* E2EE Explanation */}
             <motion.div
+          className="mb-8"
               initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
-              viewport={{ once: true }}
-              className="space-y-12"
-            >
-              <h2 className={`text-3xl font-bold text-gray-900 text-center mb-12 ${getSmartFontClass(content.informationWeCollect[locale])} ${!isRTL ? 'font-bold tracking-tight' : ''}`}>
-                {content.informationWeCollect[locale]}
-              </h2>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <Card className="rounded-2xl border border-gray-200 bg-white/80 backdrop-blur-sm">
-                  <CardHeader className="pb-6">
-                    <CardTitle className={`flex items-center gap-3 text-xl font-semibold ${getSmartFontClass(content.personalInformation[locale])} ${!isRTL ? 'font-bold tracking-tight' : ''}`}>
-                      <Users className="w-6 h-6 text-gray-700" />
-                      <span>{content.personalInformation[locale]}</span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <ul className="space-y-3 text-gray-600">
-                      <li className="flex items-start gap-3">
-                        <CheckCircle className="w-5 h-5 text-gray-500 mt-0.5 flex-shrink-0" />
-                        <span className={`${getSmartFontClass(content.personalInfoItems.nameEmail[locale])} ${!isRTL ? 'font-medium' : ''}`}>
-                          {content.personalInfoItems.nameEmail[locale]}
-                        </span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <CheckCircle className="w-5 h-5 text-gray-500 mt-0.5 flex-shrink-0" />
-                        <span className={`${getSmartFontClass(content.personalInfoItems.usageData[locale])} ${!isRTL ? 'font-medium' : ''}`}>
-                          {content.personalInfoItems.usageData[locale]}
-                        </span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <CheckCircle className="w-5 h-5 text-gray-500 mt-0.5 flex-shrink-0" />
-                        <span className={`${getSmartFontClass(content.personalInfoItems.searchQueries[locale])} ${!isRTL ? 'font-medium' : ''}`}>
-                          {content.personalInfoItems.searchQueries[locale]}
-                        </span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <CheckCircle className="w-5 h-5 text-gray-500 mt-0.5 flex-shrink-0" />
-                        <span className={`${getSmartFontClass(content.personalInfoItems.feedback[locale])} ${!isRTL ? 'font-medium' : ''}`}>
-                          {content.personalInfoItems.feedback[locale]}
-                        </span>
-                      </li>
-                    </ul>
-                  </CardContent>
-                </Card>
-
-                <Card className="rounded-2xl border border-gray-200 bg-white/80 backdrop-blur-sm">
-                  <CardHeader className="pb-6">
-                    <CardTitle className={`flex items-center gap-3 text-xl font-semibold ${getSmartFontClass(content.technicalInformation[locale])} ${!isRTL ? 'font-bold tracking-tight' : ''}`}>
-                      <Globe className="w-6 h-6 text-gray-700" />
-                      <span>{content.technicalInformation[locale]}</span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <ul className="space-y-3 text-gray-600">
-                      <li className="flex items-start gap-3">
-                        <CheckCircle className="w-5 h-5 text-gray-500 mt-0.5 flex-shrink-0" />
-                        <span className={`${getSmartFontClass(content.technicalInfoItems.ipAddress[locale])} ${!isRTL ? 'font-medium' : ''}`}>
-                          {content.technicalInfoItems.ipAddress[locale]}
-                        </span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <CheckCircle className="w-5 h-5 text-gray-500 mt-0.5 flex-shrink-0" />
-                        <span className={`${getSmartFontClass(content.technicalInfoItems.browserType[locale])} ${!isRTL ? 'font-medium' : ''}`}>
-                          {content.technicalInfoItems.browserType[locale]}
-                        </span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <CheckCircle className="w-5 h-5 text-gray-500 mt-0.5 flex-shrink-0" />
-                        <span className={`${getSmartFontClass(content.technicalInfoItems.operatingSystem[locale])} ${!isRTL ? 'font-medium' : ''}`}>
-                          {content.technicalInfoItems.operatingSystem[locale]}
-                        </span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <CheckCircle className="w-5 h-5 text-gray-500 mt-0.5 flex-shrink-0" />
-                        <span className={`${getSmartFontClass(content.technicalInfoItems.pagesVisited[locale])} ${!isRTL ? 'font-medium' : ''}`}>
-                          {content.technicalInfoItems.pagesVisited[locale]}
-                        </span>
-                      </li>
-                    </ul>
-                  </CardContent>
-                </Card>
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.1, ease: "easeOut" }}
+        >
+          <Card className="border border-gray-200 bg-white">
+            <CardContent className="p-6">
+              <div className="flex items-start gap-4 mb-6">
+                <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center border border-gray-200">
+                  <Lock className="w-6 h-6 text-gray-500" />
               </div>
-            </motion.div>
-          </section>
-
-          {/* How We Use Information */}
-          <section className="py-16">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
-              viewport={{ once: true }}
-              className="space-y-12"
-            >
-              <h2 className={`text-3xl font-bold text-gray-900 text-center mb-12 ${getSmartFontClass(content.howWeUseInfo[locale])} ${!isRTL ? 'font-bold tracking-tight' : ''}`}>
-                {content.howWeUseInfo[locale]}
+                <div className="flex-1">
+                  <h2 className={`text-xl font-bold text-gray-900 mb-3 ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+                    {isSindhi ? 'اينڊ-ٽو-اينڊ انڪريپشن (E2EE)' : 'End-to-End Encryption (E2EE)'}
               </h2>
-
-              <div className="space-y-8">
-                <Card className="rounded-2xl border border-gray-200 bg-white/80 backdrop-blur-sm">
-                  <CardHeader className="pb-6">
-                    <CardTitle className={`flex items-center gap-3 text-xl font-semibold ${getSmartFontClass(content.serviceImprovement.title[locale])} ${!isRTL ? 'font-bold tracking-tight' : ''}`}>
-                      <FileText className="w-6 h-6 text-gray-700" />
-                      <span>{content.serviceImprovement.title[locale]}</span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className={`text-gray-600 leading-relaxed ${getSmartFontClass(content.serviceImprovement.desc[locale])} ${!isRTL ? 'font-medium' : ''}`}>
-                      {content.serviceImprovement.desc[locale]}
+                  <div className={`space-y-4 text-gray-600 ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+                    <p>
+                      {isSindhi 
+                        ? 'اسان توهان جي سڀ ڊيٽا کي اينڊ-ٽو-اينڊ انڪريپشن سان محفوظ رکون ٿا. اها مطلب آهي تہ توهان جي ڊيٽا صرف توهان جي پاسورڊ سان ڪريپٽ ٿيل آهي ۽ اسان کي به ان کي پڙهڻ جي اجازت ناهي.'
+                        : 'We protect all your data with end-to-end encryption. This means your data is encrypted with your password only, and even we cannot read it.'
+                      }
                     </p>
-                  </CardContent>
-                </Card>
-
-                <Card className="rounded-2xl border border-gray-200 bg-white/80 backdrop-blur-sm">
-                  <CardHeader className="pb-6">
-                    <CardTitle className={`flex items-center gap-3 text-xl font-semibold ${getSmartFontClass(content.communication.title[locale])} ${!isRTL ? 'font-bold tracking-tight' : ''}`}>
-                      <Mail className="w-6 h-6 text-gray-700" />
-                      <span>{content.communication.title[locale]}</span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className={`text-gray-600 leading-relaxed ${getSmartFontClass(content.communication.desc[locale])} ${!isRTL ? 'font-medium' : ''}`}>
-                      {content.communication.desc[locale]}
+                    <p>
+                      {isSindhi 
+                        ? 'توهان جي پاسورڊ کان هڪ ماسٽر ڪي ٺاهي وڃي ٿي، جيڪا توهان جي سڀ ڊيٽا کي انڪريپٽ ڪري ٿي. اها ڪي صرف توهان جي ڊوائيس تي موجود آهي ۽ ڪنهن به سرور تي محفوظ ناهي.'
+                        : 'A master key is derived from your password, which encrypts all your data. This key only exists on your device and is never stored on any server.'
+                      }
                     </p>
-                  </CardContent>
-                </Card>
-
-                <Card className="rounded-2xl border border-gray-200 bg-white/80 backdrop-blur-sm">
-                  <CardHeader className="pb-6">
-                    <CardTitle className={`flex items-center gap-3 text-xl font-semibold ${getSmartFontClass(content.security.title[locale])} ${!isRTL ? 'font-bold tracking-tight' : ''}`}>
-                      <Shield className="w-6 h-6 text-gray-700" />
-                      <span>{content.security.title[locale]}</span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className={`text-gray-600 leading-relaxed ${getSmartFontClass(content.security.desc[locale])} ${!isRTL ? 'font-medium' : ''}`}>
-                      {content.security.desc[locale]}
-                    </p>
-                  </CardContent>
-                </Card>
-              </div>
-            </motion.div>
-          </section>
-
-          {/* Data Protection */}
-          <section className="py-16">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
-              viewport={{ once: true }}
-              className="space-y-12"
-            >
-              <h2 className={`text-3xl font-bold text-gray-900 text-center mb-12 ${getSmartFontClass(content.dataProtection[locale])} ${!isRTL ? 'font-bold tracking-tight' : ''}`}>
-                {content.dataProtection[locale]}
-              </h2>
-
-              <Card className="rounded-2xl border border-gray-200 bg-white/80 backdrop-blur-sm p-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                  <div>
-                    <h3 className={`text-2xl font-semibold text-gray-900 mb-6 ${getSmartFontClass(content.securityMeasures[locale])} ${!isRTL ? 'font-bold tracking-tight' : ''}`}>
-                      {content.securityMeasures[locale]}
-                    </h3>
-                    <ul className="space-y-4 text-gray-600">
-                      <li className="flex items-start gap-4">
-                        <Lock className="w-6 h-6 text-gray-600 mt-0.5 flex-shrink-0" />
-                        <span className={`${getSmartFontClass(content.securityItems.sslEncryption[locale])} ${!isRTL ? 'font-medium' : ''}`}>
-                          {content.securityItems.sslEncryption[locale]}
-                        </span>
-                      </li>
-                      <li className="flex items-start gap-4">
-                        <Shield className="w-6 h-6 text-gray-600 mt-0.5 flex-shrink-0" />
-                        <span className={`${getSmartFontClass(content.securityItems.securityAudits[locale])} ${!isRTL ? 'font-medium' : ''}`}>
-                          {content.securityItems.securityAudits[locale]}
-                        </span>
-                      </li>
-                      <li className="flex items-start gap-4">
-                        <Users className="w-6 h-6 text-gray-600 mt-0.5 flex-shrink-0" />
-                        <span className={`${getSmartFontClass(content.securityItems.limitedAccess[locale])} ${!isRTL ? 'font-medium' : ''}`}>
-                          {content.securityItems.limitedAccess[locale]}
-                        </span>
-                      </li>
-                      <li className="flex items-start gap-4">
-                        <Calendar className="w-6 h-6 text-gray-600 mt-0.5 flex-shrink-0" />
-                        <span className={`${getSmartFontClass(content.securityItems.dataBackups[locale])} ${!isRTL ? 'font-medium' : ''}`}>
-                          {content.securityItems.dataBackups[locale]}
-                        </span>
-                      </li>
-                    </ul>
-                  </div>
-                  <div>
-                    <h3 className={`text-2xl font-semibold text-gray-900 mb-6 ${getSmartFontClass(content.yourRights[locale])} ${!isRTL ? 'font-bold tracking-tight' : ''}`}>
-                      {content.yourRights[locale]}
-                    </h3>
-                    <ul className="space-y-4 text-gray-600">
-                      <li className="flex items-start gap-4">
-                        <Eye className="w-6 h-6 text-gray-600 mt-0.5 flex-shrink-0" />
-                        <span className={`${getSmartFontClass(content.userRightsItems.accessData[locale])} ${!isRTL ? 'font-medium' : ''}`}>
-                          {content.userRightsItems.accessData[locale]}
-                        </span>
-                      </li>
-                      <li className="flex items-start gap-4">
-                        <FileText className="w-6 h-6 text-gray-600 mt-0.5 flex-shrink-0" />
-                        <span className={`${getSmartFontClass(content.userRightsItems.requestCorrection[locale])} ${!isRTL ? 'font-medium' : ''}`}>
-                          {content.userRightsItems.requestCorrection[locale]}
-                        </span>
-                      </li>
-                      <li className="flex items-start gap-4">
-                        <Lock className="w-6 h-6 text-gray-600 mt-0.5 flex-shrink-0" />
-                        <span className={`${getSmartFontClass(content.userRightsItems.requestDeletion[locale])} ${!isRTL ? 'font-medium' : ''}`}>
-                          {content.userRightsItems.requestDeletion[locale]}
-                        </span>
-                      </li>
-                      <li className="flex items-start gap-4">
-                        <Mail className="w-6 h-6 text-gray-600 mt-0.5 flex-shrink-0" />
-                        <span className={`${getSmartFontClass(content.userRightsItems.optOut[locale])} ${!isRTL ? 'font-medium' : ''}`}>
-                          {content.userRightsItems.optOut[locale]}
-                        </span>
-                      </li>
-                    </ul>
                   </div>
                 </div>
-              </Card>
+              </div>
+            </CardContent>
+          </Card>
             </motion.div>
-          </section>
 
-          {/* Contact Information */}
-          <section className="py-16">
+        {/* Why We Store Data */}
             <motion.div
+          className="mb-8"
               initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
-              viewport={{ once: true }}
-              className="text-center"
-            >
-              <Card className="rounded-2xl border border-gray-200 bg-white/80 backdrop-blur-sm p-8">
-                <h2 className={`text-3xl font-bold text-gray-900 mb-6 ${getSmartFontClass(content.questionsAboutPrivacy[locale])} ${!isRTL ? 'font-bold tracking-tight' : ''}`}>
-                  {content.questionsAboutPrivacy[locale]}
-                </h2>
-                <p className={`text-lg text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed ${getSmartFontClass(content.privacyQuestionsDesc[locale])} ${!isRTL ? 'font-light' : ''}`}>
-                  {content.privacyQuestionsDesc[locale]}
-                </p>
-                <Link href="/contact">
-                  <Button className="h-12 px-8 text-base rounded-xl border-2 border-gray-200 bg-white text-gray-900 hover:bg-gray-50 hover:border-gray-300 shadow-sm hover:shadow-md transition-all duration-200">
-                    <Mail className="w-5 h-5 mr-2" />
-                    {content.contactUs[locale]}
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </Button>
-                </Link>
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.2, ease: "easeOut" }}
+        >
+          <Card className="border border-gray-200 bg-white">
+            <CardContent className="p-6">
+              <div className="flex items-start gap-4 mb-6">
+                <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center border border-gray-200">
+                  <Database className="w-6 h-6 text-gray-500" />
+                </div>
+                <div className="flex-1">
+                  <h2 className={`text-xl font-bold text-gray-900 mb-3 ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+                    {isSindhi ? 'ڇو اسان ڊيٽا محفوظ ڪريون ٿا؟' : 'Why Do We Store Data?'}
+              </h2>
+                  <div className={`space-y-4 text-gray-600 ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+                    <p>
+                      {isSindhi 
+                        ? 'باک هڪ غير منافع بخش منصوبو آهي جيڪو رضاکارن طرفان چلائي وڃي ٿو. اسان صرف هي ڊيٽا محفوظ ڪريون ٿا:'
+                        : 'Baakh is a non-profit project run by volunteers. We only store this data:'
+                      }
+                    </p>
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-3">
+                        <Heart className="w-5 h-5 text-gray-500" />
+                        <span>
+                          {isSindhi 
+                            ? 'پسنديده شاعري (توهان جي پسنديده شاعري جي فهرست)'
+                            : 'Liked Poetry (list of poems you have liked)'
+                          }
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <Bookmark className="w-5 h-5 text-gray-500" />
+                        <span>
+                          {isSindhi 
+                            ? 'نشانيون (توهان جي محفوظ ڪيل شاعري)'
+                            : 'Bookmarks (poems you have saved)'
+                          }
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <Eye className="w-5 h-5 text-gray-500" />
+                        <span>
+                          {isSindhi 
+                            ? 'ڏسڻ جي تاريخ (توهان ڪهڙي شاعري ڏسي آهي)'
+                            : 'View History (which poems you have viewed)'
+                          }
+                        </span>
+                      </div>
+                    </div>
+                    <p className="text-sm text-gray-500 mt-4">
+                      {isSindhi 
+                        ? 'اها سڀ ڊيٽا توهان جي تجربو بهتر بڻائڻ لاءِ آهي ۽ اسان کي ڪنهن به قسم جي منافع حاصل ناهي.'
+                        : 'This data is only to improve your experience and we do not profit from it in any way.'
+                      }
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Privacy Controls */}
+        <motion.div 
+          className="mb-8"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.3, ease: "easeOut" }}
+        >
+          <Card className="border border-gray-200 bg-white">
+            <CardContent className="p-6">
+              <div className="flex items-start gap-4 mb-4">
+                <div className="w-10 h-10 bg-gray-50 rounded-lg flex items-center justify-center border border-gray-200">
+                  <Shield className="w-5 h-5 text-gray-500" />
+                </div>
+                <div className="flex-1">
+                  <h2 className={`text-lg font-semibold text-gray-900 mb-4 ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+                    {isSindhi ? 'رازداري جي ترتيبون' : 'Privacy Controls'}
+                  </h2>
+                  <div className="space-y-3">
+                    {/* Hide English Name */}
+                    <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div className="w-6 h-6 bg-gray-50 rounded flex items-center justify-center border border-gray-200">
+                          <EyeOff className="w-3 h-3 text-gray-500" />
+                        </div>
+                        <div>
+                          <h3 className={`text-sm font-medium text-gray-900 ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+                            {isSindhi ? 'انگريزي نالو لڪايو' : 'Hide English Name'}
+                          </h3>
+                          <p className={`text-xs text-gray-500 ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+                            {isSindhi ? 'انگريزي نالو انڪريپٽ ڪريو' : 'Encrypt English name'}
+                          </p>
+                        </div>
+                      </div>
+                      <Button
+                        onClick={() => setHideEnglishName(!hideEnglishName)}
+                        variant="outline"
+                        className={`border ${hideEnglishName ? 'border-green-200 bg-green-50 text-green-700' : 'border-gray-200'} px-3 py-1.5 rounded-md transition-colors duration-200`}
+                      >
+                        {hideEnglishName ? (
+                          <CheckCircle className="w-3 h-3" />
+                        ) : (
+                          <EyeOff className="w-3 h-3" />
+                        )}
+                      </Button>
+                    </div>
+
+                    {/* Hide Sindhi Name */}
+                    <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div className="w-6 h-6 bg-gray-50 rounded flex items-center justify-center border border-gray-200">
+                          <EyeOff className="w-3 h-3 text-gray-500" />
+                        </div>
+                        <div>
+                          <h3 className={`text-sm font-medium text-gray-900 ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+                            {isSindhi ? 'سنڌي نالو لڪايو' : 'Hide Sindhi Name'}
+                          </h3>
+                          <p className={`text-xs text-gray-500 ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+                            {isSindhi ? 'سنڌي نالو انڪريپٽ ڪريو' : 'Encrypt Sindhi name'}
+                          </p>
+                        </div>
+                      </div>
+                      <Button
+                        onClick={() => setHideSindhiName(!hideSindhiName)}
+                        variant="outline"
+                        className={`border ${hideSindhiName ? 'border-green-200 bg-green-50 text-green-700' : 'border-gray-200'} px-3 py-1.5 rounded-md transition-colors duration-200`}
+                      >
+                        {hideSindhiName ? (
+                          <CheckCircle className="w-3 h-3" />
+                        ) : (
+                          <EyeOff className="w-3 h-3" />
+                        )}
+                      </Button>
+                    </div>
+
+                    {/* Hide Username */}
+                    <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div className="w-6 h-6 bg-gray-50 rounded flex items-center justify-center border border-gray-200">
+                          <Users className="w-3 h-3 text-gray-500" />
+                        </div>
+                        <div>
+                          <h3 className={`text-sm font-medium text-gray-900 ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+                            {isSindhi ? 'صارف نالو لڪايو' : 'Hide Username'}
+                          </h3>
+                          <p className={`text-xs text-gray-500 ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+                            {isSindhi ? 'صارف نالو انڪريپٽ ڪريو' : 'Encrypt username'}
+                          </p>
+                        </div>
+                      </div>
+                      <Button
+                        onClick={() => setHideUsername(!hideUsername)}
+                        variant="outline"
+                        className={`border ${hideUsername ? 'border-green-200 bg-green-50 text-green-700' : 'border-gray-200'} px-3 py-1.5 rounded-md transition-colors duration-200`}
+                      >
+                        {hideUsername ? (
+                          <CheckCircle className="w-3 h-3" />
+                        ) : (
+                          <EyeOff className="w-3 h-3" />
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Encrypted Data Display */}
+            <motion.div
+          className="mb-8"
+              initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.4, ease: "easeOut" }}
+        >
+          <Card className="border border-gray-200 bg-white">
+            <CardContent className="p-6">
+              <div className="flex items-start gap-4 mb-6">
+                <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center border border-gray-200">
+                  <Eye className="w-6 h-6 text-gray-500" />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className={`text-xl font-bold text-gray-900 ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+                      {isSindhi ? 'توهان جي انڪريپٽ ڊيٽا' : 'Your Encrypted Data'}
+                    </h2>
+                    <motion.div
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <Button
+                        onClick={handleShowEncryptedData}
+                        variant="outline"
+                        className="border border-gray-200 hover:border-gray-300 bg-white text-gray-600 hover:text-gray-700 px-4 py-2 rounded-lg transition-colors duration-200"
+                      >
+                        <motion.div
+                          className="flex items-center"
+                          initial={false}
+                          animate={{ 
+                            opacity: showEncryptedData ? 0.8 : 1,
+                            scale: showEncryptedData ? 0.95 : 1
+                          }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          {showEncryptedData ? (
+                            <>
+                              <EyeOff className="w-4 h-4 mr-2" />
+                              {isSindhi ? 'لڪايو' : 'Hide'}
+                            </>
+                          ) : (
+                            <>
+                              <Eye className="w-4 h-4 mr-2" />
+                              {isSindhi ? 'ڏيکاريو' : 'Show'}
+                            </>
+                          )}
+                        </motion.div>
+                      </Button>
+                    </motion.div>
+                  </div>
+                  
+                  <AnimatePresence mode="wait">
+                    {showEncryptedData ? (
+                      <motion.div
+                        key="encrypted-data"
+                        initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                        transition={{ 
+                          duration: 0.4, 
+                          ease: "easeOut",
+                          type: "spring",
+                          stiffness: 300,
+                          damping: 30
+                        }}
+                        className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm"
+                      >
+                        <motion.div 
+                          className="space-y-6"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ delay: 0.2, duration: 0.3 }}
+                        >
+                          {/* Information Banner */}
+                          <motion.div 
+                            className="p-4 bg-gray-50 border border-gray-100 rounded-xl"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.2, duration: 0.3 }}
+                          >
+                            <div className="flex items-start gap-3">
+                              <motion.div
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                transition={{ delay: 0.3, duration: 0.3, type: "spring" }}
+                                className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0"
+                              >
+                                <Info className="w-4 h-4 text-gray-600" />
+                              </motion.div>
+                              <motion.p 
+                                className={`text-sm text-gray-600 leading-relaxed ${isSindhi ? 'auto-sindhi-font' : ''}`}
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ delay: 0.4, duration: 0.3 }}
+                              >
+                                {isSindhi 
+                                  ? 'اها ڊيٽا توهان جي پاسورڊ سان انڪريپٽ ٿيل آهي. صرف توهان ان کي پڙهي سگهو ٿا.'
+                                  : 'This data is encrypted with your password. Only you can read it.'
+                                }
+                              </motion.p>
+                            </div>
+                          </motion.div>
+
+                          {/* Data Source Indicator */}
+                          {dataSource && (
+                            <motion.div 
+                              className={`p-3 rounded-xl border ${
+                                dataSource === 'server' 
+                                  ? 'bg-green-50 border-green-200' 
+                                  : 'bg-yellow-50 border-yellow-200'
+                              }`}
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: 0.3, duration: 0.3 }}
+                            >
+                              <div className="flex items-center gap-2">
+                                <motion.div
+                                  animate={{ rotate: dataSource === 'server' ? 0 : 360 }}
+                                  transition={{ duration: 0.5 }}
+                                  className={`w-4 h-4 rounded-full ${
+                                    dataSource === 'server' ? 'bg-green-500' : 'bg-yellow-500'
+                                  }`}
+                                />
+                                <p className={`text-sm font-medium ${
+                                  dataSource === 'server' ? 'text-green-700' : 'text-yellow-700'
+                                } ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+                                  {dataSource === 'server' 
+                                    ? (isSindhi ? 'تازو ڊيٽا سرور کان موصول ٿيو' : 'Fresh data from server')
+                                    : (isSindhi ? 'ڪيڪ ڊيٽا استعمال ٿي رهي آهي' : 'Using cached data')
+                                  }
+                                </p>
+                              </div>
+                            </motion.div>
+                          )}
+
+                          {/* User Information */}
+                          <motion.div
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.4, duration: 0.3 }}
+                            className="bg-gray-50 rounded-xl p-4 border border-gray-100"
+                          >
+                            <h4 className={`font-semibold text-gray-800 mb-3 text-sm ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+                              {isSindhi ? 'صارف جي معلومات' : 'User Information'}
+                            </h4>
+                            <div className="space-y-3">
+                              <div>
+                                <p className={`text-xs text-gray-500 mb-1 ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+                                  {isSindhi ? 'صارف آئي ڊي:' : 'User ID:'}
+                                </p>
+                                <motion.code 
+                                  className="text-xs text-gray-600 bg-white p-2 rounded-lg border border-gray-200 block overflow-x-auto font-mono"
+                                  initial={{ opacity: 0 }}
+                                  animate={{ opacity: 1 }}
+                                  transition={{ delay: 0.5, duration: 0.3 }}
+                                >
+                                  {encryptedData?.user_id || encryptedData?.userId || 'N/A'}
+                                </motion.code>
+                              </div>
+                              <div>
+                                <p className={`text-xs text-gray-500 mb-1 ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+                                  {isSindhi ? 'صارف نالو:' : 'Username:'}
+                                </p>
+                                <motion.code 
+                                  className="text-xs text-gray-600 bg-white p-2 rounded-lg border border-gray-200 block overflow-x-auto font-mono"
+                                  initial={{ opacity: 0 }}
+                                  animate={{ opacity: 1 }}
+                                  transition={{ delay: 0.6, duration: 0.3 }}
+                                >
+                                  {hideUsername ? '🔒 [ENCRYPTED]' : (encryptedData?.username || 'N/A')}
+                                </motion.code>
+                              </div>
+                              <div>
+                                <p className={`text-xs text-gray-500 mb-1 ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+                                  {isSindhi ? 'سنڌي نالو:' : 'Sindhi Name:'}
+                                </p>
+                                <motion.code 
+                                  className="text-xs text-gray-600 bg-white p-2 rounded-lg border border-gray-200 block overflow-x-auto font-mono"
+                                  initial={{ opacity: 0 }}
+                                  animate={{ opacity: 1 }}
+                                  transition={{ delay: 0.7, duration: 0.3 }}
+                                >
+                                  {hideSindhiName ? '🔒 [ENCRYPTED]' : (encryptedData?.sindhi_name || encryptedData?.profile?.sindhi_name || 'N/A')}
+                                </motion.code>
+                              </div>
+                              <div>
+                                <p className={`text-xs text-gray-500 mb-1 ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+                                  {isSindhi ? 'انگريزي نالو:' : 'English Name:'}
+                                </p>
+                                <motion.code 
+                                  className="text-xs text-gray-600 bg-white p-2 rounded-lg border border-gray-200 block overflow-x-auto font-mono"
+                                  initial={{ opacity: 0 }}
+                                  animate={{ opacity: 1 }}
+                                  transition={{ delay: 0.8, duration: 0.3 }}
+                                >
+                                  {hideEnglishName ? '🔒 [ENCRYPTED]' : (encryptedData?.english_name || encryptedData?.profile?.name || 'N/A')}
+                                </motion.code>
+                              </div>
+                            </div>
+                          </motion.div>
+
+                          {/* Password Data */}
+                          <motion.div
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.5, duration: 0.3 }}
+                            className="bg-gray-50 rounded-xl p-4 border border-gray-100"
+                          >
+                            <h4 className={`font-semibold text-gray-800 mb-3 text-sm ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+                              {isSindhi ? 'پاسورڊ ڊيٽا' : 'Password Data'}
+                            </h4>
+                            <div className="space-y-3">
+                              <div>
+                                <p className={`text-xs text-gray-500 mb-1 ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+                                  {isSindhi ? 'پاسورڊ سيلٽ:' : 'Password Salt:'}
+                                </p>
+                                <motion.code 
+                                  className="text-xs text-gray-600 bg-white p-2 rounded-lg border border-gray-200 block overflow-x-auto font-mono"
+                                  initial={{ opacity: 0 }}
+                                  animate={{ opacity: 1 }}
+                                  transition={{ delay: 0.5, duration: 0.3 }}
+                                >
+                                  {encryptedData?.password_salt || encryptedData?.passwordSalt || 'N/A'}
+                                </motion.code>
+                              </div>
+                              <div>
+                                <p className={`text-xs text-gray-500 mb-1 ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+                                  {isSindhi ? 'پاسورڊ ويريفائر:' : 'Password Verifier:'}
+                                </p>
+                                <motion.code 
+                                  className="text-xs text-gray-600 bg-white p-2 rounded-lg border border-gray-200 block overflow-x-auto font-mono"
+                                  initial={{ opacity: 0 }}
+                                  animate={{ opacity: 1 }}
+                                  transition={{ delay: 0.6, duration: 0.3 }}
+                                >
+                                  {encryptedData?.password_verifier || encryptedData?.passwordVerifier || 'N/A'}
+                                </motion.code>
+                              </div>
+                            </div>
+                          </motion.div>
+
+                          {/* Profile Encryption */}
+                          <motion.div
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.6, duration: 0.3 }}
+                            className="bg-gray-50 rounded-xl p-4 border border-gray-100"
+                          >
+                            <h4 className={`font-semibold text-gray-800 mb-3 text-sm ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+                              {isSindhi ? 'پروفائل انڪريپشن' : 'Profile Encryption'}
+                            </h4>
+                            <div className="space-y-3">
+                              <div>
+                                <p className={`text-xs text-gray-500 mb-1 ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+                                  {isSindhi ? 'پروفائل سائيفر:' : 'Profile Cipher:'}
+                                </p>
+                                <motion.code 
+                                  className="text-xs text-gray-600 bg-white p-2 rounded-lg border border-gray-200 block overflow-x-auto font-mono"
+                                  initial={{ opacity: 0 }}
+                                  animate={{ opacity: 1 }}
+                                  transition={{ delay: 0.6, duration: 0.3 }}
+                                >
+                                  {encryptedData?.profile_cipher || encryptedData?.profileCipher || 'N/A'}
+                                </motion.code>
+                              </div>
+                              <div>
+                                <p className={`text-xs text-gray-500 mb-1 ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+                                  {isSindhi ? 'پروفائل نانس:' : 'Profile Nonce:'}
+                                </p>
+                                <motion.code 
+                                  className="text-xs text-gray-600 bg-white p-2 rounded-lg border border-gray-200 block overflow-x-auto font-mono"
+                                  initial={{ opacity: 0 }}
+                                  animate={{ opacity: 1 }}
+                                  transition={{ delay: 0.7, duration: 0.3 }}
+                                >
+                                  {encryptedData?.profile_nonce || encryptedData?.profileNonce || 'N/A'}
+                                </motion.code>
+                              </div>
+                            </div>
+                          </motion.div>
+
+                          {/* Master Key Encryption */}
+                          <motion.div
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.7, duration: 0.3 }}
+                            className="bg-gray-50 rounded-xl p-4 border border-gray-100"
+                          >
+                            <h4 className={`font-semibold text-gray-800 mb-3 text-sm ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+                              {isSindhi ? 'ماسٽر ڪي انڪريپشن' : 'Master Key Encryption'}
+                            </h4>
+                            <div className="space-y-3">
+                              <div>
+                                <p className={`text-xs text-gray-500 mb-1 ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+                                  {isSindhi ? 'ماسٽر ڪي سائيفر:' : 'Master Key Cipher:'}
+                                </p>
+                                <motion.code 
+                                  className="text-xs text-gray-600 bg-white p-2 rounded-lg border border-gray-200 block overflow-x-auto font-mono"
+                                  initial={{ opacity: 0 }}
+                                  animate={{ opacity: 1 }}
+                                  transition={{ delay: 0.7, duration: 0.3 }}
+                                >
+                                  {encryptedData?.master_key_cipher || encryptedData?.masterKeyCipher || 'N/A'}
+                                </motion.code>
+                              </div>
+                              <div>
+                                <p className={`text-xs text-gray-500 mb-1 ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+                                  {isSindhi ? 'ماسٽر ڪي نانس:' : 'Master Key Nonce:'}
+                                </p>
+                                <motion.code 
+                                  className="text-xs text-gray-600 bg-white p-2 rounded-lg border border-gray-200 block overflow-x-auto font-mono"
+                                  initial={{ opacity: 0 }}
+                                  animate={{ opacity: 1 }}
+                                  transition={{ delay: 0.8, duration: 0.3 }}
+                                >
+                                  {encryptedData?.master_key_nonce || encryptedData?.masterKeyNonce || 'N/A'}
+                                </motion.code>
+                              </div>
+                            </div>
+                          </motion.div>
+                        </motion.div>
+                      </motion.div>
+                    ) : (
+                      <motion.div
+                        key="hidden-state"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm text-center"
+                      >
+                        <motion.div
+                          initial={{ scale: 0.8, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          transition={{ delay: 0.1, duration: 0.3 }}
+                          className="flex flex-col items-center gap-4"
+                        >
+                          <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center border border-gray-100">
+                            <EyeOff className="w-8 h-8 text-gray-400" />
+                          </div>
+                          <div>
+                            <p className={`text-gray-600 font-medium ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+                              {isSindhi ? 'ڊيٽا لڪيل آهي' : 'Data is hidden'}
+                            </p>
+                            <p className={`text-gray-400 text-sm mt-1 ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+                              {isSindhi ? 'ڪلڪ ڪريو ڏيکاريو' : 'Click Show to reveal'}
+                            </p>
+                          </div>
+                        </motion.div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </div>
+            </CardContent>
               </Card>
             </motion.div>
-          </section>
+
+        {/* Logout Button */}
+        <motion.div 
+          className="text-center"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.5, ease: "easeOut" }}
+        >
+          <Button 
+            onClick={handleLogout}
+            variant="outline"
+            className="text-gray-600 hover:text-gray-700 hover:bg-gray-50 border-gray-200 hover:border-gray-300 px-8 py-3 rounded-xl font-medium transition-colors duration-200 bg-white"
+          >
+            <Shield className={`w-4 h-4 ${isSindhi ? 'ml-2' : 'mr-2'}`} />
+            <span className={isSindhi ? 'auto-sindhi-font' : ''}>
+              {isSindhi ? 'خارج ٿيو' : 'Sign Out'}
+            </span>
+          </Button>
+        </motion.div>
         </div>
-      </main>
     </div>
-  );
+  )
 } 

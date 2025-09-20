@@ -25,6 +25,8 @@ export function useAuth() {
     loading: true,
     error: null,
   });
+  const CACHE_KEY = 'baakh_admin_profile_cache_v1';
+  const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
   useEffect(() => {
     let mounted = true;
@@ -32,7 +34,21 @@ export function useAuth() {
     const checkAuth = async () => {
       try {
         console.log('🔍 useAuth: Checking authentication...');
-        setAuthState(prev => ({ ...prev, loading: true, error: null }));
+        // Try cached profile first for instant UI, then validate in background
+        const cachedRaw = typeof window !== 'undefined' ? window.sessionStorage.getItem(CACHE_KEY) : null;
+        let usedCache = false;
+        if (cachedRaw) {
+          try {
+            const cached = JSON.parse(cachedRaw) as { profile: UserProfile; ts: number };
+            if (cached?.profile && Date.now() - cached.ts < CACHE_TTL_MS) {
+              usedCache = true;
+              setAuthState({ user: cached.profile, loading: false, error: null });
+            }
+          } catch {}
+        }
+        if (!usedCache) {
+          setAuthState(prev => ({ ...prev, loading: true, error: null }));
+        }
 
         const { data: { user }, error: authError } = await supabase.auth.getUser();
         
@@ -49,7 +65,8 @@ export function useAuth() {
 
         // Get user profile
         const response = await fetch('/api/auth/me', { 
-          credentials: 'include' // Ensure cookies are sent
+          credentials: 'include',
+          cache: 'no-store'
         });
         
         console.log('📡 useAuth: Profile API response status:', response.status);
@@ -82,6 +99,10 @@ export function useAuth() {
             loading: false,
             error: null,
           });
+          // Cache the profile for quick subsequent loads
+          try {
+            window.sessionStorage.setItem(CACHE_KEY, JSON.stringify({ profile: profileData.profile, ts: Date.now() }));
+          } catch {}
         }
       } catch (error) {
         console.error('❌ useAuth: Auth check failed:', error);
@@ -104,6 +125,7 @@ export function useAuth() {
           if (mounted) {
             setAuthState({ user: null, loading: false, error: null });
           }
+          try { window.sessionStorage.removeItem(CACHE_KEY); } catch {}
         } else if (event === 'SIGNED_IN' && session?.user) {
           checkAuth();
         }

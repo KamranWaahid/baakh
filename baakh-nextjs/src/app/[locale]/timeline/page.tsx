@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { EnhancedTimelineSkeleton } from "@/components/ui/timeline-skeleton";
 import { Logo } from "@/components/ui/logo";
 import { 
   ArrowLeft,
@@ -30,32 +31,32 @@ import {
   Languages,
   Search,
   Filter,
-  ChevronDown
+  ChevronDown,
+  AlertCircle
 } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
 interface TimelinePeriod {
   id: string;
+  period_slug: string;
+  start_year: number;
+  end_year: number | null;
+  is_ongoing: boolean;
   name: string;
-  sindhiName: string;
   description: string;
-  sindhiDescription: string;
-  years: string;
-  poets: number;
-  works: number;
-  icon: any;
-  color: string;
-  tags: string[];
-  sindhiTags: string[];
-  poetsList: string[];
-  sindhiPoetsList: string[];
-  significance: string;
-  sindhiSignificance: string;
+  characteristics: string[];
+  color_code: string;
+  icon_name: string | null;
+  is_featured: boolean;
+  sort_order: number;
 }
 
 export default function TimelinePage() {
   const [selectedPeriod, setSelectedPeriod] = useState("All");
+  const [timelinePeriods, setTimelinePeriods] = useState<TimelinePeriod[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const pathname = usePathname();
   const isSindhi = pathname?.startsWith('/sd');
@@ -85,124 +86,118 @@ export default function TimelinePage() {
     literaryEvolution: isSindhi ? 'ادبي ارتقا' : 'Literary Evolution'
   };
 
-  // Comprehensive timeline data
-  const timelinePeriods: TimelinePeriod[] = [
-    {
-      id: "17th-century",
-      name: "17th Century",
-      sindhiName: "سترھين صدي",
-      description: "The early period of classical Sindhi poetry, marked by the emergence of Sufi traditions and mystical themes. This era laid the foundation for the rich poetic heritage that would follow.",
-      sindhiDescription: "سنڌي شاعري جو ابتدائي دور، جيڪو صوفي رويتن ۽ روحاني موضوعن سان شروع ٿيو. ھيءَ دور ايندڙ امير شاعري جي بنياد رکي ٿو.",
-      years: "1600-1699",
-      poets: 12,
-      works: 85,
-      icon: History,
-      color: "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400",
-      tags: ["Sufi", "Mysticism", "Devotional", "Classical"],
-      sindhiTags: ["صوفي", "روحاني", "عبادتي", "ڪلاسيڪل"],
-      poetsList: ["Makhdoom Nooh", "Shah Inayat", "Mir Masoom", "Qazi Qadan"],
-      sindhiPoetsList: ["مخدوم نوح", "شاھ عنايت", "مير معصوم", "قاضي قادان"],
-      significance: "Foundation of classical Sindhi poetry tradition",
-      sindhiSignificance: "سنڌي شاعري جي ڪلاسيڪل رويت جي بنياد"
-    },
-    {
-      id: "18th-century",
-      name: "18th Century",
-      sindhiName: "ارڙھين صدي",
-      description: "The golden age of Sindhi poetry, featuring legendary poets like Shah Abdul Latif Bhittai. This period represents the pinnacle of classical Sindhi literature with profound spiritual and philosophical themes.",
-      sindhiDescription: "سنڌي شاعري جو سنھري دور، جيڪو شاھ عبداللطيف ڀٽائي جھڙا افسانوي شاعر رکي ٿو. ھيءَ دور سنڌي ادب جي چوٽي کي ظاھر ڪري ٿو، جيڪو گھوڙي روحاني ۽ فلسفي موضوعن سان ڀرپور آھي.",
-      years: "1700-1799",
-      poets: 25,
-      works: 320,
-      icon: Star,
-      color: "bg-yellow-100 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400",
-      tags: ["Sufi", "Classical", "Folk", "Spiritual", "Golden Age"],
-      sindhiTags: ["صوفي", "ڪلاسيڪل", "لوڪ", "روحاني", "سنھري دور"],
-      poetsList: ["Shah Abdul Latif", "Sachal Sarmast", "Sami", "Shah Inayat", "Makhdoom Bilawal"],
-      sindhiPoetsList: ["شاھ عبداللطيف", "سچل سرمست", "سامي", "شاھ عنايت", "مخدوم بيلاول"],
-      significance: "Golden age and peak of classical Sindhi poetry",
-      sindhiSignificance: "سنڌي شاعري جو سنھري دور ۽ چوٽي"
-    },
-    {
-      id: "19th-century",
-      name: "19th Century",
-      sindhiName: "اوڻويھين صدي",
-      description: "A period of cultural renaissance and the emergence of new poetic forms and themes. This era saw the expansion of Sindhi poetry beyond traditional boundaries, incorporating social commentary and modern perspectives.",
-      sindhiDescription: "ثقافتي نشاۃ ثاني جو دور ۽ نئين شاعري جي صنفن ۽ موضوعن جو ظھور. ھيءَ دور سنڌي شاعري کي روائتي حدن کان وڌيڪ وسعت ڏني، جيڪا سماجي تبصرن ۽ عصري نقطہ نظر کي شامل ڪري ٿي.",
-      years: "1800-1899",
-      poets: 18,
-      works: 245,
-      icon: Sparkles,
-      color: "bg-green-100 dark:bg-green-900/20 text-green-600 dark:text-green-400",
-      tags: ["Romantic", "Social", "Nature", "Renaissance", "Modern Forms"],
-      sindhiTags: ["رومانوي", "سماجي", "قدرت", "نشاۃ ثاني", "عصري صنفون"],
-      poetsList: ["Bedil", "Rohal Faqir", "Mirza Qaleech", "Shah Lutfullah", "Makhdoom Muhammad Hashim"],
-      sindhiPoetsList: ["بيڊل", "روحل فقير", "ميرزا قليچ", "شاھ لطف اللہ", "مخدوم محمد ھاشم"],
-      significance: "Cultural renaissance and modern poetic forms",
-      sindhiSignificance: "ثقافتي نشاۃ ثاني ۽ عصري شاعري جي صنفون"
-    },
-    {
-      id: "20th-century",
-      name: "20th Century",
-      sindhiName: "ويھين صدي",
-      description: "Modern era of Sindhi poetry with contemporary themes and experimental forms. This period witnessed the democratization of poetry, with diverse voices and perspectives emerging in the literary landscape.",
-      sindhiDescription: "سنڌي شاعري جو عصري دور، جيڪو عصري موضوعن ۽ تجرباتي صنفن سان ڀرپور آھي. ھيءَ دور شاعري جي جمھوريت کي ڏٺو، جيڪو مختلف آوازن ۽ نقطہ نظرن سان ادبي منظرنامي ۾ ظاھر ٿيو.",
-      years: "1900-1999",
-      poets: 35,
-      works: 450,
-      icon: TrendingUp,
-      color: "bg-purple-100 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400",
-      tags: ["Modern", "Experimental", "Philosophical", "Contemporary", "Diverse"],
-      sindhiTags: ["عصري", "تجرباتي", "فلسفي", "عصري", "مختلف"],
-      poetsList: ["Shaikh Ayaz", "Taj Joyo", "Hameed Sindhi", "Imdad Hussaini", "Abdul Karim Gadai"],
-      sindhiPoetsList: ["شيخ اياز", "تاج جويو", "حميد سنڌي", "امداد حسيني", "عبدالڪريم گدائي"],
-      significance: "Modernization and democratization of Sindhi poetry",
-      sindhiSignificance: "سنڌي شاعري جي عصريڪرن ۽ جمھوريت"
-    },
-    {
-      id: "21st-century",
-      name: "21st Century",
-      sindhiName: "ايڪھين صدي",
-      description: "Contemporary era marked by digital transformation and global influences. Modern Sindhi poets explore new themes, experiment with forms, and address current social and political issues while preserving traditional values.",
-      sindhiDescription: "عصري دور، جيڪو ڊجيٽل تبديلي ۽ عالمي اثرن سان نشاني آھي. عصري سنڌي شاعر نئين موضوعن کي ڳولي ٿا، صنفن سان تجربا ڪري ٿا، ۽ موجوده سماجي ۽ سياسي مسائل کي حل ڪري ٿا، جيئن ته روائتي قدرن کي محفوظ رکي ٿا.",
-      years: "2000-Present",
-      poets: 42,
-      works: 380,
-      icon: Globe,
-      color: "bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400",
-      tags: ["Contemporary", "Digital", "Global", "Experimental", "Social Issues"],
-      sindhiTags: ["عصري", "ڊجيٽل", "عالمي", "تجرباتي", "سماجي مسائل"],
-      poetsList: ["Niaz Humayuni", "Ustad Bukhari", "Ibrahim Munshi", "Sarwech Sujawali", "Abdul Hakeem Arshad"],
-      sindhiPoetsList: ["نياز ھمايوني", "استاد بخاري", "ابراهيم منشي", "سرويچ سجاولي", "عبدالحڪيم ارشد"],
-      significance: "Digital age and global contemporary themes",
-      sindhiSignificance: "ڊجيٽل دور ۽ عالمي عصري موضوع"
+  // Fetch timeline data from API
+  useEffect(() => {
+    const fetchTimelineData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        const lang = isSindhi ? 'sd' : 'en';
+        const response = await fetch(`/api/timeline/periods?lang=${lang}&limit=100`);
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch timeline data: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          setTimelinePeriods(data.periods || []);
+        } else {
+          throw new Error(data.error || 'Failed to fetch timeline data');
+        }
+      } catch (err) {
+        console.error('Error fetching timeline data:', err);
+        setError(err instanceof Error ? err.message : 'Failed to fetch timeline data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTimelineData();
+  }, [isSindhi]);
+
+  // Helper function to get icon component
+  const getIconComponent = (iconName: string | null) => {
+    const iconMap: { [key: string]: any } = {
+      'history': History,
+      'star': Star,
+      'sparkles': Sparkles,
+      'trending-up': TrendingUp,
+      'globe': Globe,
+      'book': BookOpen,
+      'users': Users,
+      'clock': Clock,
+      'heart': Heart,
+      'quote': Quote,
+      'award': Award,
+      'eye': Eye,
+      'bookmark': Bookmark,
+      'palette': Palette,
+      'calendar': Calendar,
+      'file-text': FileText,
+      'user': User,
+      'languages': Languages,
+      'search': Search,
+      'filter': Filter
+    };
+    return iconMap[iconName || 'history'] || History;
+  };
+
+  // Helper function to get color classes
+  const getColorClasses = (colorCode: string) => {
+    const colorMap: { [key: string]: string } = {
+      '#3B82F6': 'bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400',
+      '#10B981': 'bg-green-100 dark:bg-green-900/20 text-green-600 dark:text-green-400',
+      '#F59E0B': 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400',
+      '#EF4444': 'bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400',
+      '#8B5CF6': 'bg-purple-100 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400',
+      '#F97316': 'bg-orange-100 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400',
+      '#06B6D4': 'bg-cyan-100 dark:bg-cyan-900/20 text-cyan-600 dark:text-cyan-400',
+      '#84CC16': 'bg-lime-100 dark:bg-lime-900/20 text-lime-600 dark:text-lime-400'
+    };
+    return colorMap[colorCode] || 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400';
+  };
+
+  // Helper function to format years
+  const formatYears = (startYear: number, endYear: number | null, isOngoing: boolean) => {
+    if (isOngoing) {
+      return `${startYear}-Present`;
     }
-  ];
+    if (endYear) {
+      return `${startYear}-${endYear}`;
+    }
+    return `${startYear}`;
+  };
+
+  // Use API data or fallback to empty array
+  const displayPeriods = timelinePeriods.length > 0 ? timelinePeriods : [];
 
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
   const filteredPeriods = useMemo(() => {
-    let filtered = timelinePeriods;
+    let filtered = displayPeriods;
     
     // Filter by selected period
     if (selectedPeriod !== "All") {
       filtered = filtered.filter(period => 
-        period.name.includes(selectedPeriod) || 
-        period.sindhiName.includes(selectedPeriod)
+        period.name.toLowerCase().includes(selectedPeriod.toLowerCase()) ||
+        period.period_slug.toLowerCase().includes(selectedPeriod.toLowerCase())
       );
     }
     
-    // Sort by name
+    // Sort by start year or name
     filtered = [...filtered].sort((a, b) => {
-      const aName = (isSindhi ? a.sindhiName : a.name).toLowerCase();
-      const bName = (isSindhi ? b.sindhiName : b.name).toLowerCase();
-      if (aName < bName) return sortOrder === 'asc' ? -1 : 1;
-      if (aName > bName) return sortOrder === 'asc' ? 1 : -1;
-      return 0;
+      if (sortOrder === 'asc') {
+        return a.start_year - b.start_year;
+      } else {
+        return b.start_year - a.start_year;
+      }
     });
     
     return filtered;
-  }, [selectedPeriod, sortOrder, isSindhi]);
+  }, [selectedPeriod, sortOrder, displayPeriods]);
 
   return (
     <div key={`timeline-${isSindhi ? 'sd' : 'en'}`} className="min-h-screen bg-background" dir={isRTL ? 'rtl' : 'ltr'}>
@@ -301,7 +296,43 @@ export default function TimelinePage() {
             </div>
           </motion.section>
 
+          {/* Loading State */}
+          {loading && (
+            <div className="py-8">
+              <EnhancedTimelineSkeleton 
+                count={6} 
+                isSindhi={isSindhi} 
+                isRTL={isRTL} 
+              />
+            </div>
+          )}
+
+          {/* Error State */}
+          {error && (
+            <div className="text-center py-12">
+              <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md mx-auto">
+                <div className="text-red-600 mb-2">
+                  <AlertCircle className="h-8 w-8 mx-auto mb-2" />
+                  <h3 className="font-semibold">
+                    {isSindhi ? 'خرابي آئي آهي' : 'Error occurred'}
+                  </h3>
+                </div>
+                <p className={`text-sm text-red-700 ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+                  {error}
+                </p>
+                <Button 
+                  onClick={() => window.location.reload()} 
+                  variant="outline" 
+                  className="mt-4"
+                >
+                  {isSindhi ? 'دوبارہ ڪوشش ڪريو' : 'Try Again'}
+                </Button>
+              </div>
+            </div>
+          )}
+
           {/* Timeline Vertical */}
+          {!loading && !error && (
           <section>
             <div className="relative">
               <div className="absolute left-4 sm:left-8 top-0 bottom-0 w-px bg-gray-200/60" aria-hidden="true" />
@@ -319,83 +350,94 @@ export default function TimelinePage() {
                       <div className="h-3 w-3 rounded-full bg-foreground ring-4 ring-background" />
                     </div>
 
-                    <Card className="group cursor-pointer rounded-xl border border-gray-200/50 hover:border-gray-300 shadow-sm transition-all bg-white hover:bg-gray-50">
-                      <CardHeader className="pt-6 pb-4">
-                        <div className="flex items-start gap-4">
-                          <div className={`p-4 rounded-xl ${period.color}`}>
-                            <period.icon className="h-8 w-8" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between mb-2">
-                              <CardTitle className={`text-xl font-semibold leading-tight group-hover:opacity-90 transition-opacity ${isSindhi ? 'auto-sindhi-font' : ''}`}>
-                                {isSindhi ? period.sindhiName : period.name}
-                              </CardTitle>
-                              <Badge variant="outline" className="text-xs px-3 py-1 rounded-full">
-                                {period.years}
-                              </Badge>
+                    <Link href={isSindhi ? `/sd/timeline/${period.period_slug}` : `/en/timeline/${period.period_slug}`}>
+                      <Card className="group cursor-pointer rounded-xl border border-gray-200/50 hover:border-gray-300 shadow-sm transition-all bg-white hover:bg-gray-50">
+                        <CardHeader className="pt-6 pb-4">
+                          <div className="flex items-start gap-4">
+                            <div className={`p-4 rounded-xl ${getColorClasses(period.color_code)}`}>
+                              {React.createElement(getIconComponent(period.icon_name), { className: "h-8 w-8" })}
                             </div>
-                            <div className="flex gap-4 text-sm text-muted-foreground mb-3">
-                              <div className="flex items-center gap-1">
-                                <Users className="w-4 h-4" />
-                                <span>{period.poets} {content.poets}</span>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between mb-2">
+                                <CardTitle className={`text-xl font-semibold leading-tight group-hover:opacity-90 transition-opacity ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+                                  {period.name}
+                                </CardTitle>
+                                <Badge variant="outline" className="text-xs px-3 py-1 rounded-full">
+                                  {formatYears(period.start_year, period.end_year, period.is_ongoing)}
+                                </Badge>
                               </div>
-                              <div className="flex items-center gap-1">
-                                <BookOpen className="w-4 h-4" />
-                                <span>{period.works} {content.works}</span>
+                              <div className="flex gap-4 text-sm text-muted-foreground mb-3">
+                                <div className="flex items-center gap-1">
+                                  <Calendar className="w-4 h-4" />
+                                  <span>{period.start_year} - {period.end_year || (period.is_ongoing ? 'Present' : 'Ongoing')}</span>
+                                </div>
+                                {period.is_featured && (
+                                <div className="flex items-center gap-1">
+                                    <Star className="w-4 h-4 text-yellow-500" />
+                                    <span className="text-yellow-600">Featured</span>
+                                </div>
+                                )}
                               </div>
                             </div>
                           </div>
-                        </div>
-                      </CardHeader>
+                        </CardHeader>
 
-                      <CardContent className="pt-0 pb-6">
-                        <p className={`text-sm text-muted-foreground mb-4 ${isSindhi ? 'auto-sindhi-font' : ''}`}>
-                          {isSindhi ? period.sindhiDescription : period.description}
-                        </p>
-
-                        <div className="mb-4">
-                          <h4 className={`text-sm font-medium mb-2 ${isSindhi ? 'auto-sindhi-font' : ''}`}>
-                            {content.tags}:
-                          </h4>
-                          <div className="flex flex-wrap gap-2">
-                            {(isSindhi ? period.sindhiTags : period.tags).map((tag, tagIndex) => (
-                              <Badge 
-                                key={tagIndex} 
-                                variant="secondary" 
-                                className="text-xs px-2 py-1 rounded-full"
-                              >
-                                {tag}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-
-                        <div className="mb-4">
-                          <h4 className={`text-sm font-medium mb-2 ${isSindhi ? 'auto-sindhi-font' : ''}`}>
-                            {content.notablePoets}:
-                          </h4>
-                          <p className={`text-xs text-muted-foreground ${isSindhi ? 'auto-sindhi-font' : ''}`}>
-                            {(isSindhi ? period.sindhiPoetsList : period.poetsList).slice(0, 3).join(', ')}
-                            {(isSindhi ? period.sindhiPoetsList : period.poetsList).length > 3 && '...'}
+                        <CardContent className="pt-0 pb-6">
+                          <p className={`text-sm text-muted-foreground mb-4 ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+                            {period.description || (isSindhi ? 'تفصيل دستياب نہيں' : 'Description not available')}
                           </p>
-                        </div>
 
-                        <div className="flex items-center justify-between pt-4 border-t border-gray-200/40 dark:border-white/10">
-                          <div className="text-sm text-muted-foreground">
-                            <span className={isSindhi ? 'auto-sindhi-font' : ''}>
-                              {content.significance}: {isSindhi ? period.sindhiSignificance : period.significance}
-                            </span>
+                          {period.characteristics && period.characteristics.length > 0 && (
+                          <div className="mb-4">
+                            <h4 className={`text-sm font-medium mb-2 ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+                                {isSindhi ? 'خاصيتون' : 'Characteristics'}:
+                            </h4>
+                            <div className="flex flex-wrap gap-2">
+                                {period.characteristics.map((characteristic, charIndex) => (
+                                <Badge 
+                                    key={charIndex} 
+                                  variant="secondary" 
+                                  className="text-xs px-2 py-1 rounded-full"
+                                >
+                                    {characteristic}
+                                </Badge>
+                              ))}
+                            </div>
                           </div>
-                          <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-                        </div>
-                      </CardContent>
-                    </Card>
+                          )}
+
+                          <div className="flex items-center justify-between pt-4 border-t border-gray-200/40 dark:border-white/10">
+                            <div className="text-sm text-muted-foreground">
+                              <span className={isSindhi ? 'auto-sindhi-font' : ''}>
+                                {isSindhi ? 'دور جي اهميت' : 'Period Significance'}: {period.description || (isSindhi ? 'دستياب نہيں' : 'Not available')}
+                              </span>
+                            </div>
+                            <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </Link>
                   </motion.div>
                 ))}
+                </div>
+              </div>
+            </section>
+          )}
+
+          {/* Empty State */}
+          {!loading && !error && filteredPeriods.length === 0 && (
+            <div className="text-center py-12">
+              <div className="text-gray-500">
+                <History className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <h3 className={`text-lg font-medium mb-2 ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+                  {isSindhi ? 'ڪو به دور نہيں مليا' : 'No periods found'}
+                </h3>
+                <p className={`text-sm ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+                  {isSindhi ? 'ڪو به دور دستياب نہيں آهي' : 'No timeline periods are available at the moment.'}
+                </p>
               </div>
             </div>
-          </section>
-
+          )}
           
         </div>
       </main>

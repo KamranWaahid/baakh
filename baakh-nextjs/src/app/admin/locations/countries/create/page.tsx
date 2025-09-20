@@ -141,9 +141,9 @@ export default function CreateCountryPage() {
           </div>
 
           {/* Form */}
-          <Card>
+          <Card className="bg-white border border-gray-200">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 text-gray-900">
                 <Hash className="w-5 h-5" />
                 Country Information
               </CardTitle>
@@ -262,11 +262,11 @@ export default function CreateCountryPage() {
                 </div>
 
                 {/* Form Actions */}
-                <div className="flex items-center gap-4 pt-6 border-t">
+                <div className="flex items-center gap-4 pt-6 border-t border-gray-200">
                   <Button
                     type="submit"
                     disabled={loading || !formData.countryname}
-                    className="flex-1"
+                    className="flex-1 bg-gray-900 text-white"
                   >
                     {loading ? (
                       <>
@@ -281,7 +281,7 @@ export default function CreateCountryPage() {
                     )}
                   </Button>
                   
-                  <Button variant="outline" asChild>
+                  <Button variant="outline" asChild className="border border-gray-200 text-gray-700">
                     <Link href="/admin/locations/countries">
                       Cancel
                     </Link>
@@ -292,9 +292,9 @@ export default function CreateCountryPage() {
           </Card>
 
           {/* Help Section */}
-          <Card className="mt-6">
+          <Card className="mt-6 bg-white border border-gray-200">
             <CardHeader>
-              <CardTitle className="text-lg">Tips for Adding Countries</CardTitle>
+              <CardTitle className="text-lg text-gray-900">Tips for Adding Countries</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="flex items-start gap-3">

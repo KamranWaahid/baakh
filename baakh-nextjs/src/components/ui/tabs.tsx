@@ -11,15 +11,26 @@ type TabsContextValue = {
 const TabsContext = React.createContext<TabsContextValue | null>(null);
 
 type TabsProps = {
-  value: string;
+  value?: string;
+  defaultValue?: string;
   onValueChange: (v: string) => void;
   className?: string;
   children: React.ReactNode;
 };
 
-export function Tabs({ value, onValueChange, className, children }: TabsProps) {
+export function Tabs({ value, defaultValue, onValueChange, className, children }: TabsProps) {
+  const [internalValue, setInternalValue] = React.useState(defaultValue || '');
+  const currentValue = value !== undefined ? value : internalValue;
+  
+  const handleValueChange = (newValue: string) => {
+    if (value === undefined) {
+      setInternalValue(newValue);
+    }
+    onValueChange(newValue);
+  };
+
   return (
-    <TabsContext.Provider value={{ value, onValueChange }}>
+    <TabsContext.Provider value={{ value: currentValue, onValueChange: handleValueChange }}>
       <div className={cn("w-full", className)}>{children}</div>
     </TabsContext.Provider>
   );

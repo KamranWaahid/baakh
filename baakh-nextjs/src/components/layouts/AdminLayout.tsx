@@ -1,16 +1,20 @@
 "use client";
 
-import { ReactNode, useEffect, useCallback, useMemo, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { ReactNode, useEffect, useCallback, useMemo, useRef, useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/lib/hooks/useAuth";
-import CustomSidebar from "@/components/ui/CustomSidebar";
+import { useCSRF } from "@/hooks/useCSRF";
+import MinimalSidebar from "@/components/ui/MinimalSidebar";
 import { Toaster } from "sonner";
 import "../../app/admin/admin.css";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { LogOut, User, Shield, Edit, Eye, Settings, Bell } from "lucide-react";
+import { Logo } from "@/components/ui/logo";
+import { LogOut, User, Shield, Edit, Eye, Settings, Bell, Sparkles } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { AnimatePresence, motion } from "framer-motion";
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -18,9 +22,13 @@ interface AdminLayoutProps {
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const { user, loading, error, signOut } = useAuth();
+  const { csrfToken, loading: csrfLoading } = useCSRF();
   const redirectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const recentlyVisibleRef = useRef<number>(Date.now());
+  const firstLoadRef = useRef<boolean>(true);
+  const [isTransitioning, setIsTransitioning] = useState<boolean>(false);
 
   // Memoize the logout handler to prevent unnecessary re-renders
   const handleLogout = useCallback(async () => {
@@ -81,6 +89,17 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     console.log('AdminLayout: Auth state changed - user:', !!user, 'loading:', loading, 'error:', error);
   }, [user, loading, error]);
 
+  // Page transition handling: keep sidebar/header static, animate and skeleton the content only
+  useEffect(() => {
+    if (firstLoadRef.current) {
+      firstLoadRef.current = false;
+      return;
+    }
+    setIsTransitioning(true);
+    const timeout = setTimeout(() => setIsTransitioning(false), 500);
+    return () => clearTimeout(timeout);
+  }, [pathname]);
+
   // Memoize the loading state to prevent unnecessary re-renders
   const isLoading = useMemo(() => loading, [loading]);
   const hasUser = useMemo(() => !!user, [user]);
@@ -129,98 +148,65 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const currentUser = user!;
 
   return (
-    <div className="flex h-screen bg-[#F9F9F9]">
-      <CustomSidebar />
-      <div className="flex flex-col flex-1 md:ml-[272px]">
+    <div className="flex h-screen bg-gray-50">
+      {/* CSRF Token Meta Tag */}
+      {csrfToken && (
+        <meta name="csrf-token" content={csrfToken} />
+      )}
+      
+      <MinimalSidebar />
+      <div className="flex flex-col flex-1 md:ml-[240px]">
         {/* Header */}
-        <header className="bg-white border-b border-[#E5E5E5] sticky top-0 z-30">
-          <div className="flex h-16 items-center px-6 justify-between">
+        <header className="bg-white border-b border-gray-200 sticky top-0 z-30">
+          <div className="flex h-14 items-center px-6 justify-between">
             <div className="flex items-center space-x-4">
-              <div className="hidden md:flex items-center space-x-2">
-                <div className="w-8 h-8 bg-[#F4F4F5] rounded-lg flex items-center justify-center">
-                  <Shield className="h-5 w-5 text-[#1F1F1F]" />
-                </div>
+              <div className="hidden md:flex items-center space-x-3">
+                <Logo size="md" className="text-gray-900" />
                 <div>
-                  <span className="text-base font-medium text-[#1F1F1F]">Admin Dashboard</span>
-                  <p className="text-sm text-[#6B6B6B]">Poetry Archive Management</p>
+                  <span className="text-base font-semibold text-gray-900 leading-tight">Baakh</span>
+                  <p className="text-sm text-gray-500 leading-tight -mt-1">Poetry Archive</p>
                 </div>
               </div>
             </div>
             
             {/* Right side actions */}
-            <div className="flex items-center space-x-3">
-              {/* Notifications */}
-              <Button variant="ghost" size="sm" className="h-9 w-9 p-0 relative hover:bg-[#F4F4F5]">
-                <Bell className="w-4 h-4 text-[#6B6B6B]" />
-                <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white"></span>
-              </Button>
-
-              {/* Settings */}
-              <Button variant="ghost" size="sm" className="h-9 w-9 p-0 hover:bg-[#F4F4F5]">
-                <Settings className="w-4 h-4 text-[#6B6B6B]" />
-              </Button>
+            <div className="flex items-center space-x-2">
             
               {/* User Menu */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="h-9 px-3 rounded-lg hover:bg-[#F4F4F5]">
-                    <Avatar className="h-8 w-8 mr-2">
+                  <Button variant="ghost" className="h-9 w-9 p-0 rounded-full hover:bg-gray-50">
+                    <Avatar className="h-8 w-8">
                       <AvatarImage src={currentUser.avatar_url} alt={currentUser.display_name} />
-                      <AvatarFallback className="bg-[#F4F4F5] text-[#1F1F1F] font-medium">
+                      <AvatarFallback className="bg-gray-100 text-gray-700 font-medium">
                         {currentUser.display_name?.charAt(0) || currentUser.email?.charAt(0) || 'U'}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="hidden sm:block text-left">
-                      <p className="text-sm font-medium text-[#1F1F1F]">{currentUser.display_name || 'User'}</p>
-                      <p className="text-xs text-[#6B6B6B]">{currentUser.email}</p>
-                    </div>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-64 p-0 border border-[#E5E5E5] shadow-lg" align="end" forceMount>
-                  <DropdownMenuLabel className="font-normal p-4 border-b border-[#E5E5E5]">
-                    <div className="flex flex-col space-y-2">
-                      <p className="text-sm font-semibold leading-none text-[#1F1F1F]">{currentUser.display_name || 'User'}</p>
-                      <p className="text-xs leading-none text-[#6B6B6B]">{currentUser.email}</p>
+                <DropdownMenuContent className="w-56 bg-white border-gray-200 shadow-lg" align="end">
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium text-gray-900">{currentUser.display_name || 'User'}</p>
+                      <p className="text-xs text-gray-500">{currentUser.email}</p>
                     </div>
                   </DropdownMenuLabel>
-                  
-                  {/* Role Badges */}
-                  <div className="px-4 py-3 border-b border-[#E5E5E5]">
-                    <div className="flex flex-wrap gap-2">
-                      {currentUser.is_admin && (
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-200">
-                          <Shield className="w-3 h-3 mr-1" />
-                          Admin
-                        </span>
-                      )}
-                      {currentUser.is_editor && (
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
-                          <Edit className="w-3 h-3 mr-1" />
-                          Editor
-                        </span>
-                      )}
-                      {currentUser.is_reviewer && (
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
-                          <Eye className="w-3 h-3 mr-1" />
-                          Reviewer
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  
-                  {/* Menu Items */}
-                  <DropdownMenuItem className="px-4 py-3 cursor-pointer hover:bg-[#F4F4F5]">
-                    <User className="mr-2 h-4 w-4 text-[#6B6B6B]" />
-                    <span className="text-sm text-[#1F1F1F]">Profile</span>
+                  <DropdownMenuSeparator className="bg-gray-200" />
+                  <DropdownMenuItem className="text-gray-700 hover:bg-gray-50 cursor-pointer">
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Profile</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem className="px-4 py-3 cursor-pointer hover:bg-[#F4F4F5]">
-                    <Settings className="mr-2 h-4 w-4 text-[#6B6B6B]" />
-                    <span className="text-sm text-[#1F1F1F]">Settings</span>
+                  <DropdownMenuItem className="text-gray-700 hover:bg-gray-50 cursor-pointer">
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>Settings</span>
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator className="bg-[#E5E5E5]" />
-                  <DropdownMenuItem onClick={handleLogout} className="px-4 py-3 cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50">
+                  <DropdownMenuSeparator className="bg-gray-200" />
+                  <DropdownMenuItem 
+                    className="text-gray-700 hover:bg-gray-50 cursor-pointer"
+                    onClick={handleLogout}
+                  >
                     <LogOut className="mr-2 h-4 w-4" />
-                    <span className="text-sm">Log out</span>
+                    <span>Log out</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -229,8 +215,31 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         </header>
 
         {/* Main Content */}
-        <main className="flex-1 overflow-y-auto">
-          {children}
+        <main className="flex-1 overflow-y-auto bg-gray-50 relative">
+          {/* Animated page content */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={pathname}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.18, ease: 'easeOut' }}
+            >
+              {children}
+            </motion.div>
+          </AnimatePresence>
+
+          {/* Lightweight skeleton overlay during route transitions (after first load only) */}
+          {isTransitioning && (
+            <div className="absolute inset-0 bg-transparent pointer-events-none z-0">
+              <div className="max-w-7xl mx-auto px-6 py-6">
+                <div className="space-y-3">
+                  <Skeleton className="h-5 w-40" />
+                  <Skeleton className="h-4 w-64" />
+                </div>
+              </div>
+            </div>
+          )}
         </main>
       </div>
       <Toaster position="top-right" richColors />

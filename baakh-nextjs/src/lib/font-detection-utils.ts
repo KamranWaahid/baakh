@@ -22,14 +22,14 @@ export const CONTENT_PATTERNS = {
   // Sindhi/Arabic characters
   sindhiChars: /[\u0600-\u06FF\uFB50-\uFDFF\uFE70-\uFEFF]/g,
   
-  // Punctuation and symbols that should use Inter
+  // Punctuation and symbols that should use Helvetica Now Text Regular
   punctuation: /[.,;:!?@#$%^&*()_+\-=\[\]{}|\\:";'<>?/~`]/g
 };
 
 /**
- * Checks if text contains only numbers and characters that should use Inter font
+ * Checks if text contains only numbers and characters that should use Helvetica Now Text Regular font
  * @param text - The text to check
- * @returns boolean indicating if text should use Inter font
+ * @returns boolean indicating if text should use Helvetica Now Text Regular font
  */
 export const shouldUseInterFont = (text: string): boolean => {
   if (!text || typeof text !== 'string') return false;
@@ -60,10 +60,23 @@ export const shouldUseSindhiFont = (text: string): boolean => {
   if (!text || typeof text !== 'string') return false;
   
   const hasSindhiChars = CONTENT_PATTERNS.sindhiChars.test(text);
-  const hasEnglishChars = CONTENT_PATTERNS.englishChars.test(text);
   
-  // Use Sindhi font only if it has Sindhi characters and no English characters
-  return hasSindhiChars && !hasEnglishChars;
+  // If it has Sindhi characters, check if it's predominantly Sindhi
+  if (hasSindhiChars) {
+    // Count Sindhi characters vs other characters
+    const sindhiMatches = text.match(CONTENT_PATTERNS.sindhiChars);
+    const sindhiCount = sindhiMatches ? sindhiMatches.length : 0;
+    
+    // Count English letters and numbers (excluding punctuation)
+    const englishMatches = text.match(/[a-zA-Z0-9]/g);
+    const englishCount = englishMatches ? englishMatches.length : 0;
+    
+    // Use Sindhi font if Sindhi characters are more than 50% of the content
+    // or if there are no English letters/numbers at all
+    return sindhiCount > englishCount || englishCount === 0;
+  }
+  
+  return false;
 };
 
 /**

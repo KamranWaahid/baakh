@@ -4,6 +4,7 @@ import Head from 'next/head'
 import { generatePoetryPageSEO, generatePoetSEOProfile } from '@/lib/poetry-seo-engine'
 import { generatePoetMetadata, generatePoetryMetadata, generateCategoryMetadata, generateHomeMetadata } from '@/lib/metadata-generator'
 import { generatePoetAIContext, generatePoetryAIContext } from '@/lib/ai-search-optimizer'
+import { sanitizeStructuredData } from '@/lib/security/html-sanitizer'
 
 interface SEOHeadProps {
   type: 'poet' | 'poetry' | 'category' | 'home'
@@ -107,15 +108,20 @@ export default function SEOHead({ type, data, lang, additionalStructuredData = [
       )}
       
       {/* Structured Data */}
-      {allStructuredData.map((data, index) => (
-        <script
-          key={index}
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(data, null, 2)
-          }}
-        />
-      ))}
+      {allStructuredData.map((data, index) => {
+        // Sanitize structured data to prevent XSS using proper sanitization
+        const sanitizedData = sanitizeStructuredData(data);
+        
+        return (
+          <script
+            key={index}
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify(sanitizedData, null, 2)
+            }}
+          />
+        );
+      })}
       
       {/* Additional Meta Tags for Poetry SEO */}
       <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />

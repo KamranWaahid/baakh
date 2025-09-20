@@ -1,5 +1,6 @@
 "use client";
 import { getSmartFontClass } from "@/lib/font-detection-utils";
+import { NumberFont, MixedContentWithNumbers } from "@/components/ui/NumberFont";
 
 import { useState, useEffect, useCallback } from "react";
 import { usePathname } from "next/navigation";
@@ -176,29 +177,34 @@ export default function CategoriesPage() {
   // Skeleton loader component for category cards
   const CategoryCardSkeleton = () => (
     <div className="animate-pulse">
-      <Card className="h-full border border-gray-200 bg-white overflow-hidden">
-        <CardHeader className="pb-4">
-          <div className="flex items-start gap-3">
-            <div className="p-3 rounded-lg bg-gray-200">
+      <Card className="h-full border border-gray-200 bg-white overflow-hidden rounded-xl">
+        <CardHeader className="pb-6 px-6 pt-6">
+          <div className="flex items-start gap-4">
+            <div className="p-3 rounded-xl bg-gradient-to-br from-gray-200 to-gray-300 flex-shrink-0">
               <div className="w-6 h-6 bg-gray-300 rounded"></div>
             </div>
-            <div className="flex-1 space-y-2">
-              <div className="h-5 bg-gray-200 rounded w-32"></div>
-              <div className="h-4 bg-gray-200 rounded w-24"></div>
-              <div className="flex gap-1">
-                <div className="h-5 bg-gray-200 rounded w-16"></div>
-                <div className="h-5 bg-gray-200 rounded w-16"></div>
+            <div className="flex-1 min-w-0">
+              <div className="h-5 bg-gray-200 rounded w-3/4 mb-2"></div>
+              <div className="h-3 bg-gray-200 rounded w-1/2 mb-3"></div>
+              <div className="flex gap-2 flex-wrap">
+                <div className="h-5 bg-gray-200 rounded-full w-12"></div>
+                <div className="h-5 bg-gray-200 rounded-full w-16"></div>
               </div>
             </div>
           </div>
         </CardHeader>
-        <CardContent className="pt-0">
-          <div className="space-y-2 mb-3">
+        <CardContent className="px-6 pb-6 pt-0">
+          <div className="space-y-2 mb-4">
             <div className="h-4 bg-gray-200 rounded w-full"></div>
             <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+            <div className="h-4 bg-gray-200 rounded w-1/2"></div>
           </div>
-          <div className="flex items-center justify-between pt-3 border-t border-gray-200">
-            <div className="h-4 bg-gray-200 rounded w-8"></div>
+          <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+            <div className="flex items-center gap-2">
+              <div className="h-4 w-4 bg-gray-200 rounded"></div>
+              <div className="h-4 bg-gray-200 rounded w-8"></div>
+              <div className="h-3 bg-gray-200 rounded w-12"></div>
+            </div>
             <div className="h-4 bg-gray-200 rounded w-4"></div>
           </div>
         </CardContent>
@@ -228,13 +234,13 @@ export default function CategoriesPage() {
             {/* Stats */}
             <div className="flex flex-wrap justify-center gap-8 mb-6">
               <div className="text-center">
-                <div className="text-3xl font-bold text-gray-900">{total.toLocaleString()}</div>
+                <NumberFont className="text-3xl font-bold text-gray-900" size="2xl" weight="bold">{total.toLocaleString()}</NumberFont>
                 <div className={`text-sm text-gray-600 ${getSmartFontClass(content.totalCategories)}`}>
                   {content.totalCategories}
                 </div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-gray-900">{uniqueStylesCount}</div>
+                <NumberFont className="text-3xl font-bold text-gray-900" size="2xl" weight="bold">{uniqueStylesCount}</NumberFont>
                 <div className={`text-sm text-gray-600 ${getSmartFontClass(content.uniqueStyles)}`}>
                   {content.uniqueStyles}
                 </div>
@@ -343,9 +349,9 @@ export default function CategoriesPage() {
             <div className="bg-white rounded-2xl border border-gray-200/50 shadow-sm p-6">
               <p className={`text-gray-600 text-lg mb-3 ${getSmartFontClass(content.showing)}`}>
                 {isSindhi ? (
-                  <>پاڻ کي <span className="font-semibold text-gray-900">{total}</span> موضوع ملي آھي، جنھن مان پيج <span className="font-semibold text-gray-900">{startIdx}-{Math.min(startIdx + categories.length - 1, total)}</span> ڏيکار رھيا آھون.</>
+                  <>پاڻ کي <NumberFont className="font-semibold text-gray-900">{total}</NumberFont> موضوع ملي آھي، جنھن مان پيج <NumberFont className="font-semibold text-gray-900">{startIdx}-{Math.min(startIdx + categories.length - 1, total)}</NumberFont> ڏيکار رھيا آھون.</>
                 ) : (
-                  <>{content.showing} <span className="font-semibold text-gray-900">{startIdx}-{Math.min(startIdx + categories.length - 1, total)}</span> {content.of} <span className="font-semibold text-gray-900">{total}</span> {content.categoriesFound}</>
+                  <>{content.showing} <NumberFont className="font-semibold text-gray-900">{startIdx}-{Math.min(startIdx + categories.length - 1, total)}</NumberFont> {content.of} <NumberFont className="font-semibold text-gray-900">{total}</NumberFont> {content.categoriesFound}</>
                 )}
               </p>
             </div>
@@ -400,13 +406,13 @@ export default function CategoriesPage() {
           {/* Stats */}
           <div className="flex flex-wrap justify-center gap-8 mb-6">
             <div className="text-center">
-              <div className="text-3xl font-bold text-gray-900">{total.toLocaleString()}</div>
+              <NumberFont className="text-3xl font-bold text-gray-900" size="2xl" weight="bold">{total.toLocaleString()}</NumberFont>
               <div className={`text-sm text-gray-600 ${getSmartFontClass(content.totalCategories)}`}>
                 {content.totalCategories}
               </div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-gray-900">{uniqueStylesCount}</div>
+              <NumberFont className="text-3xl font-bold text-gray-900" size="2xl" weight="bold">{uniqueStylesCount}</NumberFont>
               <div className={`text-sm text-gray-600 ${getSmartFontClass(content.uniqueStyles)}`}>
                 {content.uniqueStyles}
               </div>
@@ -515,9 +521,9 @@ export default function CategoriesPage() {
           <div className="bg-white rounded-2xl border border-gray-200/50 shadow-sm p-6">
             <p className={`text-gray-600 text-lg mb-3 ${getSmartFontClass(content.showing)}`}>
               {isSindhi ? (
-                <>پاڻ کي <span className="font-semibold text-gray-900">{total}</span> موضوع ملي آھي، جنھن مان پيج <span className="font-semibold text-gray-900">{startIdx}-{Math.min(startIdx + categories.length - 1, total)}</span> ڏيکار رھيا آھون.</>
+                <>پاڻ کي <NumberFont className="font-semibold text-gray-900">{total}</NumberFont> موضوع ملي آھي، جنھن مان پيج <NumberFont className="font-semibold text-gray-900">{startIdx}-{Math.min(startIdx + categories.length - 1, total)}</NumberFont> ڏيکار رھيا آھون.</>
               ) : (
-                <>{content.showing} <span className="font-semibold text-gray-900">{startIdx}-{Math.min(startIdx + categories.length - 1, total)}</span> {content.of} <span className="font-semibold text-gray-900">{total}</span> {content.categoriesFound}</>
+                <>{content.showing} <NumberFont className="font-semibold text-gray-900">{startIdx}-{Math.min(startIdx + categories.length - 1, total)}</NumberFont> {content.of} <NumberFont className="font-semibold text-gray-900">{total}</NumberFont> {content.categoriesFound}</>
               )}
             </p>
           </div>
@@ -551,47 +557,71 @@ export default function CategoriesPage() {
                       className="block" 
                       aria-label={displayName}
                     >
-                      <Card className="h-full border border-gray-200 bg-white overflow-hidden">
-                        <CardHeader className="pb-4">
-                          <div className="flex items-start gap-3">
-                            <div className="p-3 rounded-lg bg-gray-100">
+                      <Card className="h-full border border-gray-200 bg-white overflow-hidden rounded-xl">
+                        <CardHeader className="pb-6 px-6 pt-6">
+                          <div className="flex items-start gap-4">
+                            <div className="p-3 rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 flex-shrink-0">
                               <BookOpen className="w-6 h-6 text-gray-600" />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <CardTitle className={`text-lg font-semibold leading-tight ${getSmartFontClass(displayName)}`}>
+                              <CardTitle className={`text-lg font-medium leading-tight mb-2 ${getSmartFontClass(displayName)}`} style={{
+                                fontFeatureSettings: '"kern" 1, "liga" 1',
+                                letterSpacing: '0.01em'
+                              }}>
                                 {displayName}
                               </CardTitle>
                               {displayPlural && (
-                                <div className={`text-xs text-gray-500 mt-0.5 ${getSmartFontClass(displayPlural)}`}>
+                                <div className={`text-xs text-gray-500 mb-3 ${getSmartFontClass(displayPlural)}`} style={{
+                                  fontFeatureSettings: '"kern" 1, "liga" 1',
+                                  letterSpacing: '0.01em',
+                                  lineHeight: '1.4'
+                                }}>
                                   {displayPlural}
                                 </div>
                               )}
-                              <div className="mt-2 flex gap-1">
+                              <div className="flex gap-2 flex-wrap">
                                 {category.languages.map((lang) => (
                                   <Badge 
                                     key={lang} 
                                     variant={lang === 'Sindhi' ? 'secondary' : 'outline'} 
-                                    className="text-[10px] rounded-full px-2.5 py-0.5"
+                                    className={`text-[10px] rounded-full px-2.5 py-0.5 font-light ${
+                                      lang === 'Sindhi' 
+                                        ? 'bg-gray-100 text-gray-700 border-gray-200' 
+                                        : 'bg-transparent text-gray-500 border-gray-200/50'
+                                    }`}
                                   >
-                                    {lang}
+                                    {isSindhi 
+                                      ? (lang === 'Sindhi' ? 'سنڌي' : 'انگريزي')
+                                      : lang
+                                    }
                                   </Badge>
                                 ))}
                               </div>
                             </div>
                           </div>
                         </CardHeader>
-                        <CardContent className="pt-0">
+                        <CardContent className="px-6 pb-6 pt-0">
                           {displayDetails && (
-                            <p className={`text-sm text-gray-600 mb-3 line-clamp-3 ${getSmartFontClass(displayDetails)}`}>
+                            <p className={`text-sm text-gray-600 mb-4 line-clamp-3 leading-relaxed ${getSmartFontClass(displayDetails)}`} style={{
+                              fontFeatureSettings: '"kern" 1, "liga" 1',
+                              letterSpacing: '0.01em',
+                              lineHeight: '1.6'
+                            }}>
                               {displayDetails}
                             </p>
                           )}
-                          <div className="flex items-center justify-between pt-3 border-t border-gray-200">
-                            <div className="inline-flex items-center gap-2 text-sm text-gray-500">
+                          <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                            <div className="inline-flex items-center gap-2 text-sm text-gray-500 font-light" style={{
+                              fontFeatureSettings: '"kern" 1, "liga" 1',
+                              letterSpacing: '0.01em'
+                            }}>
                               <Hash className="w-4 h-4" />
-                              <span>{category.count ?? 0}</span>
+                              <NumberFont>{category.count ?? 0}</NumberFont>
+                              <span className="text-xs text-gray-400">
+                                {isSindhi ? 'شاعري' : 'poems'}
+                              </span>
                             </div>
-                            <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
+                            <ChevronRight className="w-4 h-4 text-gray-400" />
                           </div>
                         </CardContent>
                       </Card>
@@ -668,9 +698,9 @@ export default function CategoriesPage() {
                         : "border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300"
                     }`}
                   >
-                    <span>
+                    <NumberFont>
                       {pageNum}
-                    </span>
+                    </NumberFont>
                   </Button>
                 ));
               })()}

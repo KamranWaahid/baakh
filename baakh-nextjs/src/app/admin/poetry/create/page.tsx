@@ -1291,10 +1291,10 @@ export default function AdminPoetryCreatePage() {
 
   return (
     <AdminLayout>
-      <div className="min-h-screen bg-[#F9F9F9]">
+     <div className="min-h-screen bg-[#F9F9F9]">  
         {/* Header Section */}
         <div className="bg-white border-b border-[#E5E5E5] px-6 py-6">
-          <div className="max-w-7xl mx-auto">
+        <div className="max-w-7xl mx-auto">
             <div className="space-y-4">
               <div className="flex items-center gap-3">
                 <Badge variant="secondary" className="rounded-full px-4 py-2 text-sm font-medium bg-[#F4F4F5] text-[#1F1F1F] border border-[#E5E5E5]">
@@ -1321,12 +1321,10 @@ export default function AdminPoetryCreatePage() {
             </div>
           </div>
         </div>
-
-        {/* Main Content */}
-        <div className="max-w-7xl mx-auto px-6 py-8">
-
-              {/* Progress Steps */}
-              <div className="mb-8">
+         {/* Main Content */}
+         <div className="max-w-7xl mx-auto px-6 py-8">
+             {/* Progress Steps */}
+             <div className="mb-8">
                 <Card className="bg-white border border-[#E5E5E5] rounded-lg shadow-sm">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-center">
@@ -1369,12 +1367,8 @@ export default function AdminPoetryCreatePage() {
                   </CardContent>
                 </Card>
               </div>
-
               {/* Step Content */}
-              <div
-                key={currentStep}
-                className="min-h-[500px]"
-              >
+              <div key={currentStep} className="min-h-[500px]">
                 {/* Hesudhar Step */}
                 {currentStep === 'hesudhar' && (
                   <div className="max-w-4xl mx-auto">
@@ -1628,8 +1622,8 @@ export default function AdminPoetryCreatePage() {
                     </Card>
                   </div>
                 )}
-
-        {/* Poetry Details Step */}
+              </div>
+              {/* Poetry Details Step */}
         {currentStep === 'poetry-details' && (
           <div className="max-w-4xl mx-auto">
             <Card className="bg-white border border-[#E5E5E5] rounded-lg shadow-sm mb-8">
@@ -1833,6 +1827,7 @@ export default function AdminPoetryCreatePage() {
                   </div>
                 </CardContent>
               </Card>
+       
 
               {/* Detail */}
               <Card className="bg-white border border-[#E5E5E5] rounded-lg shadow-sm">
@@ -2067,9 +2062,8 @@ export default function AdminPoetryCreatePage() {
             </div>
           </div>
         )}
-
-        {/* Couplets Step */}
-        {currentStep === 'couplets' && (
+ {/* Couplets Step */}
+ {currentStep === 'couplets' && (
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-8">
               <h2 className="text-2xl font-bold mb-2 text-gray-900">
@@ -2337,9 +2331,8 @@ export default function AdminPoetryCreatePage() {
             </div>
           </div>
         )}
-
-        {/* Dynamic Poetry Section - Below Couplets */}
-        {currentStep === 'couplets' && selectedPoet && selectedCategory && (
+{/* Dynamic Poetry Section - Below Couplets */}
+{currentStep === 'couplets' && selectedPoet && selectedCategory && (
           <div className="mt-12">
             <div className="text-center mb-8">
               <div className="inline-flex items-center justify-center w-14 h-14 bg-white/10 rounded-2xl mb-4">
@@ -2433,7 +2426,7 @@ export default function AdminPoetryCreatePage() {
                     No poetry found for {selectedPoet.english_name} in {selectedCategory.title} category.
                   </p>
                 </div>
-              )
+              )}
 
               {/* Tips */}
                               <div className="bg-white/5 border border-white/20 rounded-md p-4">
@@ -2455,6 +2448,7 @@ export default function AdminPoetryCreatePage() {
             </div>
           </div>
         )}
+
 
         {/* Tag Creation Modal */}
         <AnimatePresence>
@@ -2632,34 +2626,33 @@ export default function AdminPoetryCreatePage() {
             </div>
           )}
         </AnimatePresence>
-
         {/* Transliteration Step */}
         {currentStep === 'transliterate' && (
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold mb-2 text-gray-900">
-                <MessageSquare className="w-6 h-6 inline-block mr-2" />
-                English Transliteration
-              </h2>
-              <p className="text-gray-600">
-                Your Sindhi couplets have been automatically transliterated to English/Roman
-              </p>
-            </div>
-            
-            <div className="space-y-6">
-              {/* Transliteration Status */}
-              {!transliterationCompleted ? (
+           <div className="max-w-6xl mx-auto">
+           <div className="text-center mb-8">
+             <h2 className="text-2xl font-bold mb-2 text-gray-900">
+               <MessageSquare className="w-6 h-6 inline-block mr-2" />
+               English Transliteration
+             </h2>
+             <p className="text-gray-600">
+               Your Sindhi couplets have been automatically transliterated to English/Roman
+             </p>
+           </div>
+           {/* Transliteration Status */}
+           {!transliterationCompleted ? (
+              <div className="space-y-6">
                 <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-8">
                   <div className="text-center">
                     <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-gray-500" />
                     <p className="text-gray-600">Transliterating couplets...</p>
                   </div>
                 </div>
-              ) : (
-                <div className="space-y-6">
-                  {/* Couplets Management */}
-                  <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
-                    <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+              </div>
+            ) : (
+              <div className="space-y-6">
+                 {/* Couplets Management */}
+                 <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
+                 <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
                       <div className="flex items-center justify-between">
                         <h4 className="text-lg font-semibold text-gray-900">Transliterated Couplets ({transliteratedCouplets.length})</h4>
                         <div className="flex gap-3">
@@ -2690,19 +2683,55 @@ export default function AdminPoetryCreatePage() {
                         </div>
                       </div>
                     </div>
-
                     <div className="p-6">
-                      {/* Couplets List */}
-                      <div className="space-y-6">
-                        {transliteratedCouplets.map((couplet, index) => (
-                          <div key={couplet.id} className="border border-gray-200 rounded-lg p-6 bg-gray-50">
-                            <div className="flex items-center justify-between mb-4">
-                              <h5 className="text-lg font-semibold text-gray-900">
-                                Couplet #{index + 1}
-                              </h5>
+                         {/* Couplets List */}
+                         <div className="space-y-6">
+                           {/* Couplets Management */}
+                            <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
+                            <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+                            <div className="flex items-center justify-between">
+                            <h4 className="text-lg font-semibold text-gray-900">Transliterated Couplets ({transliteratedCouplets.length})</h4>
+                            <div className="flex gap-3">
+                            <Button
+                            onClick={saveTransliteratedCouplets}
+                            variant="outline"
+                            size="sm"
+                            disabled={loading}
+                            className="border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg"
+                          >
+                            <CheckCircle className="w-4 h-4 mr-2" />
+                            Save Changes
+                          </Button>
+                          <Button
+                            onClick={transliterateAllCouplets}
+                            variant="outline"
+                            size="sm"
+                            disabled={loading}
+                            className="border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg"
+                          >
+                            {loading ? (
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            ) : (
+                              <RefreshCw className="w-4 h-4 mr-2" />
+                            )}
+                            Re-transliterate
+                          </Button>
                             </div>
-
-                            {/* Couplet Text - English/Roman Transliteration */}
+                              </div>  
+                            </div>
+                            </div>
+                         </div>
+                         <div className="p-6">
+                            {/* Couplets List */}
+                            <div className="space-y-6">
+                            {transliteratedCouplets.map((couplet, index) => (
+                               <div key={couplet.id} className="border border-gray-200 rounded-lg p-6 bg-gray-50">
+                                 <div className="flex items-center justify-between mb-4">
+                                   <h5 className="text-lg font-semibold text-gray-900">
+                                     Couplet #{index + 1}
+                                   </h5>
+                                 </div>
+                                 {/* Couplet Text - English/Roman Transliteration */}
                             <div className="space-y-4 mb-6">
                               <div className="space-y-2">
                                 <Label htmlFor={`transliterated-text-${couplet.id}`} className="text-sm font-semibold text-gray-700">English/Roman Text</Label>
@@ -2721,6 +2750,7 @@ export default function AdminPoetryCreatePage() {
                                 />
                               </div>
 
+
                               {/* Couplet Slug */}
                               <div className="space-y-2">
                                 <Label htmlFor={`transliterated-slug-${couplet.id}`} className="text-sm font-semibold text-gray-700">Couplet Slug</Label>
@@ -2733,6 +2763,7 @@ export default function AdminPoetryCreatePage() {
                                 />
                               </div>
                             </div>
+                            
 
                             {/* Couplet Tags */}
                             <div className="space-y-4">
@@ -2742,9 +2773,9 @@ export default function AdminPoetryCreatePage() {
                                   {couplet.tags.length} tags selected
                                 </span>
                               </div>
-                              
-                              {/* Selected Tags */}
-                              {couplet.tags.length > 0 && (
+                            </div>
+                            {/* Selected Tags */}
+                            {couplet.tags.length > 0 && (
                                 <div className="flex flex-wrap gap-2">
                                   {couplet.tags.map((tagSlug, index) => {
                                     const selectedColors = [
@@ -2770,7 +2801,6 @@ export default function AdminPoetryCreatePage() {
                                   })}
                                 </div>
                               )}
-                              
                               {/* Available Tags */}
                               <div className="space-y-3">
                                 <Label className="text-sm font-semibold text-gray-700">Available Tags</Label>
@@ -2809,14 +2839,12 @@ export default function AdminPoetryCreatePage() {
                                     );
                                   })}
                                 </div>
-                              </div>
+                                </div>
+                               </div>
+                            ))}
                             </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Final Submission */}
+                         </div>
+                          {/* Final Submission */}
                   <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
                     <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
                       <h3 className="text-lg font-semibold text-gray-900">Ready to Create Poetry!</h3>
@@ -2862,16 +2890,14 @@ export default function AdminPoetryCreatePage() {
                         </div>
                       </div>
                     </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
+                    </div>
+                    </div>
+                 </div>
+              </div>
+            )}
+
           </div>
         )}
-              </div>
-        </div>
-
         {/* Navigation */}
         {currentStep !== 'transliterate' && (
           <div className="flex justify-between max-w-4xl mx-auto mt-8">
@@ -2895,7 +2921,8 @@ export default function AdminPoetryCreatePage() {
             </Button>
           </div>
         )}
-      </div>
+        </div>
+     </div>
     </AdminLayout>
   );
 }

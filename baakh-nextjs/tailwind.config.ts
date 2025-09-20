@@ -54,12 +54,13 @@ const config: Config = {
       },
       fontFamily: {
         // Modern Font System - Clean & Minimal
-        sans: ["var(--font-inter)", "Inter", "system-ui", "sans-serif"],
+        sans: ["var(--font-inter)", "Helvetica Now Text Regular", "Helvetica Now Text Regular Placeholder", "sans-serif"],
         serif: ["var(--font-sindhi)", "serif"],
-        inter: ["var(--font-inter)", "Inter", "system-ui", "sans-serif"],
+        inter: ["var(--font-inter)", "Helvetica Now Text Regular", "Helvetica Now Text Regular Placeholder", "sans-serif"],
         sindhi: ["var(--font-sindhi)", "serif"],
         // Legacy support
         lateef: ["var(--font-sindhi)", "serif"],
+        "mb-lateefi": ["var(--font-sindhi)", "serif"],
       },
       fontSize: {
         // Modern Typography Scale - Clean & Responsive

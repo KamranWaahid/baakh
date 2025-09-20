@@ -1,77 +1,56 @@
 const { createClient } = require('@supabase/supabase-js');
+
+// Load environment variables
 require('dotenv').config({ path: '.env.local' });
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+console.log('Supabase URL:', supabaseUrl);
+console.log('Supabase Key exists:', !!supabaseKey);
 
 if (!supabaseUrl || !supabaseKey) {
-  console.error('❌ Missing environment variables');
-  console.log('NEXT_PUBLIC_SUPABASE_URL:', supabaseUrl ? 'Set' : 'Missing');
-  console.log('SUPABASE_SERVICE_ROLE_KEY:', supabaseKey ? 'Set' : 'Missing');
+  console.error('❌ Missing Supabase environment variables');
   process.exit(1);
 }
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-async function testDatabaseConnection() {
-  console.log('🔍 Testing database connection...');
-  
+async function testConnection() {
   try {
+    console.log('🔍 Testing database connection...');
+    
     // Test basic connection
     const { data, error } = await supabase
-      .from('poetry_main')
-      .select('count(*)', { count: 'exact', head: true });
+      .from('timeline_periods')
+      .select('id')
+      .limit(1);
     
     if (error) {
-      console.log('❌ Error accessing poetry_main table:', error.message);
-      
-      // Check if table exists
-      const { data: tables, error: tablesError } = await supabase
-        .from('information_schema.tables')
-        .select('table_name')
-        .eq('table_schema', 'public')
-        .eq('table_name', 'poetry_main');
-      
-      if (tablesError) {
-        console.log('❌ Error checking tables:', tablesError.message);
-      } else if (tables.length === 0) {
-        console.log('❌ poetry_main table does not exist');
-        console.log('💡 You need to run the database setup scripts');
-      } else {
-        console.log('✅ poetry_main table exists');
-      }
-    } else {
-      console.log('✅ Successfully connected to poetry_main table');
-      console.log('📊 Row count:', data);
+      console.error('❌ Database connection failed:', error);
+      console.error('Error details:', JSON.stringify(error, null, 2));
+      return;
     }
     
-    // Check poets table
-    const { data: poetsData, error: poetsError } = await supabase
-      .from('poets')
-      .select('count(*)', { count: 'exact', head: true });
+    console.log('✅ Database connection successful');
+    console.log('📊 Sample data:', data);
     
-    if (poetsError) {
-      console.log('❌ Error accessing poets table:', poetsError.message);
+    // Test table structure
+    const { data: tableInfo, error: tableError } = await supabase
+      .from('timeline_periods')
+      .select('*')
+      .limit(1);
+    
+    if (tableError) {
+      console.error('❌ Table query failed:', tableError);
     } else {
-      console.log('✅ Successfully connected to poets table');
-      console.log('📊 Poets count:', poetsData);
+      console.log('✅ Table structure looks good');
+      console.log('📋 Columns:', Object.keys(tableInfo[0] || {}));
     }
     
-    // Check categories table
-    const { data: categoriesData, error: categoriesError } = await supabase
-      .from('categories')
-      .select('count(*)', { count: 'exact', head: true });
-    
-    if (categoriesError) {
-      console.log('❌ Error accessing categories table:', categoriesError.message);
-    } else {
-      console.log('✅ Successfully connected to categories table');
-      console.log('📊 Categories count:', categoriesData);
-    }
-    
-  } catch (error) {
-    console.error('❌ Unexpected error:', error);
+  } catch (err) {
+    console.error('❌ Unexpected error:', err);
   }
 }
 
-testDatabaseConnection();
+testConnection();

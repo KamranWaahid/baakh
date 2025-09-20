@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { NumberFont, MixedContentWithNumbers } from "@/components/ui/NumberFont";
 import { getSmartFontClass } from "@/lib/font-detection-utils";
 import { getPrimaryPoetName, getSecondaryPoetName, getAvatarPoetName } from "@/lib/poet-name-utils";
@@ -61,6 +61,7 @@ export default function PoetsPage() {
   const pathname = usePathname();
   const isSindhi = pathname?.startsWith('/sd');
   const isRTL = isSindhi;
+  const router = useRouter();
   
   const [poets, setPoets] = useState<Poet[]>([]);
   const [loading, setLoading] = useState(true);
@@ -73,6 +74,10 @@ export default function PoetsPage() {
   const [perPage, setPerPage] = useState(12);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
+  const [databaseTags, setDatabaseTags] = useState<{[key: string]: string}>({});
+  const [tagsLoading, setTagsLoading] = useState(true);
+  const [poetStats, setPoetStats] = useState<{[key: string]: {views: number, poetryCount: number}}>({});
+  const [copiedPoetId, setCopiedPoetId] = useState<string | null>(null);
 
   // Multi-lingual content
   const content = {
@@ -128,6 +133,180 @@ export default function PoetsPage() {
 
   // Apply Sindhi font only if text contains Arabic/Sindhi characters
   const sd = (text?: string | null) => (text && /[\u0600-\u06FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(text) ? 'auto-sindhi-font' : '');
+  // Handlers for card actions
+  const handleViewClick = (poet: Poet) => {
+    const base = isSindhi ? '/sd' : '/en';
+    router.push(`${base}/poets/${poet.poet_slug}`);
+  };
+
+  const handleWorksClick = (poet: Poet) => {
+    const base = isSindhi ? '/sd' : '/en';
+    router.push(`${base}/couplets?poet=${poet.id}`);
+  };
+
+  const handleShareClick = async (poet: Poet) => {
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    const base = isSindhi ? '/sd' : '/en';
+    const url = `${origin}${base}/poets/${poet.poet_slug}`;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: poet.english_name || poet.sindhi_name || 'Poet', url });
+      } else if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url);
+        setCopiedPoetId(poet.id);
+        setTimeout(() => setCopiedPoetId((cur) => (cur === poet.id ? null : cur)), 1500);
+      } else {
+        // Fallback
+        const temp = document.createElement('input');
+        temp.value = url;
+        document.body.appendChild(temp);
+        temp.select();
+        document.execCommand('copy');
+        document.body.removeChild(temp);
+        setCopiedPoetId(poet.id);
+        setTimeout(() => setCopiedPoetId((cur) => (cur === poet.id ? null : cur)), 1500);
+      }
+    } catch (err) {
+      // ignore share errors
+    }
+  };
+
+
+  // Helper function to get translated tag
+  const getTranslatedTag = (tag: string, poet: Poet, tagIndex: number): string => {
+    // First check if we have a translation from the API at the specific index
+    if (poet.translated_tags && poet.translated_tags[tagIndex]) {
+      const translatedTag = poet.translated_tags[tagIndex];
+      if (translatedTag && translatedTag !== tag) {
+        return translatedTag;
+      }
+    }
+    
+    // Try database tags
+    const normalizedTag = tag.trim();
+    const lowerTag = normalizedTag.toLowerCase();
+    
+    // Check database tags
+    if (databaseTags[normalizedTag]) {
+      return databaseTags[normalizedTag];
+    }
+    
+    if (databaseTags[lowerTag]) {
+      return databaseTags[lowerTag];
+    }
+    
+    // Try with common variations for database tags
+    const variations = [
+      lowerTag.replace(/\s+/g, ' '), // normalize spaces
+      lowerTag.replace(/-/g, ' '),   // replace hyphens with spaces
+      lowerTag.replace(/\s+/g, '-'), // replace spaces with hyphens
+      lowerTag.replace(/s$/, ''),    // remove trailing 's'
+      lowerTag + 's'                 // add trailing 's'
+    ];
+    
+    for (const variation of variations) {
+      if (databaseTags[variation]) {
+        return databaseTags[variation];
+      }
+    }
+    
+    // If no translation found, return original tag
+    return normalizedTag;
+  };
+
+  // Helper function to get unique tags (deduplicated)
+  const getUniqueTags = (tags: string[]): string[] => {
+    const seen = new Set<string>();
+    const uniqueTags: string[] = [];
+    
+    for (const tag of tags) {
+      const normalizedTag = tag.toLowerCase().trim();
+      if (!seen.has(normalizedTag)) {
+        seen.add(normalizedTag);
+        uniqueTags.push(tag);
+      }
+    }
+    
+    return uniqueTags;
+  };
+
+  // Fetch poet statistics (views and poetry count)
+  const fetchPoetStats = async (poetIds: string[]) => {
+    try {
+      const response = await fetch(`/api/poets/stats?poetIds=${poetIds.join(',')}`);
+      if (response.ok) {
+        const data = await response.json();
+        const statsMap: {[key: string]: {views: number, poetryCount: number}} = {};
+        data.stats?.forEach((stat: any) => {
+          statsMap[stat.poet_id] = {
+            views: stat.total_views || 0,
+            poetryCount: stat.poetry_count || 0
+          };
+        });
+        setPoetStats(statsMap);
+      }
+    } catch (error) {
+      console.error('Error fetching poet stats:', error);
+    }
+  };
+
+  // Fetch tags from database
+  const fetchDatabaseTags = async () => {
+    try {
+      setTagsLoading(true);
+      const response = await fetch(`/api/tags?lang=${isSindhi ? 'sd' : 'en'}&type=Poet`);
+      if (response.ok) {
+        const data = await response.json();
+        const tagMap: {[key: string]: string} = {};
+        
+        // Create a comprehensive mapping from various tag formats to the translated title
+        data.tags?.forEach((tag: any) => {
+          const title = tag.title;
+          
+          // Map by slug
+          tagMap[tag.slug] = title;
+          
+          // Map by label
+          tagMap[tag.label] = title;
+          
+          // Map by slug variations (hyphen to space, etc.)
+          const slugVariations = [
+            tag.slug.replace(/-/g, ' '),
+            tag.slug.replace(/-/g, ' ').toLowerCase(),
+            tag.slug.replace(/-/g, ' ').toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase()),
+            tag.slug.replace(/-/g, ' ').toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase()).replace(/s$/, ''),
+            tag.slug.replace(/-/g, ' ').toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase()) + 's'
+          ];
+          
+          slugVariations.forEach(variation => {
+            tagMap[variation] = title;
+          });
+          
+          // Map by title variations
+          const titleVariations = [
+            title.toLowerCase(),
+            title.toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase()),
+            title.toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase()).replace(/s$/, ''),
+            title.toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase()) + 's'
+          ];
+          
+          titleVariations.forEach(variation => {
+            tagMap[variation] = title;
+          });
+        });
+        
+        setDatabaseTags(tagMap);
+        console.log('Database tags loaded:', Object.keys(tagMap).length);
+        console.log('Sample mappings:', Object.entries(tagMap).slice(0, 5));
+      } else {
+        console.warn('Failed to fetch database tags');
+      }
+    } catch (error) {
+      console.error('Error fetching database tags:', error);
+    } finally {
+      setTagsLoading(false);
+    }
+  };
 
   // Pagination logic
   const totalPages = Math.max(1, Math.ceil(total / perPage));
@@ -149,14 +328,19 @@ export default function PoetsPage() {
 
       console.log('Fetching poets with params:', params.toString());
       
+      // Create abort controller for timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      
       const response = await fetch(`/api/poets?${params}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
-        // Add timeout and retry logic
-        signal: AbortSignal.timeout(10000), // 10 second timeout
+        signal: controller.signal,
       });
+      
+      clearTimeout(timeoutId);
       
       if (response.ok) {
         const data: PoetsResponse = await response.json();
@@ -171,6 +355,12 @@ export default function PoetsPage() {
         });
         setPoets(data.poets || []);
         setTotal(data.total || 0);
+        
+        // Fetch statistics for the loaded poets
+        if (data.poets && data.poets.length > 0) {
+          const poetIds = data.poets.map((poet: Poet) => poet.id);
+          fetchPoetStats(poetIds);
+        }
       } else {
         console.error('Failed to fetch poets:', response.status, response.statusText);
         const errorMessage = `Failed to load poets (${response.status})`;
@@ -247,6 +437,11 @@ export default function PoetsPage() {
     setSortOrder('asc');
     setPage(1);
   };
+
+  // Fetch database tags on component mount
+  useEffect(() => {
+    fetchDatabaseTags();
+  }, [isSindhi]);
 
   useEffect(() => {
     // Check network status before fetching
@@ -438,130 +633,118 @@ export default function PoetsPage() {
           </div>
         </motion.section>
 
-        {/* Search and Filters */}
+        {/* Search and Filters - Always Visible */}
         <motion.section 
           className="mb-8"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
         >
-          {loading ? (
-            <div className="bg-white rounded-2xl border border-gray-200/50 shadow-sm p-4">
-              <div className="animate-pulse">
-                {/* Search Bar skeleton */}
-                <div className="mb-4">
-                  <div className="max-w-lg">
-                    <div className="h-10 bg-gray-200 rounded-xl"></div>
+          <div className="bg-white rounded-2xl border border-gray-200/50 shadow-sm p-4">
+            {/* Search Bar */}
+            <div className="mb-4">
+              <div className="relative max-w-lg">
+                <Search className={`absolute top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 ${isRTL ? 'right-4' : 'left-4'}`} />
+                <Input
+                  type="text"
+                  placeholder={content.searchPlaceholder}
+                  value={searchQuery}
+                  onChange={(e) => handleSearch(e.target.value)}
+                  className={`h-10 text-base ${isRTL ? 'pr-12' : 'pl-12'} border-gray-200 bg-gray-50/50 focus:bg-white focus:border-gray-300 rounded-xl transition-all duration-200 ${getSmartFontClass(content.searchPlaceholder)} ${loading ? 'opacity-75' : ''}`}
+                  disabled={loading}
+                />
+                {loading && (
+                  <div className={`absolute top-1/2 transform -translate-y-1/2 ${isRTL ? 'left-4' : 'right-4'}`}>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-400"></div>
                   </div>
-                </div>
-                {/* Filters Row skeleton */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-                  {Array.from({ length: 4 }).map((_, index) => (
-                    <div key={index}>
-                      <div className="h-4 bg-gray-200 rounded w-16 mb-1"></div>
-                      <div className="h-10 bg-gray-200 rounded-xl"></div>
-                    </div>
-                  ))}
-                </div>
+                )}
               </div>
             </div>
-          ) : (
-            <div className="bg-white rounded-2xl border border-gray-200/50 shadow-sm p-4">
-              {/* Search Bar */}
-              <div className="mb-4">
-                <div className="relative max-w-lg">
-                  <Search className={`absolute top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 ${isRTL ? 'right-4' : 'left-4'}`} />
-                  <Input
-                    type="text"
-                    placeholder={content.searchPlaceholder}
-                    value={searchQuery}
-                    onChange={(e) => handleSearch(e.target.value)}
-                    className={`h-10 text-base ${isRTL ? 'pr-12' : 'pl-12'} border-gray-200 bg-gray-50/50 focus:bg-white focus:border-gray-300 rounded-xl transition-all duration-200 ${getSmartFontClass(content.searchPlaceholder)}`}
-                  />
-                </div>
-              </div>
 
-              {/* Filters Row */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-                {/* Period Filter */}
-                <div>
-                  <label className={`block text-xs font-semibold text-gray-700 mb-1 ${getSmartFontClass(content.period)}`}>
-                    {content.period}
-                  </label>
-                  <div className="relative group">
-                    <select
-                      value={selectedPeriod}
-                      onChange={(e) => handlePeriodChange(e.target.value)}
-                      className={`w-full p-2 pr-8 text-sm border border-gray-200 rounded-xl bg-gray-50/50 focus:bg-white focus:border-gray-300 focus:ring-2 focus:ring-gray-100 transition-all duration-200 appearance-none cursor-pointer ${getSmartFontClass(selectedPeriod)}`}
-                    >
-                      {periods.map((period) => (
-                        <option key={period} value={period} className={getSmartFontClass(period)}>
-                          {period}
-                        </option>
-                      ))}
-                    </select>
-                    <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
-                      <ChevronDown className="h-4 w-4 text-gray-400 transition-transform duration-200 group-hover:rotate-180" />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Sort By */}
-                <div>
-                  <label className={`block text-xs font-semibold text-gray-700 mb-1 ${getSmartFontClass(content.sortByName)}`}>
-                    {content.sortByName}
-                  </label>
-                  <div className="relative group">
-                    <select
-                      value={sortBy}
-                      onChange={(e) => handleSort(e.target.value as typeof sortBy)}
-                      className={`w-full p-2 pr-8 text-sm border border-gray-200 rounded-xl bg-gray-50/50 focus:bg-white focus:border-gray-300 focus:ring-2 focus:ring-gray-100 transition-all duration-200 appearance-none cursor-pointer`}
-                    >
-                      <option value="english_name" className={getSmartFontClass(content.sortByName)}>{content.sortByName}</option>
-                      <option value="birth_date" className={getSmartFontClass(content.sortByDate)}>{content.sortByDate}</option>
-                      <option value="is_featured" className={getSmartFontClass(content.sortByFeatured)}>{content.sortByFeatured}</option>
-                    </select>
-                    <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
-                      <ChevronDown className="h-4 w-4 text-gray-400 transition-transform duration-200 group-hover:rotate-180" />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Sort Order */}
-                <div>
-                  <label className={`block text-xs font-semibold text-gray-700 mb-1 ${getSmartFontClass(content.ascending)}`}>
-                    {content.ascending}
-                  </label>
-                  <div className="relative group">
-                    <select
-                      value={sortOrder}
-                      onChange={(e) => setSortOrder(e.target.value as 'asc' | 'desc')}
-                      className={`w-full p-2 pr-8 text-sm border border-gray-200 rounded-xl bg-gray-50/50 focus:bg-white focus:border-gray-300 focus:ring-2 focus:ring-gray-100 transition-all duration-200 appearance-none cursor-pointer`}
-                    >
-                      <option value="asc" className={getSmartFontClass(content.ascending)}>{content.ascending}</option>
-                      <option value="desc" className={getSmartFontClass(content.descending)}>{content.descending}</option>
-                    </select>
-                    <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
-                      <ChevronDown className="h-4 w-4 text-gray-400 transition-transform duration-200 group-hover:rotate-180" />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Clear Filters Button */}
-                <div className="flex items-end">
-                  <Button 
-                    onClick={clearFilters} 
-                    variant="outline" 
-                    className="w-full border border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 rounded-xl px-4 py-2 h-10 text-sm"
+            {/* Filters Row */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+              {/* Period Filter */}
+              <div>
+                <label className={`block text-xs font-semibold text-gray-700 mb-1 ${getSmartFontClass(content.period)}`}>
+                  {content.period}
+                </label>
+                <div className="relative group">
+                  <select
+                    value={selectedPeriod}
+                    onChange={(e) => handlePeriodChange(e.target.value)}
+                    disabled={loading}
+                    className={`w-full p-2 pr-8 text-sm border border-gray-200 rounded-xl bg-gray-50/50 focus:bg-white focus:border-gray-300 focus:ring-2 focus:ring-gray-100 transition-all duration-200 appearance-none cursor-pointer ${getSmartFontClass(selectedPeriod)} ${loading ? 'opacity-75' : ''}`}
                   >
-                    <span className={`font-medium ${getSmartFontClass(content.clearFilters)}`}>
-                      {content.clearFilters}
-                    </span>
-                  </Button>
+                    {periods.map((period) => (
+                      <option key={period} value={period} className={getSmartFontClass(period)}>
+                        {period}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                    <ChevronDown className="h-4 w-4 text-gray-400 transition-transform duration-200 group-hover:rotate-180" />
+                  </div>
                 </div>
               </div>
+
+              {/* Sort By */}
+              <div>
+                <label className={`block text-xs font-semibold text-gray-700 mb-1 ${getSmartFontClass(content.sortByName)}`}>
+                  {content.sortByName}
+                </label>
+                <div className="relative group">
+                  <select
+                    value={sortBy}
+                    onChange={(e) => handleSort(e.target.value as typeof sortBy)}
+                    disabled={loading}
+                    className={`w-full p-2 pr-8 text-sm border border-gray-200 rounded-xl bg-gray-50/50 focus:bg-white focus:border-gray-300 focus:ring-2 focus:ring-gray-100 transition-all duration-200 appearance-none cursor-pointer ${loading ? 'opacity-75' : ''}`}
+                  >
+                    <option value="english_name" className={getSmartFontClass(content.sortByName)}>{content.sortByName}</option>
+                    <option value="birth_date" className={getSmartFontClass(content.sortByDate)}>{content.sortByDate}</option>
+                    <option value="is_featured" className={getSmartFontClass(content.sortByFeatured)}>{content.sortByFeatured}</option>
+                  </select>
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                    <ChevronDown className="h-4 w-4 text-gray-400 transition-transform duration-200 group-hover:rotate-180" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Sort Order */}
+              <div>
+                <label className={`block text-xs font-semibold text-gray-700 mb-1 ${getSmartFontClass(content.ascending)}`}>
+                  {content.ascending}
+                </label>
+                <div className="relative group">
+                  <select
+                    value={sortOrder}
+                    onChange={(e) => setSortOrder(e.target.value as 'asc' | 'desc')}
+                    disabled={loading}
+                    className={`w-full p-2 pr-8 text-sm border border-gray-200 rounded-xl bg-gray-50/50 focus:bg-white focus:border-gray-300 focus:ring-2 focus:ring-gray-100 transition-all duration-200 appearance-none cursor-pointer ${loading ? 'opacity-75' : ''}`}
+                  >
+                    <option value="asc" className={getSmartFontClass(content.ascending)}>{content.ascending}</option>
+                    <option value="desc" className={getSmartFontClass(content.descending)}>{content.descending}</option>
+                  </select>
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                    <ChevronDown className="h-4 w-4 text-gray-400 transition-transform duration-200 group-hover:rotate-180" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Clear Filters Button */}
+              <div className="flex items-end">
+                <Button 
+                  onClick={clearFilters} 
+                  variant="outline" 
+                  disabled={loading}
+                  className={`w-full border border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 rounded-xl px-4 py-2 h-10 text-sm ${loading ? 'opacity-75' : ''}`}
+                >
+                  <span className={`font-medium ${getSmartFontClass(content.clearFilters)}`}>
+                    {content.clearFilters}
+                  </span>
+                </Button>
+              </div>
             </div>
-          )}
+          </div>
         </motion.section>
 
         {/* Results Summary */}
@@ -571,14 +754,12 @@ export default function PoetsPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.3 }}
         >
-          {loading ? (
-            <div className="bg-white rounded-2xl border border-gray-200/50 shadow-sm p-6">
+          <div className="bg-white rounded-2xl border border-gray-200/50 shadow-sm p-6">
+            {loading ? (
               <div className="animate-pulse">
                 <div className="h-6 bg-gray-200 rounded w-1/2 mx-auto"></div>
               </div>
-            </div>
-          ) : (
-            <div className="bg-white rounded-2xl border border-gray-200/50 shadow-sm p-6">
+            ) : (
               <p className={`text-gray-600 text-lg mb-3 ${getSmartFontClass(content.showing)}`}>
                 {isSindhi ? (
                   <>پاڻ کي <NumberFont className="font-semibold text-gray-900">{total}</NumberFont> شاعر مليا آھن، جنھن مان پيج <NumberFont className="font-semibold text-gray-900">{startIdx}-{Math.min(startIdx + poets.length - 1, total)}</NumberFont> ڏيکار رھيا آھون.</>
@@ -586,8 +767,8 @@ export default function PoetsPage() {
                   <>{content.showing} <NumberFont className="font-semibold text-gray-900">{startIdx}-{Math.min(startIdx + poets.length - 1, total)}</NumberFont> {content.of} <NumberFont className="font-semibold text-gray-900">{total}</NumberFont> {content.poetsFound}</>
                 )}
               </p>
-            </div>
-          )}
+            )}
+          </div>
         </motion.div>
 
         {/* Poets Grid */}
@@ -679,13 +860,19 @@ export default function PoetsPage() {
                                 target.style.display = 'none';
                                 const parent = target.parentElement;
                                 if (parent) {
+                                  // Create avatar element safely without innerHTML
                                   const avatar = document.createElement('div');
                                   avatar.className = 'w-full h-full flex items-center justify-center';
-                                  avatar.innerHTML = `
-                                    <div class="w-24 h-24 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
-                                      <span class="text-2xl font-semibold text-gray-700 ${getSmartFontClass(getAvatarPoetName(poet, isSindhi))}">${getAvatarPoetName(poet, isSindhi).charAt(0)}</span>
-                                    </div>
-                                  `;
+                                  
+                                  const innerDiv = document.createElement('div');
+                                  innerDiv.className = 'w-24 h-24 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center';
+                                  
+                                  const span = document.createElement('span');
+                                  span.className = `text-2xl font-semibold text-gray-700 ${getSmartFontClass(getAvatarPoetName(poet, isSindhi))}`;
+                                  span.textContent = getAvatarPoetName(poet, isSindhi).charAt(0);
+                                  
+                                  innerDiv.appendChild(span);
+                                  avatar.appendChild(innerDiv);
                                   parent.appendChild(avatar);
                                 }
                               }}
@@ -705,7 +892,10 @@ export default function PoetsPage() {
                         {centuryBadge && (
                           <div className="absolute top-3 left-3">
                             <Badge className={`${centuryBadge.color} border px-3 py-1 rounded-full text-xs font-semibold ${getSmartFontClass(centuryBadge.label)}`}>
-                              {centuryBadge.label}
+                              <MixedContentWithNumbers 
+                                text={centuryBadge.label}
+                                className="text-xs"
+                              />
                             </Badge>
                           </div>
                         )}
@@ -724,15 +914,15 @@ export default function PoetsPage() {
                       </div>
 
                       {/* Poet Info */}
-                      <CardContent className="p-6">
+                      <CardContent className="px-5 pt-0 pb-5">
                         {/* Main title as Laqab, subtitle as Tagline */}
-                        <div className="mb-4">
-                          <h3 className={`text-xl ${isSindhi ? 'font-bold' : 'font-semibold'} text-gray-900 mb-2 ${getSmartFontClass(getDisplayName(poet))}`}>
+                        <div className="mb-0">
+                          <h3 className={`text-xl ${isSindhi ? 'font-bold' : 'font-semibold'} text-gray-900 ${getSmartFontClass(getDisplayName(poet))}`}>
                             {getDisplayName(poet)}
                           </h3>
                           {/* Show secondary name if available */}
                           {getSecondaryPoetName(poet, isSindhi) && (
-                            <p className={`text-sm text-gray-600 ${getSmartFontClass(getSecondaryPoetName(poet, isSindhi)!)}`}>
+                            <p className={`text-sm text-gray-500 -mt-1 ${getSmartFontClass(getSecondaryPoetName(poet, isSindhi)!)}`}>
                               {getSecondaryPoetName(poet, isSindhi)}
                             </p>
                           )}
@@ -740,14 +930,14 @@ export default function PoetsPage() {
 
                         {/* Tagline as subtitle */}
                         {getDisplayTagline(poet) && (
-                          <p className={`text-gray-600 text-xs mb-4 line-clamp-2 leading-relaxed ${isSindhi ? 'font-medium' : 'font-light'} ${getSmartFontClass(getDisplayTagline(poet))}`}>
+                          <p className={`text-gray-500 text-xs mb-3 line-clamp-2 leading-relaxed ${isSindhi ? 'font-light' : 'font-light'} ${getSmartFontClass(getDisplayTagline(poet) || '')}`}>
                             {getDisplayTagline(poet)}
                           </p>
                         )}
 
                         {/* Years Active */}
                         {yearsActive && (
-                          <div className="flex items-center gap-2 text-sm text-gray-600 mb-4">
+                          <div className="flex items-center gap-2 text-sm text-gray-600 mb-3">
                             <Calendar className="h-4 w-4 text-gray-500" />
                             <MixedContentWithNumbers 
                               text={yearsActive || ''}
@@ -757,60 +947,74 @@ export default function PoetsPage() {
                         )}
 
                         {/* Tags */}
-                        {poet.tags && poet.tags.length > 0 && (
-                          <div className="flex flex-wrap gap-2 mb-6">
-                            {poet.tags.slice(0, 2).map((tag, tagIndex) => {
-                              // Use translated tags if available, otherwise fall back to original tag
-                              let displayTag = tag;
-                              
-                              if (poet.translated_tags && poet.translated_tags[tagIndex]) {
-                                displayTag = poet.translated_tags[tagIndex];
-                              } else if (poet.translated_tags && poet.translated_tags.length > 0) {
-                                // Try to find translation by matching tag ID position
-                                const translation = poet.translated_tags.find((_, index) => index === tagIndex);
-                                if (translation) {
-                                  displayTag = translation;
-                                }
-                              }
-                              
-                              return (
-                                <span 
-                                  key={tagIndex}
-                                  className={`inline-block px-3 py-1.5 text-xs bg-gray-100 text-gray-700 rounded-full border border-gray-200 font-medium ${getSmartFontClass(displayTag)}`}
-                                >
-                                  {displayTag}
+                        {poet.tags && poet.tags.length > 0 && (() => {
+                          const uniqueTags = getUniqueTags(poet.tags);
+                          const displayTags = uniqueTags.slice(0, 2);
+                          
+                          return (
+                            <div className="flex flex-wrap gap-2 mb-4">
+                              {displayTags.map((tag, tagIndex) => {
+                                // Use the helper function to get translated tag
+                                const displayTag = getTranslatedTag(tag, poet, tagIndex);
+                                
+                                return (
+                                  <span 
+                                    key={`${poet.id}-tag-${tagIndex}-${tag}`}
+                                    className={`inline-block px-3 py-1.5 text-xs bg-gray-100 text-gray-700 rounded-full border border-gray-200 font-medium ${getSmartFontClass(displayTag)} ${tagsLoading ? 'opacity-50' : ''}`}
+                                  >
+                                    {tagsLoading ? '...' : displayTag}
+                                  </span>
+                                );
+                              })}
+                              {uniqueTags.length > 2 && (
+                                <span className={`inline-block px-3 py-1.5 text-xs bg-gray-100 text-gray-600 rounded-full border border-gray-200 font-medium ${tagsLoading ? 'opacity-50' : ''}`}>
+                                  +<NumberFont size="xs">{uniqueTags.length - 2}</NumberFont>
                                 </span>
-                              );
-                            })}
-                            {poet.tags.length > 2 && (
-                              <span className="inline-block px-3 py-1.5 text-xs bg-gray-100 text-gray-600 rounded-full border border-gray-200 font-medium">
-                                +<NumberFont size="xs">{poet.tags.length - 2}</NumberFont>
-                              </span>
-                            )}
-                          </div>
-                        )}
+                              )}
+                            </div>
+                          );
+                        })()}
 
                         {/* Action Buttons - Medium.com Style with Icons and Numbers */}
-                        <div className="flex items-center justify-between mb-4">
-                          <div className="flex items-center gap-4 text-sm text-gray-500">
-                            <button className="flex items-center gap-1 hover:text-gray-700 transition-colors">
-                              <Eye className="h-4 w-4" />
-                              <NumberFont className={isSindhi ? 'font-medium' : 'font-light'}>300</NumberFont>
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-4 text-xs text-gray-400">
+                            <button
+                              onClick={() => handleViewClick(poet)}
+                              aria-label={content.views}
+                              className="flex items-center gap-1 hover:text-gray-600 transition-colors"
+                            >
+                              <Eye className="h-3 w-3" />
+                              <NumberFont className="text-xs font-light">
+                                {poetStats[poet.id]?.views || 0}
+                              </NumberFont>
                             </button>
-                            <button className="flex items-center gap-1 hover:text-gray-700 transition-colors">
-                              <BookOpenCheck className="h-4 w-4" />
-                              <NumberFont className={isSindhi ? 'font-medium' : 'font-light'}>400</NumberFont>
+                            <button
+                              onClick={() => handleWorksClick(poet)}
+                              aria-label={content.works}
+                              className="flex items-center gap-1 hover:text-gray-600 transition-colors"
+                            >
+                              <BookOpenCheck className="h-3 w-3" />
+                              <NumberFont className="text-xs font-light">
+                                {poetStats[poet.id]?.poetryCount || 0}
+                              </NumberFont>
                             </button>
                           </div>
-                          <button className="flex items-center gap-1 text-gray-500 hover:text-gray-700 transition-colors">
-                            <Share className="h-4 w-4" />
+                          <button
+                            onClick={() => handleShareClick(poet)}
+                            aria-label={content.share}
+                            className="flex items-center gap-1 text-gray-400 hover:text-gray-600 transition-colors"
+                          >
+                            <Share className={`h-3 w-3 ${copiedPoetId === poet.id ? 'text-green-600' : ''}`} />
+                            {copiedPoetId === poet.id && (
+                              <span className="text-[10px] text-green-600">{isSindhi ? 'ڪاپي ٿيو' : 'Copied'}</span>
+                            )}
                           </button>
                         </div>
 
                         {/* View Profile Button */}
                         <Button 
                           asChild 
-                          className="w-full bg-gray-900 hover:bg-gray-800 text-white border-0 rounded-xl py-3 transition-all duration-200" 
+                          className="w-full bg-gray-900 hover:bg-gray-800 text-white border border-gray-300 rounded-xl py-3 transition-all duration-200" 
                           size="lg"
                         >
                           <Link href={isSindhi ? `/sd/poets/${poet.poet_slug}` : `/en/poets/${poet.poet_slug}`}>
@@ -853,7 +1057,7 @@ export default function PoetsPage() {
                   size="lg"
                   className="border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 rounded-xl px-6 py-3 disabled:opacity-50"
                 >
-                  <span className={`font-medium ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+                  <span className="font-medium font-inter">
                     {isRTL ? '→' : '←'}
                   </span>
                 </Button>
@@ -883,7 +1087,7 @@ export default function PoetsPage() {
                   size="lg"
                   className="border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 rounded-xl px-6 py-3 disabled:opacity-50"
                 >
-                  <span className={`font-medium ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+                  <span className="font-medium font-inter">
                     {isRTL ? '←' : '→'}
                   </span>
                 </Button>

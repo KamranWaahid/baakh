@@ -6,7 +6,7 @@ This guide shows how to use the comprehensive Sindhi font classes that have been
 
 ### **Base Font Classes**
 ```css
-.sindhi-text          /* Basic Sindhi text with MB Lateefi SK 2.0 font */
+.sindhi-text          /* Basic Sindhi text with MB Lateefi font */
 .sindhi-heading       /* Sindhi heading with medium weight */
 .sindhi-body          /* Sindhi body text with larger size and line height */
 .sindhi-caption       /* Sindhi caption text for small descriptions */
@@ -172,7 +172,7 @@ This guide shows how to use the comprehensive Sindhi font classes that have been
 ### **Font Stack**
 The Sindhi font classes use this font stack:
 ```css
-font-family: 'MB Lateefi SK 2.0', 'Lateef', 'Noto Naskh Arabic', serif;
+font-family: 'MB Lateefi', 'Lateef', 'Noto Naskh Arabic', serif;
 ```
 
 ### **Font Features**

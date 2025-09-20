@@ -1,26 +1,41 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import jwt from 'jsonwebtoken';
+import { withErrorHandling, ValidationError, AuthenticationError, SecurityError } from '@/lib/security/error-handler';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-export async function POST(request: NextRequest) {
-  try {
+async function loginHandler(request: NextRequest) {
+  if (process.env.NODE_ENV !== 'production') {
     console.log('🔐 Login API called at:', new Date().toISOString());
-    console.log('🔐 Request headers:', Object.fromEntries(request.headers.entries()));
-    
-    const body = await request.json();
-    const { username, password } = body;
-
-    if (!username || !password) {
-      return NextResponse.json(
-        { error: 'Missing username or password' },
-        { status: 400 }
-      );
+    console.log('🔐 Request URL:', request.url);
+    console.log('🔐 Request method:', request.method);
+  }
+  
+  let body;
+  try {
+    body = await request.json();
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('📝 Request body parsed');
     }
+  } catch (parseError) {
+    console.error('❌ Failed to parse request body:', parseError);
+    console.error('❌ Request body raw:', await request.text());
+    throw new ValidationError('Invalid JSON in request body', {
+      parseError: parseError instanceof Error ? parseError.message : String(parseError)
+    });
+  }
+  
+  const { username, password } = body;
+
+  if (!username || !password) {
+    throw new ValidationError('Username and password are required', {
+      providedFields: { username: !!username, password: !!password }
+    });
+  }
 
     console.log('🔐 Attempting login for username:', username);
 
@@ -32,14 +47,18 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error || !user) {
-      console.log('❌ User not found or error:', error);
-      return NextResponse.json(
-        { error: 'Invalid credentials' },
-        { status: 401 }
-      );
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('❌ User not found or error');
+      }
+      throw new AuthenticationError('Invalid credentials', {
+        username: username,
+        error: error?.message
+      });
     }
 
-    console.log('✅ User found:', { userId: user.user_id, username: user.username });
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('✅ User found');
+    }
 
     // Enhanced function to convert data from Supabase to base64 for client-side processing
     const convertToBase64 = (data: any, fieldName: string) => {
@@ -49,7 +68,10 @@ export async function POST(request: NextRequest) {
           isNull: data === null,
           isUndefined: data === undefined,
           constructor: data?.constructor?.name,
-          data: data
+          data: data,
+          dataLength: data?.length,
+          isString: typeof data === 'string',
+          isObject: typeof data === 'object' && data !== null
         });
         
         // Handle null/undefined
@@ -60,33 +82,39 @@ export async function POST(request: NextRequest) {
         
         // If it's already a Buffer object (from Supabase) - this is what we're getting
         if (data && typeof data === 'object' && data.type === 'Buffer' && Array.isArray(data.data)) {
-          console.log(`[${fieldName}] Converting Buffer object to base64:`, { 
-            type: data.type, 
-            dataLength: data.data.length,
-            dataSample: data.data.slice(0, 10)
-          });
+          if (process.env.NODE_ENV !== 'production') {
+            console.log(`[${fieldName}] Converting Buffer object to base64`);
+          }
           const buffer = Buffer.from(data.data);
           const base64 = buffer.toString('base64');
-          console.log(`[${fieldName}] Converted to base64, length:`, base64.length);
+          if (process.env.NODE_ENV !== 'production') {
+            console.log(`[${fieldName}] Converted to base64`);
+          }
           return base64;
         }
         
         // If it's a Buffer instance
         if (Buffer.isBuffer(data)) {
-          console.log(`[${fieldName}] Converting Buffer instance to base64, length:`, data.length);
+          if (process.env.NODE_ENV !== 'production') {
+            console.log(`[${fieldName}] Converting Buffer instance to base64`);
+          }
           return data.toString('base64');
         }
         
         // If it's a Uint8Array
         if (data instanceof Uint8Array) {
-          console.log(`[${fieldName}] Converting Uint8Array to base64, length:`, data.length);
+          if (process.env.NODE_ENV !== 'production') {
+            console.log(`[${fieldName}] Converting Uint8Array to base64`);
+          }
           const buffer = Buffer.from(data);
           return buffer.toString('base64');
         }
         
         // If it's a hex string with \x prefix (PostgreSQL bytea format)
         if (typeof data === 'string' && data.startsWith('\\x')) {
-          console.log(`[${fieldName}] Converting hex string to base64:`, data.substring(0, 50));
+          if (process.env.NODE_ENV !== 'production') {
+            console.log(`[${fieldName}] Converting hex string to base64`);
+          }
           
           // Check if this hex string represents a JSON Buffer object
           try {
@@ -100,29 +128,39 @@ export async function POST(request: NextRequest) {
             // Try to parse as JSON to see if it's a Buffer object
             const parsed = JSON.parse(jsonString);
             if (parsed && typeof parsed === 'object' && parsed.type === 'Buffer' && Array.isArray(parsed.data)) {
-              console.log(`[${fieldName}] Found Buffer object in hex, extracting data array`);
+              if (process.env.NODE_ENV !== 'production') {
+                console.log(`[${fieldName}] Found Buffer object in hex, extracting data array`);
+              }
               // This is a Buffer object stored as hex, extract the actual data
               const actualBytes = new Uint8Array(parsed.data);
               const base64 = Buffer.from(actualBytes).toString('base64');
-              console.log(`[${fieldName}] Extracted Buffer data and converted to base64, length:`, base64.length);
+              if (process.env.NODE_ENV !== 'production') {
+                console.log(`[${fieldName}] Extracted Buffer data and converted to base64`);
+              }
               return base64;
             }
           } catch (jsonError) {
             // Not a JSON Buffer object, treat as regular hex
-            console.log(`[${fieldName}] Not a JSON Buffer object, treating as regular hex`);
+            if (process.env.NODE_ENV !== 'production') {
+              console.log(`[${fieldName}] Not a JSON Buffer object, treating as regular hex`);
+            }
           }
           
           // Regular hex conversion
           const cleanHex = data.replace(/\\x/g, '');
           const buffer = Buffer.from(cleanHex, 'hex');
           const base64 = buffer.toString('base64');
-          console.log(`[${fieldName}] Converted hex to base64, length:`, base64.length);
+          if (process.env.NODE_ENV !== 'production') {
+            console.log(`[${fieldName}] Converted hex to base64`);
+          }
           return base64;
         }
         
         // If it's a regular hex string (without \x prefix)
         if (typeof data === 'string' && /^[0-9a-fA-F]+$/.test(data)) {
-          console.log(`[${fieldName}] Converting hex string to base64:`, data.substring(0, 50));
+          if (process.env.NODE_ENV !== 'production') {
+            console.log(`[${fieldName}] Converting hex string to base64`);
+          }
           
           // Check if this hex string represents a JSON Buffer object
           try {
@@ -135,22 +173,30 @@ export async function POST(request: NextRequest) {
             // Try to parse as JSON to see if it's a Buffer object
             const parsed = JSON.parse(jsonString);
             if (parsed && typeof parsed === 'object' && parsed.type === 'Buffer' && Array.isArray(parsed.data)) {
-              console.log(`[${fieldName}] Found Buffer object in hex, extracting data array`);
+              if (process.env.NODE_ENV !== 'production') {
+                console.log(`[${fieldName}] Found Buffer object in hex, extracting data array`);
+              }
               // This is a Buffer object stored as hex, extract the actual data
               const actualBytes = new Uint8Array(parsed.data);
               const base64 = Buffer.from(actualBytes).toString('base64');
-              console.log(`[${fieldName}] Extracted Buffer data and converted to base64, length:`, base64.length);
+              if (process.env.NODE_ENV !== 'production') {
+                console.log(`[${fieldName}] Extracted Buffer data and converted to base64`);
+              }
               return base64;
             }
           } catch (jsonError) {
             // Not a JSON Buffer object, treat as regular hex
-            console.log(`[${fieldName}] Not a JSON Buffer object, treating as regular hex`);
+            if (process.env.NODE_ENV !== 'production') {
+              console.log(`[${fieldName}] Not a JSON Buffer object, treating as regular hex`);
+            }
           }
           
           // Regular hex conversion
           const buffer = Buffer.from(data, 'hex');
           const base64 = buffer.toString('base64');
-          console.log(`[${fieldName}] Converted hex to base64, length:`, base64.length);
+          if (process.env.NODE_ENV !== 'production') {
+            console.log(`[${fieldName}] Converted hex to base64`);
+          }
           return base64;
         }
         
@@ -161,22 +207,30 @@ export async function POST(request: NextRequest) {
             try {
               const parsed = JSON.parse(data);
               if (parsed && typeof parsed === 'object' && parsed.type === 'Buffer' && Array.isArray(parsed.data)) {
-                console.log(`[${fieldName}] Parsing JSON Buffer string`);
+                if (process.env.NODE_ENV !== 'production') {
+                  console.log(`[${fieldName}] Parsing JSON Buffer string`);
+                }
                 const buffer = Buffer.from(parsed.data);
                 return buffer.toString('base64');
               }
             } catch (jsonErr) {
               // Not JSON; fall through
-              console.log(`[${fieldName}] String is not valid JSON Buffer; continuing checks`);
+              if (process.env.NODE_ENV !== 'production') {
+                console.log(`[${fieldName}] String is not valid JSON Buffer; continuing checks`);
+              }
             }
           }
 
           // Check if it looks like base64
           if (/^[A-Za-z0-9+/]*={0,2}$/.test(data)) {
-            console.log(`[${fieldName}] Data is already base64 string, length:`, data.length);
+            if (process.env.NODE_ENV !== 'production') {
+              console.log(`[${fieldName}] Data is already base64 string`);
+            }
             return data;
           } else {
-            console.log(`[${fieldName}] Data is string but doesn't look like base64, treating as raw bytes`);
+            if (process.env.NODE_ENV !== 'production') {
+              console.log(`[${fieldName}] Data is string but doesn't look like base64, treating as raw bytes`);
+            }
             const buffer = Buffer.from(data, 'utf8');
             return buffer.toString('base64');
           }
@@ -184,7 +238,9 @@ export async function POST(request: NextRequest) {
         
         // If it's an array of numbers
         if (Array.isArray(data)) {
-          console.log(`[${fieldName}] Converting array of numbers to base64, length:`, data.length);
+          if (process.env.NODE_ENV !== 'production') {
+            console.log(`[${fieldName}] Converting array of numbers to base64`);
+          }
           const buffer = Buffer.from(data);
           return buffer.toString('base64');
         }
@@ -234,9 +290,15 @@ export async function POST(request: NextRequest) {
       username: user.username,
       passwordSaltType: typeof user.password_salt,
       passwordSaltConstructor: user.password_salt?.constructor?.name,
+      passwordSaltValue: user.password_salt,
       passwordVerifierType: typeof user.password_verifier,
+      passwordVerifierValue: user.password_verifier,
       profileCipherType: typeof user.profile_cipher,
+      profileCipherValue: user.profile_cipher,
       masterKeyCipherType: typeof user.master_key_cipher,
+      masterKeyCipherValue: user.master_key_cipher,
+      masterKeyNonceType: typeof user.master_key_nonce,
+      masterKeyNonceValue: user.master_key_nonce,
       kdfParams: user.kdf_params
     });
 
@@ -257,7 +319,9 @@ export async function POST(request: NextRequest) {
       passwordVerifierNonce: convertToBase64(user.password_verifier_nonce || user.profile_nonce, 'passwordVerifierNonce')
     };
 
-    console.log('✅ Successfully converted all data to base64');
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('✅ Successfully converted all data to base64');
+    }
     
     // Validate that all required fields are present and not empty
     const requiredFields = [
@@ -281,13 +345,14 @@ export async function POST(request: NextRequest) {
     // Validate JWT secret
     if (!process.env.SUPABASE_JWT_SECRET) {
       console.error('❌ SUPABASE_JWT_SECRET environment variable is not set');
-      return NextResponse.json(
-        { error: 'Server configuration error' },
-        { status: 500 }
-      );
+      throw new SecurityError('Server configuration error', {
+        missingEnvVar: 'SUPABASE_JWT_SECRET'
+      });
     }
 
-    console.log('🔑 JWT secret length:', process.env.SUPABASE_JWT_SECRET.length);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('🔑 JWT secret is set');
+    }
 
     // Generate a JWT token for Supabase RLS
     let token;
@@ -303,7 +368,9 @@ export async function POST(request: NextRequest) {
         process.env.SUPABASE_JWT_SECRET,
         { algorithm: 'HS256' }
       );
-      console.log('✅ JWT token generated successfully');
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('✅ JWT token generated successfully');
+      }
     } catch (jwtError: any) {
       console.error('❌ JWT token generation failed:', jwtError);
       return NextResponse.json(
@@ -324,14 +391,28 @@ export async function POST(request: NextRequest) {
     response.headers.set('Expires', '0');
     response.headers.set('Surrogate-Control', 'no-store');
 
-    console.log('🔐 Login successful for user:', username);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('🔐 Login successful');
+    }
     return response;
 
-  } catch (error: any) {
-    console.error('❌ Login error:', error);
+}
+
+export const POST = withErrorHandling(async (request: NextRequest) => {
+  try {
+    return await loginHandler(request);
+  } catch (error) {
+    console.error('❌ Unhandled error in login handler:', error);
+    console.error('❌ Error stack:', error instanceof Error ? error.stack : 'No stack');
+    
+    // Return a proper error response
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { 
+        success: false, 
+        error: 'LOGIN_ERROR',
+        message: error instanceof Error ? error.message : 'Login failed'
+      },
       { status: 500 }
     );
   }
-}
+});

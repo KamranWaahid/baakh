@@ -1,7 +1,7 @@
 # Romanizer Mappings File
 # Format: sindhi_word|roman_word
 # This file is automatically updated when the database changes
-# Last updated: 2025-09-05
+# Last updated: 2025-09-07
 # Total entries: 18385
 
 ـ|-

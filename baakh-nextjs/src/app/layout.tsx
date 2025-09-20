@@ -1,15 +1,8 @@
 import type { Metadata, Viewport } from 'next'
-import { Inter } from 'next/font/google'
 import './globals.css'
+import GlobalErrorHandler from '@/components/GlobalErrorHandler'
 
-// Modern Font System - Only Inter
-const inter = Inter({ 
-  subsets: ['latin'],
-  display: 'swap',
-  weight: ['300', '400', '500', '600', '700'],
-  variable: '--font-inter',
-  preload: true,
-})
+// Modern Font System - Helvetica Now Text Regular (system font)
 
 
 export const metadata: Metadata = {
@@ -46,14 +39,10 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/icon.svg" />
         <link rel="manifest" href="/manifest.json" />
         
-        {/* Modern Font Preloading - Only Inter */}
-        <link
-          rel="preload"
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
-          as="style"
-        />
+        {/* Modern Font System - Helvetica Now Text Regular (system font) */}
       </head>
-      <body className={`${inter.variable}`}>
+      <body>
+        <GlobalErrorHandler />
         {children}
       </body>
     </html>
