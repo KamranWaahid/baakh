@@ -191,7 +191,7 @@ jobs:
         run: |
           cd baakh-nextjs
           echo "Running security tests..."
-          pnpm exec node scripts/security-test.js || echo "Security tests completed with warnings (non-blocking)"
+          node scripts/security-test.js || echo "Security tests completed with warnings (non-blocking)"
         continue-on-error: true
 
       - name: Run OWASP ZAP Baseline Scan

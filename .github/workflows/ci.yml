@@ -62,21 +62,21 @@ jobs:
       run: |
         cd baakh-nextjs
         echo "Running linting..."
-        pnpm exec next lint || echo "Linting completed with warnings (non-blocking)"
+        npx next lint || echo "Linting completed with warnings (non-blocking)"
       continue-on-error: true
         
     - name: Run security tests
       run: |
         cd baakh-nextjs
         echo "Running security tests..."
-        pnpm exec node scripts/security-test.js || echo "Security tests completed with warnings (non-blocking)"
+        node scripts/security-test.js || echo "Security tests completed with warnings (non-blocking)"
       continue-on-error: true
         
     - name: Build application
       run: |
         cd baakh-nextjs
         echo "Building application..."
-        pnpm exec next build || echo "Build completed with warnings (non-blocking)"
+        npx next build || echo "Build completed with warnings (non-blocking)"
       continue-on-error: true
         
     - name: Upload build artifacts
