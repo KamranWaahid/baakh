@@ -41,22 +41,16 @@ jobs:
     - name: Install frontend dependencies
       run: |
         cd baakh-nextjs
-        echo "Checking for pnpm-lock.yaml..."
-        if [ -f "pnpm-lock.yaml" ]; then
-          echo "Found pnpm-lock.yaml, attempting frozen lockfile install..."
-          pnpm install --frozen-lockfile || {
-            echo "Frozen lockfile failed, trying without frozen lockfile..."
-            pnpm install --no-frozen-lockfile
-          }
-        else
-          echo "No pnpm-lock.yaml found, using no-frozen-lockfile"
-          pnpm install --no-frozen-lockfile
-        fi
+        echo "Installing frontend dependencies..."
+        
+        # Always try no-frozen-lockfile first to avoid lockfile compatibility issues
+        echo "Installing with --no-frozen-lockfile to avoid compatibility issues..."
+        pnpm install --no-frozen-lockfile
+        
         echo "Verifying installation..."
         ls -la node_modules/.bin/ | head -10
         echo "Next.js version:"
         pnpm exec next --version || echo "Next.js not available in PATH"
-      continue-on-error: true
         
     - name: Run linting
       run: |
