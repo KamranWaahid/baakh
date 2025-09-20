@@ -190,7 +190,9 @@ jobs:
       - name: Run security tests
         run: |
           cd baakh-nextjs
-          npm run test:security || true
+          echo "Running security tests..."
+          npm run test:security || echo "Security tests completed with warnings (non-blocking)"
+        continue-on-error: true
 
       - name: Run OWASP ZAP Baseline Scan
         uses: zaproxy/action-baseline@v0.7.0
