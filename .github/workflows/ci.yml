@@ -25,18 +25,14 @@ jobs:
       with:
         version: 8
         
-    - name: Get pnpm store directory
-      shell: bash
-      run: |
-        echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-        
-    - name: Setup pnpm cache
+    - name: Setup pnpm cache (optional)
       uses: actions/cache@v4
       with:
-        path: ${{ env.STORE_PATH }}
-        key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+        path: ~/.pnpm-store
+        key: ${{ runner.os }}-pnpm-${{ hashFiles('baakh-nextjs/pnpm-lock.yaml') }}
         restore-keys: |
-          ${{ runner.os }}-pnpm-store-
+          ${{ runner.os }}-pnpm-
+      continue-on-error: true
           
     - name: Install root dependencies
       run: |
@@ -60,6 +56,7 @@ jobs:
         ls -la node_modules/.bin/ | head -10
         echo "Next.js version:"
         pnpm exec next --version || echo "Next.js not available in PATH"
+      continue-on-error: true
         
     - name: Run linting
       run: |
