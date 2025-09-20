@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import jwt from 'jsonwebtoken';
 import { withErrorHandling, ValidationError, AuthenticationError, SecurityError } from '@/lib/security/error-handler';
+import { withAuthRateLimit } from '@/lib/security/rate-limiter';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -63,16 +64,18 @@ async function loginHandler(request: NextRequest) {
     // Enhanced function to convert data from Supabase to base64 for client-side processing
     const convertToBase64 = (data: any, fieldName: string) => {
       try {
-        console.log(`[${fieldName}] convertToBase64 input:`, { 
-          type: typeof data, 
-          isNull: data === null,
-          isUndefined: data === undefined,
-          constructor: data?.constructor?.name,
-          data: data,
-          dataLength: data?.length,
-          isString: typeof data === 'string',
-          isObject: typeof data === 'object' && data !== null
-        });
+        if (process.env.NODE_ENV !== 'production') {
+          console.log(`[${fieldName}] convertToBase64 input:`, { 
+            type: typeof data, 
+            isNull: data === null,
+            isUndefined: data === undefined,
+            constructor: data?.constructor?.name,
+            data: data,
+            dataLength: data?.length,
+            isString: typeof data === 'string',
+            isObject: typeof data === 'object' && data !== null
+          });
+        }
         
         // Handle null/undefined
         if (data === null || data === undefined) {
@@ -284,23 +287,25 @@ async function loginHandler(request: NextRequest) {
       }
     };
 
-    // Log the raw user data to understand the format
-    console.log('Raw user data from database:', {
-      userId: user.user_id,
-      username: user.username,
-      passwordSaltType: typeof user.password_salt,
-      passwordSaltConstructor: user.password_salt?.constructor?.name,
-      passwordSaltValue: user.password_salt,
-      passwordVerifierType: typeof user.password_verifier,
-      passwordVerifierValue: user.password_verifier,
-      profileCipherType: typeof user.profile_cipher,
-      profileCipherValue: user.profile_cipher,
-      masterKeyCipherType: typeof user.master_key_cipher,
-      masterKeyCipherValue: user.master_key_cipher,
-      masterKeyNonceType: typeof user.master_key_nonce,
-      masterKeyNonceValue: user.master_key_nonce,
-      kdfParams: user.kdf_params
-    });
+    // Log the raw user data to understand the format (development only)
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('Raw user data from database:', {
+        userId: user.user_id,
+        username: user.username,
+        passwordSaltType: typeof user.password_salt,
+        passwordSaltConstructor: user.password_salt?.constructor?.name,
+        passwordSaltValue: user.password_salt,
+        passwordVerifierType: typeof user.password_verifier,
+        passwordVerifierValue: user.password_verifier,
+        profileCipherType: typeof user.profile_cipher,
+        profileCipherValue: user.profile_cipher,
+        masterKeyCipherType: typeof user.master_key_cipher,
+        masterKeyCipherValue: user.master_key_cipher,
+        masterKeyNonceType: typeof user.master_key_nonce,
+        masterKeyNonceValue: user.master_key_nonce,
+        kdfParams: user.kdf_params
+      });
+    }
 
     // Return encrypted data for client-side verification
     // The client will verify the password and decrypt the master key
@@ -398,7 +403,7 @@ async function loginHandler(request: NextRequest) {
 
 }
 
-export const POST = withErrorHandling(async (request: NextRequest) => {
+export const POST = withAuthRateLimit(withErrorHandling(async (request: NextRequest) => {
   try {
     return await loginHandler(request);
   } catch (error) {
@@ -415,4 +420,4 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
       { status: 500 }
     );
   }
-});
+}));

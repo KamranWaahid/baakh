@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { withSearchRateLimit } from '@/lib/security/rate-limiter';
+import { validateApiInput, apiSchemas, sanitizeSQLInput } from '@/lib/security/input-validation';
 
-export async function GET(req: NextRequest) {
+async function searchHandler(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const q = (searchParams.get('q') || '').trim();
@@ -10,23 +12,27 @@ export async function GET(req: NextRequest) {
     if (!q) {
       return NextResponse.json({ results: [] });
     }
+    
+    // Validate and sanitize search input
+    const searchData = validateApiInput({ q, lang }, apiSchemas.search);
+    const sanitizedQuery = sanitizeSQLInput(searchData.q);
 
     const supabase = createAdminClient();
     const results: any[] = [];
 
-    console.log('Searching for:', q, 'in language:', lang);
+    console.log('Searching for:', sanitizedQuery, 'in language:', lang);
 
-    // Search poets - including all name variations
+    // Search poets - including all name variations with sanitized query
     const { data: poets, error: poetsError } = await supabase
       .from('poets')
       .select('poet_id, sindhi_name, english_name, sindhi_laqab, english_laqab, sindhi_takhalus, english_takhalus, sindhi_tagline, english_tagline, poet_slug, file_url')
-      .or(`sindhi_name.ilike.%${q}%,english_name.ilike.%${q}%,poet_slug.ilike.%${q}%,sindhi_laqab.ilike.%${q}%,english_laqab.ilike.%${q}%,sindhi_takhalus.ilike.%${q}%,english_takhalus.ilike.%${q}%,sindhi_tagline.ilike.%${q}%,english_tagline.ilike.%${q}%`)
+      .or(`sindhi_name.ilike.%${sanitizedQuery}%,english_name.ilike.%${sanitizedQuery}%,poet_slug.ilike.%${sanitizedQuery}%,sindhi_laqab.ilike.%${sanitizedQuery}%,english_laqab.ilike.%${sanitizedQuery}%,sindhi_takhalus.ilike.%${sanitizedQuery}%,english_takhalus.ilike.%${sanitizedQuery}%,sindhi_tagline.ilike.%${sanitizedQuery}%,english_tagline.ilike.%${sanitizedQuery}%`)
       .limit(5);
 
     if (poets && !poetsError) {
       for (const poet of poets) {
         // Determine which name field matched and create appropriate display
-        const qLower = q.toLowerCase();
+        const qLower = sanitizedQuery.toLowerCase();
         let matchedField = '';
         let displayName = '';
         
@@ -110,7 +116,7 @@ export async function GET(req: NextRequest) {
           )
         `)
         .eq('poetry_translations.lang', lang)
-        .ilike('poetry_translations.title', `%${q}%`)
+        .ilike('poetry_translations.title', `%${sanitizedQuery}%`)
         .eq('visibility', true)
         .is('deleted_at', null)
         .limit(5);
@@ -146,7 +152,7 @@ export async function GET(req: NextRequest) {
           .from('poetry')
           .select('poetry_id, title, lang')
           .eq('lang', lang)
-          .ilike('title', `%${q}%`)
+          .ilike('title', `%${sanitizedQuery}%`)
           .limit(5);
 
         if (poetrySimple && !poetrySimpleError) {
@@ -181,7 +187,7 @@ export async function GET(req: NextRequest) {
     const { data: tags, error: tagsError } = await supabase
       .from('tags')
       .select('id, slug, label')
-      .or(`label.ilike.%${q}%,slug.ilike.%${q}%`)
+      .or(`label.ilike.%${sanitizedQuery}%,slug.ilike.%${sanitizedQuery}%`)
       .limit(3);
 
     if (tags && !tagsError) {
@@ -201,7 +207,7 @@ export async function GET(req: NextRequest) {
     }
 
     console.log('Search results:', {
-      query: q,
+      query: sanitizedQuery,
       lang,
       poets: poets?.length || 0,
       poetry: poetry?.length || 0,
@@ -215,3 +221,5 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ results: [] }, { status: 200 });
   }
 }
+
+export const GET = withSearchRateLimit(searchHandler);

@@ -24,20 +24,29 @@ const nextConfig = {
           },
           {
             key: 'Permissions-Policy',
-            value: 'camera=(), microphone=(), geolocation=()',
+            value: 'camera=(), microphone=(), geolocation=(), payment=(), usb=(), magnetometer=(), gyroscope=()',
+          },
+          {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=31536000; includeSubDomains; preload',
           },
           {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
-              "style-src 'self' 'unsafe-inline'",
-              "img-src 'self' data: https:",
-              "font-src 'self'",
+              "script-src 'self' 'strict-dynamic' 'nonce-{NONCE}'",
+              "style-src 'self' 'strict-dynamic' 'nonce-{NONCE}'",
+              "img-src 'self' data: https: blob:",
+              "font-src 'self' data:",
               "connect-src 'self' https://*.supabase.co https://uhbqcaxwfossrjwusclc.supabase.co",
               "frame-ancestors 'none'",
               "base-uri 'self'",
-              "form-action 'self'"
+              "form-action 'self'",
+              "object-src 'none'",
+              "media-src 'self'",
+              "worker-src 'self' blob:",
+              "child-src 'self' blob:",
+              "upgrade-insecure-requests"
             ].join('; '),
           },
         ],

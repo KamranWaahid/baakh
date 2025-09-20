@@ -165,16 +165,22 @@ export function createErrorResponse(
     responseData.details = {
       originalMessage: error.message,
       stack: error.stack,
-      context: details
+      context: sanitizeErrorContext(details)
     };
   } else if (isProduction && statusCode >= 500) {
     // In production, log detailed error but don't expose it
     console.error('Server Error:', {
       message: error.message,
       stack: error.stack,
-      context: details,
+      context: sanitizeErrorContext(details),
       timestamp: new Date().toISOString()
     });
+    
+    // In production, never expose internal error details
+    if (statusCode >= 500) {
+      responseData.message = 'An internal server error occurred';
+      responseData.error = 'INTERNAL_ERROR';
+    }
   }
 
   // Add retry information for rate limit errors

@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { withAdminAuth } from '@/lib/security/admin-auth';
+import { validateApiInput, apiSchemas } from '@/lib/security/input-validation';
 
-export async function GET(request: NextRequest) {
+async function getPoetryHandler(request: NextRequest) {
   try {
     const supabase = createAdminClient();
     
@@ -35,9 +37,10 @@ export async function GET(request: NextRequest) {
       query = query.order('id', { ascending: false });
     }
 
-    // Apply filters
+    // Apply filters with parameterized queries
     if (search) {
-      query = query.or(`poetry_slug.ilike.%${search}%,poetry_tags.ilike.%${search}%`);
+      const sanitizedSearch = search.replace(/[%_]/g, '\\$&'); // Escape SQL wildcards
+      query = query.or(`poetry_slug.ilike.%${sanitizedSearch}%,poetry_tags.ilike.%${sanitizedSearch}%`);
     }
     
     if (status !== 'all') {
@@ -146,14 +149,17 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function POST(request: NextRequest) {
+async function createPoetryHandler(request: NextRequest) {
   try {
     const supabase = createAdminClient();
     const body = await request.json();
+    
+    // Validate input data
+    const validatedData = validateApiInput(body, apiSchemas.poetry);
 
     const { data, error } = await supabase
       .from('poetry_main')
-      .insert([body])
+      .insert([validatedData])
       .select()
       .single();
 
@@ -169,7 +175,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function PUT(request: NextRequest) {
+async function updatePoetryHandler(request: NextRequest) {
   try {
     const supabase = createAdminClient();
     const body = await request.json();
@@ -179,10 +185,13 @@ export async function PUT(request: NextRequest) {
     if (!id) {
       return NextResponse.json({ error: 'Poetry ID is required' }, { status: 400 });
     }
+    
+    // Validate input data
+    const validatedData = validateApiInput(body, apiSchemas.poetry.partial());
 
     const { data, error } = await supabase
       .from('poetry_main')
-      .update(body)
+      .update(validatedData)
       .eq('id', id)
       .select()
       .single();
@@ -198,3 +207,8 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
+
+// Export with authorization middleware
+export const GET = withAdminAuth(getPoetryHandler);
+export const POST = withAdminAuth(createPoetryHandler);
+export const PUT = withAdminAuth(updatePoetryHandler);

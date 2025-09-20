@@ -9,8 +9,8 @@ async function testLoginAPI() {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        username: 'user',
-        password: 'password'
+        username: process.env.TEST_USERNAME || 'testuser',
+        password: process.env.TEST_PASSWORD || 'testpass'
       })
     });
     
