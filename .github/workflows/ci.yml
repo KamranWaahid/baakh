@@ -44,7 +44,7 @@ jobs:
         echo "Installing frontend dependencies..."
         
         # Always try no-frozen-lockfile first to avoid lockfile compatibility issues
-        echo "Installing with --no-frozen-lockfile to avoid compatibility issues..."
+        echo "Installing with --no-frozen-lockfile to avoid compatibility issues (v2)..."
         pnpm install --no-frozen-lockfile
         
         echo "Verifying installation..."
@@ -102,7 +102,7 @@ jobs:
     - name: Install dependencies
       run: |
         cd baakh-nextjs
-        echo "Installing dependencies with --no-frozen-lockfile to avoid compatibility issues..."
+        echo "Installing dependencies with --no-frozen-lockfile to avoid compatibility issues (v2)..."
         pnpm install --no-frozen-lockfile
         
     - name: Run ZAP security scan
