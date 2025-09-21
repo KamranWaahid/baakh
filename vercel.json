@@ -12,7 +12,7 @@
       "dest": "baakh-nextjs/$1"
     }
   ],
-  "installCommand": "cd baakh-nextjs && npm install",
-  "buildCommand": "cd baakh-nextjs && npm run build",
+  "installCommand": "cd baakh-nextjs && pnpm install",
+  "buildCommand": "cd baakh-nextjs && pnpm run build",
   "outputDirectory": "baakh-nextjs/.next"
 }
