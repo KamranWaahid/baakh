@@ -23,10 +23,10 @@ export function getNonce(): string {
 export function createCSPHeader(nonce: string): string {
   return [
     "default-src 'self'",
-    `script-src 'self' 'strict-dynamic' 'nonce-${nonce}'`,
-    `style-src 'self' 'strict-dynamic' 'nonce-${nonce}'`,
+    `script-src 'self' 'strict-dynamic' 'nonce-${nonce}' 'unsafe-inline'`,
+    `style-src 'self' 'strict-dynamic' 'nonce-${nonce}' 'unsafe-inline' https://fonts.googleapis.com`,
     "img-src 'self' data: https: blob:",
-    "font-src 'self' data:",
+    "font-src 'self' data: https://fonts.gstatic.com https://r2cdn.perplexity.ai",
     "connect-src 'self' https://*.supabase.co https://uhbqcaxwfossrjwusclc.supabase.co",
     "frame-ancestors 'none'",
     "base-uri 'self'",

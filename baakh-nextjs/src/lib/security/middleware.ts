@@ -6,6 +6,7 @@ import { detectThreats, detectSuspiciousAPIUsage } from './threat-detection';
 import { createSecurityAlert } from './alerts';
 import { getClientIP } from './ip-whitelist';
 import { apiRateLimiter, authRateLimiter, adminRateLimiter } from './redis-rate-limiter';
+import { generateNonce, createCSPHeader } from './nonce';
 
 /**
  * CSRF Protection Middleware
@@ -153,20 +154,12 @@ export function withSecurityHeaders(handler: (req: NextRequest) => Promise<NextR
     response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
     response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
     
-    // Content Security Policy
-    const csp = [
-      "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
-      "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: https:",
-      "font-src 'self'",
-      "connect-src 'self'",
-      "frame-ancestors 'none'",
-      "base-uri 'self'",
-      "form-action 'self'"
-    ].join('; ');
+    // Content Security Policy with proper nonce
+    const nonce = generateNonce();
+    const csp = createCSPHeader(nonce);
     
     response.headers.set('Content-Security-Policy', csp);
+    response.headers.set('X-Nonce', nonce);
     
     return response;
   };

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { generateNonce, createCSPHeader } from './src/lib/security/nonce';
 
 export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
@@ -43,7 +44,21 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(newUrl);
   }
 
-  return NextResponse.next();
+  const response = NextResponse.next();
+  
+  // Add security headers to all responses
+  const nonce = generateNonce();
+  const csp = createCSPHeader(nonce);
+  
+  response.headers.set('X-Content-Type-Options', 'nosniff');
+  response.headers.set('X-Frame-Options', 'DENY');
+  response.headers.set('X-XSS-Protection', '1; mode=block');
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  response.headers.set('Content-Security-Policy', csp);
+  response.headers.set('X-Nonce', nonce);
+  
+  return response;
 }
 
 export const config = {
