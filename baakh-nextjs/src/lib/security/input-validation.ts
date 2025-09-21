@@ -173,7 +173,7 @@ export function validateInput<T>(data: unknown, schema: z.ZodSchema<T>): T {
     return schema.parse(data);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      const errorMessages = error.errors.map(err => 
+      const errorMessages = error.issues.map((err: any) => 
         `${err.path.join('.')}: ${err.message}`
       ).join(', ');
       throw new Error(`Validation error: ${errorMessages}`);

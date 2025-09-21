@@ -58,6 +58,7 @@ export async function PATCH(
       );
     }
 
+    const supabase = await supabaseServer();
     const { data: period, error } = await supabase
       .from('timeline_periods')
       .update(body)

@@ -58,6 +58,7 @@ export async function PATCH(
       );
     }
 
+    const supabase = await supabaseServer();
     const { data: event, error } = await supabase
       .from('timeline_events')
       .update(body)

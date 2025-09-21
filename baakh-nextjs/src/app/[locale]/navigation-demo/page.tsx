@@ -260,14 +260,6 @@ export default function NavigationDemoPage() {
                     currentPage={mockData.currentPage}
                     totalPages={mockData.totalPages}
                     onPageChange={setCurrentPage}
-                    sortOptions={sortOptions}
-                    currentSort="newest"
-                    onSortChange={(sort: string) => console.log('Sort changed:', sort)}
-                    filterOptions={filterOptions}
-                    currentFilter=""
-                    onFilterChange={(filter: string) => console.log('Filter changed:', filter)}
-                    showFilters={showFilters}
-                    onToggleFilters={() => setShowFilters(!showFilters)}
                   />
                 </div>
 

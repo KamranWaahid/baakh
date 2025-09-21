@@ -90,6 +90,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const supabase = await supabaseServer();
     const { data: event, error } = await supabase
       .from('timeline_events')
       .insert({
