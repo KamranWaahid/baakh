@@ -5,8 +5,8 @@ import { getClientIP } from './ip-whitelist';
 export interface SecurityError extends Error {
   code: string;
   statusCode: number;
-  isOperational?: boolean;
-  context?: Record<string, any>;
+  isOperational: boolean;
+  context: Record<string, any>;
 }
 
 export class AppError extends Error implements SecurityError {

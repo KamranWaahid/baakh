@@ -5,8 +5,9 @@
     "dev:frontend": "npm --prefix baakh-nextjs run dev",
     "dev:backend": "npm --prefix backend run dev",
     "dev": "concurrently -k -n frontend,backend -c auto \"npm:dev:frontend\" \"npm:dev:backend\"",
-    "build": "npm --prefix baakh-nextjs run build",
-    "start": "npm --prefix baakh-nextjs run start"
+    "build": "cd baakh-nextjs && npm install && npm run build",
+    "start": "cd baakh-nextjs && npm run start",
+    "install": "cd baakh-nextjs && npm install"
   },
   "devDependencies": {
     "concurrently": "^9.0.1"

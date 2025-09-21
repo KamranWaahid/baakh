@@ -1,0 +1,18 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "baakh-nextjs/package.json",
+      "use": "@vercel/next"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "baakh-nextjs/$1"
+    }
+  ],
+  "installCommand": "cd baakh-nextjs && npm install",
+  "buildCommand": "cd baakh-nextjs && npm run build",
+  "outputDirectory": "baakh-nextjs/.next"
+}
