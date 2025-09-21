@@ -20,23 +20,26 @@ export default async function LocaleLayout({
   params
 }: {
   children: React.ReactNode;
-  params: Promise<{ locale?: 'sd' | 'en' }>;
+  params: Promise<{ locale: string }>;
 }) {
   // Default to Sindhi if no locale is provided
   const { locale = 'sd' } = await params;
   
+  // Validate locale and fallback to 'sd' if invalid
+  const validLocale = (locale === 'sd' || locale === 'en') ? locale : 'sd';
+  
   // Set text direction based on locale
-  const textDirection = locale === 'sd' ? 'rtl' : 'ltr';
+  const textDirection = validLocale === 'sd' ? 'rtl' : 'ltr';
   
   return (
     <div 
       dir={textDirection}
-      lang={locale}
+      lang={validLocale}
       className="public-site"
     >
       <ThemeWrapper>
         <LanguageProvider>
-          <LocaleProvider locale={locale}>
+          <LocaleProvider locale={validLocale}>
             <TooltipProvider>
               <Navigation />
               <div>
