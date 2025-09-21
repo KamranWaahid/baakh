@@ -19,23 +19,47 @@ export async function supabaseServer() {
   
   if (!isConfigured) {
     console.warn('⚠️ Server client: Supabase not properly configured, using fallback');
-    // Return a dummy client that won't crash
-    return createServerClient(
-      'https://dummy.supabase.co',
-      'dummy-anon-key',
-      {
-        cookies: {
-          getAll: () => cookieStore.getAll(),
-          setAll: (cookiesToSet: Array<{ name: string; value: string; options?: Record<string, unknown> }>) => {
-            try {
-              cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options));
-            } catch {
-              // In RSC, cookies may be read-only; ignore
-            }
-          },
-        },
-      }
-    );
+    // Return a mock client that won't crash during build
+    return {
+      auth: {
+        getUser: () => Promise.resolve({ data: { user: null }, error: { message: 'Supabase not configured' } }),
+        getSession: () => Promise.resolve({ data: { session: null }, error: { message: 'Supabase not configured' } }),
+        signIn: () => Promise.resolve({ data: { user: null, session: null }, error: { message: 'Supabase not configured' } }),
+        signUp: () => Promise.resolve({ data: { user: null, session: null }, error: { message: 'Supabase not configured' } }),
+        signOut: () => Promise.resolve({ error: null }),
+        onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } }, error: null })
+      },
+      from: () => ({
+        select: () => ({
+          eq: () => ({
+            single: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
+            range: () => Promise.resolve({ data: [], error: null }),
+            order: () => ({
+              or: () => ({
+                range: () => Promise.resolve({ data: [], error: null })
+              }),
+              range: () => Promise.resolve({ data: [], error: null })
+            })
+          }),
+          insert: () => ({
+            select: () => ({
+              single: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } })
+            })
+          }),
+          update: () => ({
+            eq: () => ({
+              select: () => ({
+                single: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } })
+              })
+            })
+          }),
+          delete: () => ({
+            eq: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } })
+          })
+        }),
+        count: () => Promise.resolve({ count: 0, error: null })
+      })
+    } as any;
   }
   
   return createServerClient(

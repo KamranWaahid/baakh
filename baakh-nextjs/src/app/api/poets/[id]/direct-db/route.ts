@@ -24,7 +24,16 @@ if (!isSupabaseConfigured) {
 // Initialize Supabase client only if environment variables are properly configured
 const supabase = isSupabaseConfigured 
   ? createClient(supabaseUrl, supabaseServiceKey)
-  : null;
+  : {
+      from: () => ({
+        select: () => ({
+          eq: () => ({
+            single: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
+            range: () => Promise.resolve({ data: [], error: null })
+          })
+        })
+      })
+    } as any;
 
 export async function GET(
   request: NextRequest,
@@ -268,7 +277,7 @@ export async function GET(
     console.log('Couplets found:', couplets?.length || 0);
 
     // Transform couplets data
-    const transformedCouplets = (couplets || []).map(couplet => ({
+    const transformedCouplets = (couplets || []).map((couplet: any) => ({
       id: couplet.id,
       couplet_text: couplet.couplet_text,
       couplet_slug: couplet.couplet_slug,

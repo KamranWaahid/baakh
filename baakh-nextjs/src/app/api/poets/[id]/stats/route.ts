@@ -16,7 +16,16 @@ const isSupabaseConfigured = supabaseUrl &&
 // Initialize Supabase client only if environment variables are properly configured
 const supabase = isSupabaseConfigured 
   ? createClient(supabaseUrl, supabaseServiceKey)
-  : null;
+  : {
+      from: () => ({
+        select: () => ({
+          eq: () => ({
+            single: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
+            range: () => Promise.resolve({ data: [], error: null })
+          })
+        })
+      })
+    } as any;
 
 export async function GET(
   request: NextRequest,
@@ -85,7 +94,7 @@ export async function GET(
       .is('deleted_at', null)
       .not('category_id', 'is', null);
 
-    const uniqueCategories = new Set(categoriesData?.map(item => item.category_id) || []);
+    const uniqueCategories = new Set(categoriesData?.map((item: any) => item.category_id) || []);
     const categoriesCount = uniqueCategories.size;
 
     // Get nazams count (assuming nazam is a category)
@@ -140,5 +149,5 @@ async function getCategoryIdsBySlug(slugs: string[]): Promise<string[]> {
     .select('id')
     .in('slug', slugs);
   
-  return data?.map(item => item.id) || [];
+  return data?.map((item: any) => item.id) || [];
 }
