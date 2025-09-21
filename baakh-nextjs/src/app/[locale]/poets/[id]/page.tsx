@@ -133,7 +133,7 @@ export default function PoetPage() {
     musicalComposition: isSindhi ? 'موسيقي شاعري' : 'Musical composition',
     devotionalPoetry: isSindhi ? 'عبادي شاعري' : 'Devotional poetry',
     noPoetryFound: isSindhi ? 'ڪائي شاعري نه ملي' : 'No Poetry Found',
-    noPoetrySubtitle: isSindhi ? 'هن شاعر جي پاس هن وقت ڪوئي شاعري ناهي' : 'This poet doesn\'t have any poetry in the database yet.',
+    noPoetrySubtitle: isSindhi ? 'هن شاعر جي پاس هن وقت ڪوئي شاعري ناهي' : 'This poet doesn&apos;t have any poetry in the database yet.',
     similarPoets: isSindhi ? 'ملندڙ جلندڙ شاعر' : 'Similar Poets',
     totalWorks: isSindhi ? 'سڀ ڪم' : 'Total Works',
     coupletsLabel: isSindhi ? 'شعر' : 'Couplets',
@@ -304,7 +304,7 @@ export default function PoetPage() {
             const fallbackRes = await fetch(`/api/couplets?${fallbackParams.toString()}`);
             if (fallbackRes.ok) {
               const fallbackJson = await fallbackRes.json();
-              const mapped = (fallbackJson.couplets || []).map((c: any) => ({
+              const mapped = (fallbackJson.couplets || []).map((c: Record<string, unknown>) => ({
                 id: c.id,
                 lines: Array.isArray(c.lines) ? c.lines.slice(0, 2) : String(c.couplet_text || '').split('\n').slice(0, 2),
                 translatedTags: [],

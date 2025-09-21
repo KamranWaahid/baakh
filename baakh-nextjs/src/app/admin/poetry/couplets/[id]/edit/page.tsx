@@ -756,7 +756,7 @@ export default function AdminCoupletEditPage() {
                   </div>
                   <div>
                     <Label className="text-sm font-medium text-[#1F1F1F]">Type</Label>
-                    <Select value={newTagData.type} onValueChange={(v: any) => setNewTagData({ ...newTagData, type: v })}>
+                    <Select value={newTagData.type} onValueChange={(v: string) => setNewTagData({ ...newTagData, type: v })}>
                       <SelectTrigger className="mt-2 border-[#E5E5E5] focus:border-[#1F1F1F] focus:ring-[#1F1F1F] bg-white hover:bg-[#F4F4F5] transition-colors">
                         <SelectValue placeholder="Select Type" />
                       </SelectTrigger>
