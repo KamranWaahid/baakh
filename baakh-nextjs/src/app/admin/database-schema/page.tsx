@@ -371,7 +371,7 @@ export default function DatabaseSchemaPage() {
                         </div>
                       </CardHeader>
                       <CardContent>
-                        <Tabs defaultValue="columns" className="w-full">
+                        <Tabs defaultValue="columns" className="w-full" onValueChange={() => {}}>
                           <TabsList className="grid w-full grid-cols-3">
                             <TabsTrigger value="columns">Columns</TabsTrigger>
                             <TabsTrigger value="relationships">Relationships</TabsTrigger>

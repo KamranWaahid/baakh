@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase/server';
+import { supabaseServer } from '@/lib/supabase/server';
 
 export async function DELETE(
   request: NextRequest,
@@ -15,6 +15,7 @@ export async function DELETE(
       );
     }
 
+    const supabase = await supabaseServer();
     const { error } = await supabase
       .from('timeline_events')
       .delete()

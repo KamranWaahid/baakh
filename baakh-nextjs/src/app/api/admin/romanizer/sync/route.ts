@@ -23,7 +23,7 @@ async function getLastSyncInfo() {
       };
     }
   } catch (error) {
-    console.warn('⚠️ Could not read sync metadata:', error.message);
+    console.warn('⚠️ Could not read sync metadata:', error instanceof Error ? error.message : 'Unknown error');
   }
   
   return {
@@ -43,7 +43,7 @@ async function saveSyncMetadata(lastEntryTimestamp: number, totalEntries: number
     };
     fs.writeFileSync(SYNC_METADATA_PATH, JSON.stringify(metadata, null, 2));
   } catch (error) {
-    console.warn('⚠️ Could not save sync metadata:', error.message);
+    console.warn('⚠️ Could not save sync metadata:', error instanceof Error ? error.message : 'Unknown error');
   }
 }
 

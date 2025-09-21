@@ -259,7 +259,6 @@ export default function NavigationDemoPage() {
                   <PageNavigation
                     currentPage={mockData.currentPage}
                     totalPages={mockData.totalPages}
-                    itemsPerPage={mockData.itemsPerPage}
                     onPageChange={setCurrentPage}
                     viewMode={viewMode}
                     onViewModeChange={setViewMode}

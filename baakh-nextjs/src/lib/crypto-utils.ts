@@ -33,12 +33,13 @@ export class CryptoUtils {
       console.log('AES key imported successfully');
       return key;
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       console.error('Failed to import AES key:', {
-        error: error.message,
+        error: errorMessage,
         keyBytesType: typeof keyBytes,
         keyBytesLength: keyBytes?.byteLength
       });
-      throw new Error(`Failed to import AES key: ${error.message}`);
+      throw new Error(`Failed to import AES key: ${errorMessage}`);
     }
   }
 
@@ -185,13 +186,14 @@ export class CryptoUtils {
       console.log('Key derivation successful');
       return derivedKey;
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       console.error('Key derivation failed:', {
-        error: error.message,
+        error: errorMessage,
         passwordLength: password?.length,
         saltLength: salt?.length,
         iterations
       });
-      throw new Error(`Key derivation failed: ${error.message}`);
+      throw new Error(`Key derivation failed: ${errorMessage}`);
     }
   }
 
@@ -200,8 +202,9 @@ export class CryptoUtils {
     try {
       return btoa(String.fromCharCode(...bytes));
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       console.error('Error encoding to base64:', error);
-      throw new Error(`Failed to encode data: ${error.message}`);
+      throw new Error(`Failed to encode data: ${errorMessage}`);
     }
   }
 
@@ -237,7 +240,8 @@ export class CryptoUtils {
       return true;
       
     } catch (error) {
-      console.log('🔐 Password verification failed:', error.message);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.log('🔐 Password verification failed:', errorMessage);
       return false;
     }
   }
@@ -313,9 +317,9 @@ export class CryptoUtils {
         inputType: typeof base64, 
         inputLength: base64?.length,
         inputConstructor: (base64 as any)?.constructor?.name,
-        error: error.message 
+        error: error instanceof Error ? error.message : 'Unknown error'
       });
-      throw new Error(`Failed to decode data: ${error.message}`);
+      throw new Error(`Failed to decode data: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
