@@ -31,7 +31,7 @@ export default async function NotesPage({ searchParams }: { searchParams: Promis
   const { data: allTags } = await sb.from('tags').select('id,slug,label').order('label');
 
   // Transform tags to match NoteForm expected type
-  const transformedTags = allTags?.map(tag => ({
+  const transformedTags = allTags?.map((tag: any) => ({
     id: Number(tag.id),
     slug: tag.slug,
     label: tag.label
