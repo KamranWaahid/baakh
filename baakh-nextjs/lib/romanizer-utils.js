@@ -19,7 +19,7 @@ export function clearRomanizerCache() {
 
 // Unicode-aware "word" matcher: letters, marks, numbers, underscore, and common word apostrophes/dashes
 // This regex matches words but excludes parentheses and other punctuation
-const WORD_RE = /[\p{L}\p{M}\p{N}_''--]+/gu;
+// const WORD_RE = /[\p{L}\p{M}\p{N}_''--]+/gu; // Commented out as it's not used
 
 // Better word boundary detection that separates words from punctuation
 // This regex matches letters, marks, numbers, and symbols (for Sindhi characters like ۾)
