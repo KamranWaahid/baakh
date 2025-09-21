@@ -120,7 +120,7 @@ export default function TimelinePage() {
 
   // Helper function to get icon component
   const getIconComponent = (iconName: string | null) => {
-    const iconMap: { [key: string]: any } = {
+    const iconMap: { [key: string]: React.ComponentType<{ className?: string }> } = {
       'history': History,
       'star': Star,
       'sparkles': Sparkles,

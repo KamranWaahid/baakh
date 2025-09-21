@@ -180,7 +180,7 @@ export default function TopicPage() {
   };
 
   // Get display name based on language
-  const getDisplayName = (item: any): string => {
+  const getDisplayName = (item: { name_en?: string; name_sd?: string; title?: string }): string => {
     if (isSindhi) {
       return item.sindhiTitle || item.sindhiName || item.title || item.name || item.label;
     }

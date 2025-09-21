@@ -108,7 +108,7 @@ function loadRomanizerMappings() {
     }
 
     // Check file modification time for cache invalidation
-    const stats = fs.statSync(ROMANIZER_FILE_PATH);
+    fs.statSync(ROMANIZER_FILE_PATH);
     const currentTime = Date.now();
 
     // Return cached data if still valid

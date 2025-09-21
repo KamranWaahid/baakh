@@ -221,11 +221,11 @@ export default function TopicsPage() {
         console.log('Raw topics data:', rawTopicsData);
         
         // Process topics data to extract translations
-        const topicsData = rawTopicsData.map((topic: any) => {
+        const topicsData = rawTopicsData.map((topic: Record<string, unknown>) => {
           // The API now returns the proper translated title in the 'title' field
           // and the language-specific detail in the 'detail' field
-          const englishTranslation = topic.tags_translations?.find((t: any) => t.lang_code === 'en');
-          const sindhiTranslation = topic.tags_translations?.find((t: any) => t.lang_code === 'sd');
+          const englishTranslation = (topic.tags_translations as Record<string, unknown>[])?.find((t: Record<string, unknown>) => t.lang_code === 'en');
+          const sindhiTranslation = (topic.tags_translations as Record<string, unknown>[])?.find((t: Record<string, unknown>) => t.lang_code === 'sd');
           
           return {
             ...topic,
