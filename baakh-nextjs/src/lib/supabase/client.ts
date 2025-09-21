@@ -13,7 +13,7 @@ console.log('🔧 Supabase Client Debug:', {
 
 // Check if we have valid Supabase credentials
 const hasValidCredentials = supabaseUrl && 
-  supabaseAnonKey && 
+  supabaseAnonKey &&
   supabaseUrl !== 'your_supabase_project_url_here' && 
   supabaseAnonKey !== 'your_supabase_anon_key_here' &&
   supabaseUrl.startsWith('https://') &&
