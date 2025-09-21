@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';;
-import { createClient } from '@supabase/supabase-js';;
-import jwt from 'jsonwebtoken'
+import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
+import jwt from 'jsonwebtoken';
 
 function getSupabaseClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -14,6 +14,7 @@ function getSupabaseClient() {
 }
 export async function DELETE(request: NextRequest) {
   try {
+    const supabase = getSupabaseClient();
     
     // Get JWT token from Authorization header
     const authHeader = request.headers.get('authorization')
@@ -59,7 +60,7 @@ export async function DELETE(request: NextRequest) {
     console.log('Deleting account for user:', userId)
 
     // Delete user from e2ee_users table
-    const { error: deleteError } = await getSupabaseClient()
+    const { error: deleteError } = await supabase
       .from('e2ee_users')
       .delete()
       .eq('user_id', userId)

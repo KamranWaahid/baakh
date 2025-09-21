@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@getSupabaseClient()/getSupabaseClient()-js";
+import { createClient } from "@supabase/supabase-js";
 
 export async function GET() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -12,13 +12,13 @@ export async function GET() {
     );
   }
 
-  const getSupabaseClient() = createClient(url, serviceKey, {
+  const supabase = createClient(url, serviceKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 
   try {
     // Fetch up to 1000 users; adjust as needed with pagination params
-    const { data, error } = await getSupabaseClient().auth.getSupabaseClient().listUsers({ page: 1, perPage: 1000 });
+    const { data, error } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1000 });
     if (error) {
       return NextResponse.json({ users: [], error: error.message }, { status: 500 });
     }
@@ -49,14 +49,14 @@ export async function POST(req: Request) {
   if (!url || !serviceKey) {
     return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
   }
-  const getSupabaseClient() = createClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
+  const supabase = createClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
 
   try {
     const body = await req.json();
     const { email, password, name, role } = body || {};
     if (!email || !password) return NextResponse.json({ error: "email and password required" }, { status: 400 });
 
-    const { data, error } = await getSupabaseClient().auth.getSupabaseClient().createUser({
+    const { data, error } = await supabase.auth.admin.createUser({
       email,
       password,
       email_confirm: true,
@@ -79,7 +79,7 @@ export async function PATCH(req: Request) {
   if (!url || !serviceKey) {
     return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
   }
-  const getSupabaseClient() = createClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
+  const supabase = createClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
   try {
     const body = await req.json();
     const { id, email, password, name, role } = body || {};
@@ -91,7 +91,7 @@ export async function PATCH(req: Request) {
       ...(name ? { name } : {}),
       ...(role ? { role } : {}),
     };
-    const { data, error } = await getSupabaseClient().auth.getSupabaseClient().updateUserById(id, update);
+    const { data, error } = await supabase.auth.admin.updateUserById(id, update);
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ user: data.user });
   } catch (err: any) {

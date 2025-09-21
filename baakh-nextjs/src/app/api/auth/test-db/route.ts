@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';;
+import { createClient } from '@supabase/supabase-js';
 
 function getSupabaseClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -13,10 +13,11 @@ function getSupabaseClient() {
 }
 export async function GET() {
   try {
+    const supabase = getSupabaseClient();
     console.log('🧪 Testing database connection and data format...');
     
     // Test basic connection
-    const { data: users, error } = await getSupabaseClient()
+    const { data: users, error } = await supabase
       .from('e2ee_users')
       .select('*')
       .limit(1);

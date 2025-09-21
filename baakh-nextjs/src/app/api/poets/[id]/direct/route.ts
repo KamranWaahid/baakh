@@ -4,7 +4,7 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
-const getSupabaseClient() = createClient(supabaseUrl, supabaseServiceKey);
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 export async function GET(
   request: NextRequest,
@@ -18,7 +18,7 @@ export async function GET(
     console.log('Direct poet API - Poet slug:', poetSlug, 'Language:', lang);
     
     // First, try to get the poet data by poet_slug
-    let { data: poetData, error: poetError } = await getSupabaseClient()
+    let { data: poetData, error: poetError } = await supabase
       .from('poets')
       .select('*')
       .eq('poet_slug', poetSlug)
@@ -26,7 +26,7 @@ export async function GET(
 
     // If not found, try by slug column
     if ((poetError || !poetData)) {
-      const bySlug = await getSupabaseClient()
+      const bySlug = await supabase
         .from('poets')
         .select('*')
         .eq('slug', poetSlug)
@@ -39,7 +39,7 @@ export async function GET(
 
     // If still not found, try generating slug from english_name and compare
     if ((poetError || !poetData)) {
-      const { data: allPoets } = await getSupabaseClient()
+      const { data: allPoets } = await supabase
         .from('poets')
         .select('id, poet_slug, slug, sindhi_name, english_name')
         .limit(2000);
@@ -51,7 +51,7 @@ export async function GET(
         return generated === poetSlug || p.slug === poetSlug || p.poet_slug === poetSlug;
       });
       if (match) {
-        const { data: byId } = await getSupabaseClient()
+        const { data: byId } = await supabase
           .from('poets')
           .select('*')
           .eq('id', (match as any).id)
@@ -76,7 +76,7 @@ export async function GET(
     console.log('Found poet ID:', poetId, 'for slug:', poetSlug);
     
     // Get poet's poetry works from poetry_main
-    const { data: poetryData, error: poetryError } = await getSupabaseClient()
+    const { data: poetryData, error: poetryError } = await supabase
       .from('poetry_main')
       .select(`
         id,
@@ -107,7 +107,7 @@ export async function GET(
     }
 
     // Get poet's couplets from poetry_couplets
-    const { data: coupletsData, error: coupletsError } = await getSupabaseClient()
+    const { data: coupletsData, error: coupletsError } = await supabase
       .from('poetry_couplets')
       .select(`
         id,
@@ -135,7 +135,7 @@ export async function GET(
     }
 
     // Get categories for this poet
-    const { data: categoriesData, error: categoriesError } = await getSupabaseClient()
+    const { data: categoriesData, error: categoriesError } = await supabase
       .from('poetry_main')
       .select(`
         category_id,

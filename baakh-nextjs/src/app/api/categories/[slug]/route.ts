@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@getSupabaseClient()/getSupabaseClient()-js';
+import { createClient } from '@supabase/supabase-js';
 
 export async function GET(
   _req: Request,
@@ -10,12 +10,12 @@ export async function GET(
   if (!url || !serviceKey) {
     return NextResponse.json({ error: 'Supabase not configured' }, { status: 500 });
   }
-  const getSupabaseClient() = createClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
+  const supabase = createClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
 
   try {
     const { slug } = await params;
     const decodedSlug = decodeURIComponent(slug);
-    const { data, error } = await getSupabaseClient()
+    const { data, error } = await supabase
       .from('categories')
       .select('id, slug, content_style, deleted_at, category_details:category_details(cat_name, cat_name_plural, cat_detail, lang)')
       .eq('slug', decodedSlug)
@@ -27,7 +27,7 @@ export async function GET(
     const en = details.find((d:any)=>d.lang==='en');
     const sd = details.find((d:any)=>d.lang==='sd');
     // lightweight stats
-    const { count: poetryCount } = await getSupabaseClient()
+    const { count: poetryCount } = await supabase
       .from('poetry_main')
       .select('*', { head: true, count: 'exact' })
       .eq('category_id', (data as any).id);

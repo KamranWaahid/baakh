@@ -4,14 +4,14 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
-const getSupabaseClient() = createClient(supabaseUrl, supabaseServiceKey);
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 export async function GET(request: NextRequest) {
   try {
     console.log('Debug API - Checking poets in database');
     
     // Get all poets to see what exists
-    const { data: poets, error: poetsError } = await getSupabaseClient()
+    const { data: poets, error: poetsError } = await supabase
       .from('poets')
       .select('poet_id, poet_slug, sindhi_name, english_name')
       .limit(10);
@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
     console.log('Found poets:', poets);
 
     // Check specifically for "naveeda"
-    const { data: naveedaPoet, error: naveedaError } = await getSupabaseClient()
+    const { data: naveedaPoet, error: naveedaError } = await supabase
       .from('poets')
       .select('*')
       .eq('poet_slug', 'naveeda')

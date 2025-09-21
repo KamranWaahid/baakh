@@ -4,7 +4,7 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
-const getSupabaseClient() = createClient(supabaseUrl, supabaseServiceKey);
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 export async function GET(request: NextRequest) {
   try {
@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Fetch tags with their translations
-    const { data: tags, error: tagsError } = await getSupabaseClient()
+    const { data: tags, error: tagsError } = await supabase
       .from('tags')
       .select(`
         id,
@@ -202,7 +202,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Insert the main tag
-    const { data: tagData, error: tagError } = await getSupabaseClient()
+    const { data: tagData, error: tagError } = await supabase
       .from('tags')
       .insert({
         slug,
@@ -225,7 +225,7 @@ export async function POST(request: NextRequest) {
       detail: translation.detail || ''
     }));
 
-    const { error: translationError } = await getSupabaseClient()
+    const { error: translationError } = await supabase
       .from('tags_translations')
       .insert(translationInserts);
 

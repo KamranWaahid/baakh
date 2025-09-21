@@ -4,7 +4,7 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
-const getSupabaseClient() = createClient(supabaseUrl, supabaseServiceKey);
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
     }
 
     // First, get the couplet slug from poetry_couplets table
-    const { data: coupletData, error: coupletError } = await getSupabaseClient()
+    const { data: coupletData, error: coupletError } = await supabase
       .from('poetry_couplets')
       .select('couplet_slug')
       .eq('id', coupletId)
@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Use the secure function to insert bookmark with polymorphic structure and slug
-    const { data, error } = await getSupabaseClient()
+    const { data, error } = await supabase
       .rpc('insert_user_bookmark', {
         p_user_uuid: userId,
         p_bookmarkable_id: coupletId,
@@ -79,7 +79,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Use the secure function to delete bookmark with polymorphic structure
-    const { data, error } = await getSupabaseClient()
+    const { data, error } = await supabase
       .rpc('delete_user_bookmark', {
         p_user_uuid: userId,
         p_bookmarkable_id: coupletId,
@@ -122,7 +122,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Check if user has bookmarked this couplet using service role
-    const { data: bookmark, error: bookmarkError } = await getSupabaseClient()
+    const { data: bookmark, error: bookmarkError } = await supabase
       .from('user_bookmarks')
       .select('id')
       .eq('bookmarkable_id', coupletId)

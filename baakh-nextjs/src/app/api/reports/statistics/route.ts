@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';;
-import { createClient } from '@supabase/supabase-js';;
+import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 import { ReportStatistics } from '@/types/reports';
 
@@ -15,6 +15,7 @@ function getSupabaseClient() {
 }
 export async function GET(request: NextRequest) {
   try {
+    const supabase = getSupabaseClient();
     const { searchParams } = new URL(request.url);
     const poetryId = searchParams.get('poetry_id');
 
@@ -30,7 +31,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    let query = getSupabaseClient()
+    let query = supabase
       .from('report_statistics')
       .select('*');
 

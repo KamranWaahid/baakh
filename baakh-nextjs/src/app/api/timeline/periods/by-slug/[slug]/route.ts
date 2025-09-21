@@ -22,10 +22,10 @@ export async function GET(
       );
     }
     
-    const getSupabaseClient() = createClient(supabaseUrl, supabaseServiceKey);
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Get the timeline period by slug
-    const { data: period, error: periodError } = await getSupabaseClient()
+    const { data: period, error: periodError } = await supabase
       .from('timeline_periods')
       .select('*')
       .eq('period_slug', slug)
@@ -71,7 +71,7 @@ export async function GET(
     };
 
     // Get events for this period
-    const { data: events, error: eventsError } = await getSupabaseClient()
+    const { data: events, error: eventsError } = await supabase
       .from('timeline_events')
       .select(`
         *,

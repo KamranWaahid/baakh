@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { scryptSync, timingSafeEqual, randomBytes } from 'crypto';
-import { createClient } from '@getSupabaseClient()/getSupabaseClient()-js';
+import { createClient } from '@supabase/supabase-js';
 
 function verifyPassword(password: string, stored: string): boolean {
   try {
@@ -27,11 +27,11 @@ export async function POST(req: Request) {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL as string;
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY as string;
     if (!url || !serviceKey) {
-      return NextResponse.json({ error: 'getSupabaseClient()-not-configured' }, { status: 500 });
+      return NextResponse.json({ error: 'supabase-not-configured' }, { status: 500 });
     }
 
-    const getSupabaseClient() = createClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
-    const { data: user, error } = await getSupabaseClient()
+    const supabase = createClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
+    const { data: user, error } = await supabase
       .from('users')
       .select('id,name,email,password,remember_token')
       .eq('email', email.toLowerCase())
@@ -48,7 +48,7 @@ export async function POST(req: Request) {
     let token = user.remember_token || '';
     if (!token) {
       token = randomBytes(24).toString('base64url');
-      await getSupabaseClient().from('users').update({ remember_token: token }).eq('id', user.id);
+      await supabase.from('users').update({ remember_token: token }).eq('id', user.id);
     }
     const res = NextResponse.json({ user: { id: user.id, name: user.name, email: user.email } });
     if (token) {

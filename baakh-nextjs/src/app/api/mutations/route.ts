@@ -5,7 +5,7 @@ import { revalidateAfterMutation, getCoupletCacheTags } from '@/lib/cache-revali
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
-const getSupabaseClient() = createClient(supabaseUrl, supabaseServiceKey);
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 interface Mutation {
   id: string;
@@ -158,7 +158,7 @@ async function processMutation(mutation: Mutation): Promise<{ success: boolean; 
 async function handleLike(coupletId: string, userId: string, mutationId: string): Promise<{ success: boolean; error?: string }> {
   try {
     // Check if like already exists (idempotency)
-    const { data: existingLike } = await getSupabaseClient()
+    const { data: existingLike } = await supabase
       .from('user_likes')
       .select('id')
       .eq('likeable_id', coupletId)
@@ -172,7 +172,7 @@ async function handleLike(coupletId: string, userId: string, mutationId: string)
     }
 
     // Get couplet slug for the like
-    const { data: coupletData, error: coupletError } = await getSupabaseClient()
+    const { data: coupletData, error: coupletError } = await supabase
       .from('poetry_couplets')
       .select('couplet_slug')
       .eq('id', coupletId)
@@ -183,7 +183,7 @@ async function handleLike(coupletId: string, userId: string, mutationId: string)
     }
 
     // Insert the like using the secure function
-    const { error } = await getSupabaseClient()
+    const { error } = await supabase
       .rpc('insert_user_like', {
         p_user_uuid: userId,
         p_likeable_id: coupletId,
@@ -207,7 +207,7 @@ async function handleLike(coupletId: string, userId: string, mutationId: string)
 async function handleUnlike(coupletId: string, userId: string, mutationId: string): Promise<{ success: boolean; error?: string }> {
   try {
     // Check if like exists
-    const { data: existingLike } = await getSupabaseClient()
+    const { data: existingLike } = await supabase
       .from('user_likes')
       .select('id')
       .eq('likeable_id', coupletId)
@@ -221,7 +221,7 @@ async function handleUnlike(coupletId: string, userId: string, mutationId: strin
     }
 
     // Delete the like using the secure function
-    const { error } = await getSupabaseClient()
+    const { error } = await supabase
       .rpc('delete_user_like', {
         p_user_uuid: userId,
         p_likeable_id: coupletId,
@@ -244,7 +244,7 @@ async function handleUnlike(coupletId: string, userId: string, mutationId: strin
 async function handleBookmark(coupletId: string, userId: string, mutationId: string): Promise<{ success: boolean; error?: string }> {
   try {
     // Check if bookmark already exists (idempotency)
-    const { data: existingBookmark } = await getSupabaseClient()
+    const { data: existingBookmark } = await supabase
       .from('user_bookmarks')
       .select('id')
       .eq('bookmarkable_id', coupletId)
@@ -258,7 +258,7 @@ async function handleBookmark(coupletId: string, userId: string, mutationId: str
     }
 
     // Get couplet slug for the bookmark
-    const { data: coupletData, error: coupletError } = await getSupabaseClient()
+    const { data: coupletData, error: coupletError } = await supabase
       .from('poetry_couplets')
       .select('couplet_slug')
       .eq('id', coupletId)
@@ -269,7 +269,7 @@ async function handleBookmark(coupletId: string, userId: string, mutationId: str
     }
 
     // Insert the bookmark using the secure function
-    const { error } = await getSupabaseClient()
+    const { error } = await supabase
       .rpc('insert_user_bookmark', {
         p_user_uuid: userId,
         p_bookmarkable_id: coupletId,
@@ -293,7 +293,7 @@ async function handleBookmark(coupletId: string, userId: string, mutationId: str
 async function handleUnbookmark(coupletId: string, userId: string, mutationId: string): Promise<{ success: boolean; error?: string }> {
   try {
     // Check if bookmark exists
-    const { data: existingBookmark } = await getSupabaseClient()
+    const { data: existingBookmark } = await supabase
       .from('user_bookmarks')
       .select('id')
       .eq('bookmarkable_id', coupletId)
@@ -307,7 +307,7 @@ async function handleUnbookmark(coupletId: string, userId: string, mutationId: s
     }
 
     // Delete the bookmark using the secure function
-    const { error } = await getSupabaseClient()
+    const { error } = await supabase
       .rpc('delete_user_bookmark', {
         p_user_uuid: userId,
         p_bookmarkable_id: coupletId,

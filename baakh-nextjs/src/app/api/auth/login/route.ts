@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';;
-import { createClient } from '@supabase/supabase-js';;
+import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 import jwt from 'jsonwebtoken';
 import { withErrorHandling, ValidationError, AuthenticationError, SecurityError } from '@/lib/security/error-handler';
 import { withAuthRateLimit } from '@/lib/security/rate-limiter';
@@ -21,6 +21,7 @@ async function loginHandler(request: NextRequest) {
     console.log('🔐 Request method:', request.method);
   }
   
+  const supabase = getSupabaseClient();
   let body;
   try {
     body = await request.json();
@@ -46,7 +47,7 @@ async function loginHandler(request: NextRequest) {
     console.log('🔐 Attempting login for username:', username);
 
     // Get user data for verification
-    const { data: user, error } = await getSupabaseClient()
+    const { data: user, error } = await supabase
       .from('e2ee_users')
       .select('*')
       .eq('username', username)

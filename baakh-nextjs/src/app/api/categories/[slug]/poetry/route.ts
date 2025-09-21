@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@getSupabaseClient()/getSupabaseClient()-js';
+import { createClient } from '@supabase/supabase-js';
 
 export async function GET(
   req: Request,
@@ -10,7 +10,7 @@ export async function GET(
   if (!url || !serviceKey) {
     return NextResponse.json({ error: 'Supabase not configured' }, { status: 500 });
   }
-  const getSupabaseClient() = createClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
+  const supabase = createClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
 
   try {
     const { searchParams } = new URL(req.url);
@@ -25,7 +25,7 @@ export async function GET(
 
     const { slug } = await params;
     const decodedSlug = decodeURIComponent(slug);
-    const { data: cat, error: catErr } = await getSupabaseClient()
+    const { data: cat, error: catErr } = await supabase
       .from('categories')
       .select('id')
       .eq('slug', decodedSlug)
@@ -34,7 +34,7 @@ export async function GET(
     if (catErr || !cat) return NextResponse.json({ error: 'Category not found' }, { status: 404 });
 
     // First, let's check if we have any poetry in this category
-    const { data: poems, error: pErr } = await getSupabaseClient()
+    const { data: poems, error: pErr } = await supabase
       .from('poetry_main')
       .select('id, poetry_slug, lang, poetry_tags, created_at, poet_id, category_id')
       .eq('category_id', cat.id)
@@ -47,7 +47,7 @@ export async function GET(
     // If no poetry found by category_id, try to find by tags that match the category slug
     let additionalPoems: any[] = [];
     if (!poems || poems.length === 0) {
-      const { data: tagPoems, error: tagErr } = await getSupabaseClient()
+      const { data: tagPoems, error: tagErr } = await supabase
         .from('poetry_main')
         .select('id, poetry_slug, lang, poetry_tags, created_at, poet_id, category_id')
         .ilike('poetry_tags', `%${decodedSlug}%`)
@@ -67,7 +67,7 @@ export async function GET(
     const ids = allPoems.map((p:any)=>p.id);
     let titles: Record<string, { title?: string; info?: string; lang?: string }> = {};
     if (ids.length) {
-      const { data: tr } = await getSupabaseClient()
+      const { data: tr } = await supabase
         .from('poetry_translations')
         .select('poetry_id, title, info, lang')
         .in('poetry_id', ids)
@@ -92,7 +92,7 @@ export async function GET(
     const poetIds = Array.from(new Set(allPoems.map((p:any)=>p.poet_id).filter(Boolean)));
     const poetMap: Record<string, { name: string; lang: string; slug: string }> = {};
     if (poetIds.length) {
-      const { data: poets } = await getSupabaseClient().from('poets').select('poet_id, sindhi_laqab, english_laqab, poet_slug, sindhi_name, english_name').in('poet_id', poetIds);
+      const { data: poets } = await supabase.from('poets').select('poet_id, sindhi_laqab, english_laqab, poet_slug, sindhi_name, english_name').in('poet_id', poetIds);
       for (const p of poets || []) {
         const poetId = String((p as any).poet_id);
         const sindhiLaqab = (p as any).sindhi_laqab;
@@ -159,14 +159,14 @@ export async function GET(
     });
 
     // Calculate total count including both category_id and tag-based matches
-    const { count: categoryCount } = await getSupabaseClient()
+    const { count: categoryCount } = await supabase
       .from('poetry_main')
       .select('*', { head: true, count: 'exact' })
       .eq('category_id', cat.id)
       .is('deleted_at', null)
       .eq('visibility', true);
 
-    const { count: tagCount } = await getSupabaseClient()
+    const { count: tagCount } = await supabase
       .from('poetry_main')
       .select('*', { head: true, count: 'exact' })
       .ilike('poetry_tags', `%${decodedSlug}%`)

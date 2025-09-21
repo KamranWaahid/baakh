@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { randomBytes, scryptSync, timingSafeEqual } from 'crypto';
-import { createClient } from '@getSupabaseClient()/getSupabaseClient()-js';
+import { createClient } from '@supabase/supabase-js';
 
 function hashPassword(password: string): string {
   const salt = randomBytes(16);
@@ -22,13 +22,13 @@ export async function POST(req: Request) {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL as string;
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY as string;
     if (!url || !serviceKey) {
-      return NextResponse.json({ error: 'getSupabaseClient()-not-configured' }, { status: 500 });
+      return NextResponse.json({ error: 'supabase-not-configured' }, { status: 500 });
     }
 
-    const getSupabaseClient() = createClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
+    const supabase = createClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
 
     // Check if user exists
-    const { data: existing, error: existingError } = await getSupabaseClient()
+    const { data: existing, error: existingError } = await supabase
       .from('users')
       .select('id')
       .eq('email', email.toLowerCase())
@@ -43,7 +43,7 @@ export async function POST(req: Request) {
     const password_hash = hashPassword(password);
     const remember_token = randomBytes(24).toString('base64url');
 
-    const { data: created, error: insertError } = await getSupabaseClient()
+    const { data: created, error: insertError } = await supabase
       .from('users')
       .insert({ name, email: email.toLowerCase(), password: password_hash, remember_token })
       .select('id,name,email')

@@ -13,6 +13,7 @@ function getSupabaseClient() {
 }
 export async function GET(request: NextRequest) {
   try {
+    const supabase = getSupabaseClient();
     // Get the authorization header
     const authHeader = request.headers.get('authorization')
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -25,7 +26,7 @@ export async function GET(request: NextRequest) {
     const token = authHeader.split(' ')[1]
 
     // Verify the JWT token
-    const { data: { user }, error: authError } = await getSupabaseClient().auth.getUser(token)
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
     
     if (authError || !user) {
       return NextResponse.json(
@@ -35,7 +36,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get user data from e2ee_users table
-    const { data: userData, error: userError } = await getSupabaseClient()
+    const { data: userData, error: userError } = await supabase
       .from('e2ee_users')
       .select('*')
       .eq('user_id', user.id)

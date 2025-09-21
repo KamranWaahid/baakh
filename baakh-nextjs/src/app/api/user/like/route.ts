@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     const token = authHeader.substring(7);
     
     // Create Supabase client with user JWT
-    const getSupabaseClient() = createClient(
+    const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
     );
 
     // Insert the like record
-    const { data, error } = await getSupabaseClient()
+    const { data, error } = await supabase
       .from('e2ee_user_data')
       .insert({
         type: 'like',
@@ -92,7 +92,7 @@ export async function DELETE(request: NextRequest) {
     const token = authHeader.substring(7);
     
     // Create Supabase client with user JWT
-    const getSupabaseClient() = createClient(
+    const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
@@ -105,7 +105,7 @@ export async function DELETE(request: NextRequest) {
     );
 
     // Delete the like record
-    const { error } = await getSupabaseClient()
+    const { error } = await supabase
       .from('e2ee_user_data')
       .delete()
       .eq('type', 'like')

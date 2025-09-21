@@ -15,6 +15,7 @@ function getSupabaseClient() {
 
 export async function POST(request: NextRequest) {
   try {
+    const supabase = getSupabaseClient();
     const { userId, sindhiName, language } = await request.json()
     
     console.log('Received request:', { userId, sindhiName, language })
@@ -40,7 +41,7 @@ export async function POST(request: NextRequest) {
     
     // Update the e2ee_users table with the Sindhi name
     console.log('Updating e2ee_users table...')
-    const { error: e2eeError } = await getSupabaseClient()
+    const { error: e2eeError } = await supabase
       .from('e2ee_users')
       .update({
         sindhi_name: sindhiName,
@@ -61,7 +62,7 @@ export async function POST(request: NextRequest) {
     // Also try to update the profiles table if it exists
     try {
       console.log('Attempting to update profiles table...')
-      const { error: profileError } = await getSupabaseClient()
+      const { error: profileError } = await supabase
         .from('profiles')
         .upsert({
           id: userId,

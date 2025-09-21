@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';;
-import { createClient } from '@supabase/supabase-js';;
+import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 
 function getSupabaseClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -13,6 +13,7 @@ function getSupabaseClient() {
 }
 export async function POST(request: NextRequest) {
   try {
+    const supabase = getSupabaseClient();
     console.log('📝 Signup API called at:', new Date().toISOString());
     
     let body;
@@ -42,7 +43,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if username already exists
-    const { data: existingUser } = await getSupabaseClient()
+    const { data: existingUser } = await supabase
       .from('e2ee_users')
       .select('user_id')
       .eq('username', username)
@@ -68,7 +69,7 @@ export async function POST(request: NextRequest) {
     };
 
     // Store the encrypted user data
-    const { data: user, error } = await getSupabaseClient()
+    const { data: user, error } = await supabase
       .from('e2ee_users')
       .insert({
         username,

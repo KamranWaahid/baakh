@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseServer } from '@/lib/getSupabaseClient()/server';
-import { createClient } from '@getSupabaseClient()/getSupabaseClient()-js';
+import { supabaseServer } from '@/lib/supabase/server';
+import { createClient } from '@supabase/supabase-js';
 
 export async function GET(request: NextRequest) {
   try {
@@ -16,14 +16,14 @@ export async function GET(request: NextRequest) {
       );
     }
     
-    const getSupabaseClient() = createClient(supabaseUrl, supabaseServiceKey);
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get('limit') || '100');
     const offset = parseInt(searchParams.get('offset') || '0');
     const search = searchParams.get('search') || '';
     const lang = searchParams.get('lang') || 'en';
 
-    let query = getSupabaseClient()
+    let query = supabase
       .from('timeline_periods')
       .select('*', { count: 'exact' })
       .order('start_year', { ascending: true });
@@ -115,7 +115,7 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    const getSupabaseClient() = createClient(supabaseUrl, supabaseServiceKey);
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
     const body = await request.json();
     
     const {
@@ -143,7 +143,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Test database connection first
-    const { data: testData, error: testError } = await getSupabaseClient()
+    const { data: testData, error: testError } = await supabase
       .from('timeline_periods')
       .select('id')
       .limit(1);
@@ -177,7 +177,7 @@ export async function POST(request: NextRequest) {
 
     console.log('Database connection test successful');
 
-    const { data: period, error } = await getSupabaseClient()
+    const { data: period, error } = await supabase
       .from('timeline_periods')
       .insert({
         period_slug,

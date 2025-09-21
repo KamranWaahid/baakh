@@ -4,7 +4,7 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
-const getSupabaseClient() = createClient(supabaseUrl, supabaseServiceKey);
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 export async function GET(request: NextRequest) {
   try {
@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
     console.log('Service key exists:', !!supabaseServiceKey);
     
     // Test basic connection
-    const { data, error } = await getSupabaseClient()
+    const { data, error } = await supabase
       .from('poets')
       .select('count')
       .limit(1);
@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
     }
     
     // Get a few poets to see what's in the database
-    const { data: poets, error: poetsError } = await getSupabaseClient()
+    const { data: poets, error: poetsError } = await supabase
       .from('poets')
       .select('poet_id, poet_slug, sindhi_name, english_name')
       .limit(5);

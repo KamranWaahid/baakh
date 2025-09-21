@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@getSupabaseClient()/getSupabaseClient()-js";
+import { createClient } from "@supabase/supabase-js";
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -8,7 +8,7 @@ if (!url || !serviceKey) {
   throw new Error('Missing required environment variables');
 }
 
-const getSupabaseClient() = createClient(url, serviceKey, {
+const supabase = createClient(url, serviceKey, {
   auth: { autoRefreshToken: false, persistSession: false },
   db: { schema: 'public' }
 });
@@ -24,14 +24,14 @@ export async function GET(request: NextRequest) {
     }
 
     // Get real profile data from database
-    const { data: profile, error: profileError } = await getSupabaseClient()
+    const { data: profile, error: profileError } = await supabase
       .from("profiles")
       .select("display_name, email, avatar_url")
       .eq("id", userId)
       .single();
 
     // Get user email from auth.users table
-    const { data: authUser, error: authError } = await getSupabaseClient().auth.getSupabaseClient().getUserById(userId);
+    const { data: authUser, error: authError } = await supabase.auth.admin.getUserById(userId);
 
     // Extract name parts from display_name
     const displayName = profile?.display_name || "";
@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
       profile: {
         firstName: firstName || "Admin",
         lastName: lastName || "User",
-        email: authUser?.user?.email || profile?.email || "getSupabaseClient()@baakh.com",
+        email: authUser?.user?.email || profile?.email || "supabase@baakh.com",
         phone: "+92 300 1234567",
         avatar: profile?.avatar_url || "",
         bio: "System administrator for Baakh poetry archive"

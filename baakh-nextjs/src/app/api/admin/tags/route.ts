@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@getSupabaseClient()/getSupabaseClient()-js";
+import { createClient } from "@supabase/supabase-js";
 
 export async function GET() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -8,13 +8,13 @@ export async function GET() {
     return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
   }
   
-  const getSupabaseClient() = createClient(url, serviceKey, { 
+  const supabase = createClient(url, serviceKey, { 
     auth: { autoRefreshToken: false, persistSession: false } 
   });
   
   try {
     // Check if tables exist first
-    const { data: tableCheck, error: tableError } = await getSupabaseClient()
+    const { data: tableCheck, error: tableError } = await supabase
       .from("tags")
       .select("id")
       .limit(1);
@@ -34,7 +34,7 @@ export async function GET() {
       'Influence / Aesthetic', 'Genre / Output', 'Script / Metadata'
     ];
     
-    const { data: allTags, error: tagsError } = await getSupabaseClient()
+    const { data: allTags, error: tagsError } = await supabase
       .from("tags")
       .select("id, slug, label, tag_type, created_at, updated_at")
       .order("created_at", { ascending: false });
@@ -48,7 +48,7 @@ export async function GET() {
     const tags = allTags.filter(tag => !poetTagTypes.includes(tag.tag_type));
 
     // Fetch translations for all tags
-    const { data: translations, error: translationsError } = await getSupabaseClient()
+    const { data: translations, error: translationsError } = await supabase
       .from("tags_translations")
       .select("tag_id, lang_code, title, detail");
 
@@ -110,7 +110,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
   }
   
-  const getSupabaseClient() = createClient(url, serviceKey, { 
+  const supabase = createClient(url, serviceKey, { 
     auth: { autoRefreshToken: false, persistSession: false } 
   });
   
@@ -123,7 +123,7 @@ export async function POST(request: Request) {
     }
 
     // Check if tag already exists
-    const { data: existingTag, error: checkError } = await getSupabaseClient()
+    const { data: existingTag, error: checkError } = await supabase
       .from("tags")
       .select("id")
       .eq("slug", slug)
@@ -139,7 +139,7 @@ export async function POST(request: Request) {
     if (existingTag) {
       // Update existing tag
       tagId = existingTag.id;
-      const { error: updateError } = await getSupabaseClient()
+      const { error: updateError } = await supabase
         .from("tags")
         .update({ 
           label: sindhi.title, // Use Sindhi title as label
@@ -154,7 +154,7 @@ export async function POST(request: Request) {
       }
     } else {
       // Create new tag
-      const { data: newTag, error: insertError } = await getSupabaseClient()
+      const { data: newTag, error: insertError } = await supabase
         .from("tags")
         .insert({
           slug,
@@ -182,7 +182,7 @@ export async function POST(request: Request) {
 
     for (const translation of translations) {
       try {
-        const { error: translationError } = await getSupabaseClient()
+        const { error: translationError } = await supabase
           .from("tags_translations")
           .upsert(translation, { onConflict: 'tag_id,lang_code' });
 
@@ -190,7 +190,7 @@ export async function POST(request: Request) {
           console.error("Error upserting translation:", translationError);
           // If translation fails, try to delete the tag to maintain consistency
           if (!existingTag) {
-            await getSupabaseClient().from("tags").delete().eq("id", tagId);
+            await supabase.from("tags").delete().eq("id", tagId);
           }
           return NextResponse.json({ error: String(translationError.message) }, { status: 500 });
         }
@@ -198,7 +198,7 @@ export async function POST(request: Request) {
         console.error("Error upserting translation:", translationErr);
         // If translation fails, try to delete the tag to maintain consistency
         if (!existingTag) {
-          await getSupabaseClient().from("tags").delete().eq("id", tagId);
+          await supabase.from("tags").delete().eq("id", tagId);
         }
         return NextResponse.json({ error: String(translationErr?.message || translationErr) }, { status: 500 });
       }
@@ -222,7 +222,7 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
   }
   
-  const getSupabaseClient() = createClient(url, serviceKey, { 
+  const supabase = createClient(url, serviceKey, { 
     auth: { autoRefreshToken: false, persistSession: false } 
   });
   
@@ -235,7 +235,7 @@ export async function DELETE(request: Request) {
     }
 
     // Delete translations first
-    const { error: translationsError } = await getSupabaseClient()
+    const { error: translationsError } = await supabase
       .from("tags_translations")
       .delete()
       .eq("tag_id", id);
@@ -246,7 +246,7 @@ export async function DELETE(request: Request) {
     }
 
     // Delete the tag
-    const { error: tagError } = await getSupabaseClient()
+    const { error: tagError } = await supabase
       .from("tags")
       .delete()
       .eq("id", id);

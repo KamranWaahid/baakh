@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@getSupabaseClient()/getSupabaseClient()-js";
+import { createClient } from "@supabase/supabase-js";
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -8,7 +8,7 @@ if (!url || !serviceKey) {
   throw new Error("Supabase not configured");
 }
 
-const getSupabaseClient() = createClient(url, serviceKey, {
+const supabase = createClient(url, serviceKey, {
   auth: { autoRefreshToken: false, persistSession: false },
   db: { schema: 'public' }
 });
@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get user settings from database using RPC to bypass RLS
-    const { data: settings, error } = await getSupabaseClient().rpc('get_admin_settings', {
+    const { data: settings, error } = await supabase.rpc('get_admin_settings', {
       user_id: userId
     });
 
@@ -90,7 +90,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ settings: parsedSettings });
 
   } catch (error) {
-    console.error("Error in GET /api/getSupabaseClient()/settings:", error);
+    console.error("Error in GET /api/supabase/settings:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
@@ -121,7 +121,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if settings exist for this user
-    const { data: existingSettings, error: fetchError } = await getSupabaseClient()
+    const { data: existingSettings, error: fetchError } = await supabase
       .from("admin_settings")
       .select("*")
       .eq("user_id", userId)
@@ -142,7 +142,7 @@ export async function POST(request: NextRequest) {
     let result;
     if (existingSettings) {
       // Update existing settings
-      const { data: updatedSettings, error: updateError } = await getSupabaseClient()
+      const { data: updatedSettings, error: updateError } = await supabase
         .from("admin_settings")
         .update(updateData)
         .eq("user_id", userId)
@@ -156,7 +156,7 @@ export async function POST(request: NextRequest) {
       result = updatedSettings;
     } else {
       // Create new settings
-      const { data: newSettings, error: insertError } = await getSupabaseClient()
+      const { data: newSettings, error: insertError } = await supabase
         .from("admin_settings")
         .insert({
           user_id: userId,
@@ -181,7 +181,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error("Error in POST /api/getSupabaseClient()/settings:", error);
+    console.error("Error in POST /api/supabase/settings:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
@@ -236,7 +236,7 @@ export async function DELETE(request: NextRequest) {
       };
 
       const settingsColumn = `${section}_settings`;
-      const { error } = await getSupabaseClient()
+      const { error } = await supabase
         .from("admin_settings")
         .update({
           [settingsColumn]: defaultSettings[section as keyof typeof defaultSettings],
@@ -255,7 +255,7 @@ export async function DELETE(request: NextRequest) {
       });
     } else {
       // Delete all settings for user
-      const { error } = await getSupabaseClient()
+      const { error } = await supabase
         .from("admin_settings")
         .delete()
         .eq("user_id", userId);
@@ -272,7 +272,7 @@ export async function DELETE(request: NextRequest) {
     }
 
   } catch (error) {
-    console.error("Error in DELETE /api/getSupabaseClient()/settings:", error);
+    console.error("Error in DELETE /api/supabase/settings:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

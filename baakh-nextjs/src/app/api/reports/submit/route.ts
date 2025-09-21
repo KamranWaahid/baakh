@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';;
-import { createClient } from '@supabase/supabase-js';;
+import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 import { SubmitReportData, ReportCategory, ReportReason } from '@/types/reports';
 
@@ -15,6 +15,7 @@ function getSupabaseClient() {
 }
 export async function POST(request: NextRequest) {
   try {
+    const supabase = getSupabaseClient();
     const body: SubmitReportData = await request.json();
     const { poetry_id, category, reason, description } = body;
 
@@ -62,7 +63,7 @@ export async function POST(request: NextRequest) {
     // }
 
     // Check if poetry exists
-    const { data: poetry, error: poetryError } = await getSupabaseClient()
+    const { data: poetry, error: poetryError } = await supabase
       .from('poetry_main')
       .select('id')
       .eq('id', poetry_id)
@@ -80,7 +81,7 @@ export async function POST(request: NextRequest) {
 
     // Submit the report using the service role (bypasses RLS)
     // Cast to proper enum types
-    const { data: reportData, error: submitError } = await getSupabaseClient()
+    const { data: reportData, error: submitError } = await supabase
       .from('poetry_reports')
       .insert({
         poetry_id: parseInt(poetry_id), // Convert to bigint

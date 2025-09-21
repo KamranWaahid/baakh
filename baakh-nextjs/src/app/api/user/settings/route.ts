@@ -8,7 +8,7 @@ if (!url || !serviceKey) {
   throw new Error("Supabase not configured");
 }
 
-const getSupabaseClient() = createClient(url, serviceKey, {
+const supabase = createClient(url, serviceKey, {
   auth: { autoRefreshToken: false, persistSession: false },
   db: { schema: 'public' }
 });
@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get user settings from e2ee_users table
-    const { data: userData, error } = await getSupabaseClient()
+    const { data: userData, error } = await supabase
       .from("e2ee_users")
       .select("profile_cipher, profile_nonce, profile_aad")
       .eq("user_id", userId)

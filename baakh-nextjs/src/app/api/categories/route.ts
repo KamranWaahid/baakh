@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@getSupabaseClient()/getSupabaseClient()-js';
+import { createClient } from '@supabase/supabase-js';
 
 export async function GET(req: Request) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -7,7 +7,7 @@ export async function GET(req: Request) {
   if (!url || !serviceKey) {
     return NextResponse.json({ error: 'Supabase not configured' }, { status: 500 });
   }
-  const getSupabaseClient() = createClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
+  const supabase = createClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
   
   try {
     const { searchParams } = new URL(req.url);
@@ -26,14 +26,14 @@ export async function GET(req: Request) {
     console.log('Categories API - Starting query with', `page: ${page}, limit: ${limit}, offset: ${offset}`, 'lang:', lang);
     
     // Get total count first for accurate pagination
-    const { count: totalCount } = await getSupabaseClient()
+    const { count: totalCount } = await supabase
       .from('categories')
       .select('*', { head: true, count: 'exact' })
       .is('deleted_at', null);
     
     console.log('Categories API - Total count in database:', totalCount);
     
-    let query = getSupabaseClient()
+    let query = supabase
       .from('categories')
       .select(`
         id, 
@@ -99,7 +99,7 @@ export async function GET(req: Request) {
     let poetryCounts: { [key: number]: number } = {};
     
     if (categoryIds.length > 0) {
-      const { data: countData, error: countError } = await getSupabaseClient()
+      const { data: countData, error: countError } = await supabase
         .from('poetry_main')
         .select('category_id')
         .in('category_id', categoryIds)

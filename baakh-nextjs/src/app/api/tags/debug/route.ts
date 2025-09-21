@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@getSupabaseClient()/getSupabaseClient()-js';
+import { createClient } from '@supabase/supabase-js';
 
 export async function GET() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -9,11 +9,11 @@ export async function GET() {
     return NextResponse.json({ error: 'Supabase not configured' }, { status: 500 });
   }
   
-  const getSupabaseClient() = createClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
+  const supabase = createClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
   
   try {
     // Check tags table
-    const { data: tags, error: tagsError } = await getSupabaseClient()
+    const { data: tags, error: tagsError } = await supabase
       .from('tags')
       .select('*')
       .limit(10);
@@ -24,7 +24,7 @@ export async function GET() {
     }
     
     // Check tags_translations table
-    const { data: translations, error: translationsError } = await getSupabaseClient()
+    const { data: translations, error: translationsError } = await supabase
       .from('tags_translations')
       .select('*')
       .limit(10);
@@ -35,7 +35,7 @@ export async function GET() {
     }
     
     // Check table structure
-    const { data: tableInfo, error: tableError } = await getSupabaseClient()
+    const { data: tableInfo, error: tableError } = await supabase
       .from('tags')
       .select('*', { head: true, count: 'exact' });
     

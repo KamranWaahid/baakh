@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@getSupabaseClient()/getSupabaseClient()-js";
+import { createClient } from "@supabase/supabase-js";
 
 export async function GET(request: NextRequest) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
   }
   
-  const getSupabaseClient() = createClient(url, serviceKey, { 
+  const supabase = createClient(url, serviceKey, { 
     auth: { autoRefreshToken: false, persistSession: false } 
   });
   
@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '10');
     
     // Search for topic tags only
-    const { data: tags, error: tagsError } = await getSupabaseClient()
+    const { data: tags, error: tagsError } = await supabase
       .from("tags")
       .select(`
         id, 
