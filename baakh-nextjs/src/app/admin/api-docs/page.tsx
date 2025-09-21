@@ -37,7 +37,7 @@ interface APIEndpoint {
   response: {
     status: number;
     description: string;
-    example: any;
+    example: Record<string, unknown>;
   };
   example: {
     request: string;

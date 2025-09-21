@@ -152,7 +152,7 @@ export default function CategoriesPage() {
       console.log('Categories data:', data.rows);
       
       // Transform API data to match our CategoryRow type
-      const transformedCategories: CategoryRow[] = data.rows?.map((cat: any) => {
+      const transformedCategories: CategoryRow[] = data.rows?.map((cat: Record<string, unknown>) => {
         // Detect languages based on available data
         const languages: Language[] = [];
         if (cat.languages?.includes('English')) languages.push('English');
@@ -448,7 +448,7 @@ export default function CategoriesPage() {
                 </div>
                 
                 <div className="flex items-center gap-3">
-                  <Select value={langFilter} onValueChange={(v) => { setLangFilter(v as any); setPage(1); }}>
+                  <Select value={langFilter} onValueChange={(v) => { setLangFilter(v as Language); setPage(1); }}>
                     <SelectTrigger className="h-9 w-[140px] rounded-lg border-[#E5E5E5] focus:border-[#1F1F1F] focus:ring-[#1F1F1F] bg-white hover:bg-[#F4F4F5] transition-colors">
                       <SelectValue placeholder="Language" />
                     </SelectTrigger>
@@ -459,7 +459,7 @@ export default function CategoriesPage() {
                     </SelectContent>
                   </Select>
                   
-                  <Select value={alignFilter} onValueChange={(v) => { setAlignFilter(v as any); setPage(1); }}>
+                  <Select value={alignFilter} onValueChange={(v) => { setAlignFilter(v as Alignment); setPage(1); }}>
                     <SelectTrigger className="h-9 w-[160px] rounded-lg border-[#E5E5E5] focus:border-[#1F1F1F] focus:ring-[#1F1F1F] bg-white hover:bg-[#F4F4F5] transition-colors">
                       <SelectValue placeholder="Alignment" />
                     </SelectTrigger>
