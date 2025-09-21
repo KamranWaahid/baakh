@@ -131,6 +131,9 @@ jobs:
     name: Container Security Scan
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
+    permissions:
+      security-events: write
+      contents: read
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -173,15 +176,21 @@ jobs:
 
       - name: Upload Trivy scan results to GitHub Security tab (Frontend)
         if: steps.docker-build.outputs.frontend-built == 'true'
-        uses: github/codeql-action/upload-sarif@v2
+        uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: 'trivy-results-frontend.sarif'
+        permissions:
+          security-events: write
+        continue-on-error: true
 
       - name: Upload Trivy scan results to GitHub Security tab (Backend)
         if: steps.docker-build.outputs.backend-built == 'true'
-        uses: github/codeql-action/upload-sarif@v2
+        uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: 'trivy-results-backend.sarif'
+        permissions:
+          security-events: write
+        continue-on-error: true
 
       - name: Container scan summary
         run: |
