@@ -56,46 +56,76 @@ if (hasValidCredentials) {
     );
   } catch (error) {
     console.error('❌ Failed to create Supabase client:', error);
-    // Fallback to dummy client that doesn't make network requests
-    supabase = createClient(
-      'https://dummy.supabase.co',
-      'dummy-key',
-      {
-        auth: {
-          persistSession: false,
-          autoRefreshToken: false,
-          detectSessionInUrl: false,
-          flowType: 'implicit'
-        },
-        global: {
-          fetch: () => {
-            // Mock fetch that returns a rejected promise to prevent network requests
-            return Promise.reject(new Error('Supabase not configured - authentication disabled'));
-          }
-        }
-      }
-    );
+    // Fallback to mock client that doesn't make network requests
+    supabase = {
+      auth: {
+        signIn: () => Promise.resolve({ data: { user: null, session: null }, error: { message: 'Supabase not configured' } }),
+        signUp: () => Promise.resolve({ data: { user: null, session: null }, error: { message: 'Supabase not configured' } }),
+        signOut: () => Promise.resolve({ error: null }),
+        getUser: () => Promise.resolve({ data: { user: null }, error: { message: 'Supabase not configured' } }),
+        getSession: () => Promise.resolve({ data: { session: null }, error: { message: 'Supabase not configured' } }),
+        onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } }, error: null })
+      },
+      from: () => ({
+        select: () => ({
+          eq: () => ({
+            single: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
+            range: () => Promise.resolve({ data: [], error: null })
+          }),
+          insert: () => ({
+            select: () => ({
+              single: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } })
+            })
+          }),
+          update: () => ({
+            eq: () => ({
+              select: () => ({
+                single: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } })
+              })
+            })
+          }),
+          delete: () => ({
+            eq: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } })
+          })
+        })
+      })
+    } as any;
   }
   } else {
-    // Create a dummy client for development that doesn't make network requests
-    supabase = createClient(
-      'https://dummy.supabase.co',
-      'dummy-key',
-      {
-        auth: {
-          persistSession: false,
-          autoRefreshToken: false,
-          detectSessionInUrl: false,
-          flowType: 'implicit'
-        },
-        global: {
-          fetch: () => {
-            // Mock fetch that returns a rejected promise to prevent network requests
-            return Promise.reject(new Error('Supabase not configured - authentication disabled'));
-          }
-        }
-      }
-    );
+    // Create a mock client that doesn't make network requests
+    supabase = {
+      auth: {
+        signIn: () => Promise.resolve({ data: { user: null, session: null }, error: { message: 'Supabase not configured' } }),
+        signUp: () => Promise.resolve({ data: { user: null, session: null }, error: { message: 'Supabase not configured' } }),
+        signOut: () => Promise.resolve({ error: null }),
+        getUser: () => Promise.resolve({ data: { user: null }, error: { message: 'Supabase not configured' } }),
+        getSession: () => Promise.resolve({ data: { session: null }, error: { message: 'Supabase not configured' } }),
+        onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } }, error: null })
+      },
+      from: () => ({
+        select: () => ({
+          eq: () => ({
+            single: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
+            range: () => Promise.resolve({ data: [], error: null })
+          }),
+          insert: () => ({
+            select: () => ({
+              single: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } })
+            })
+          }),
+          update: () => ({
+            eq: () => ({
+              select: () => ({
+                single: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } })
+              })
+            })
+          }),
+          delete: () => ({
+            eq: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } })
+          })
+        })
+      })
+    } as any;
   }
 
 // Add fallback properties for compatibility
