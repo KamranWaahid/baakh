@@ -526,7 +526,7 @@ export default function AdminPoetryListPage() {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <Select value={filterStatus} onValueChange={(v: any) => { setFilterStatus(v); setPage(1); }}>
+                  <Select value={filterStatus} onValueChange={(v: string) => { setFilterStatus(v); setPage(1); }}>
                     <SelectTrigger className="h-9 w-[120px] rounded-lg border-[#E5E5E5] focus:border-[#1F1F1F] focus:ring-[#1F1F1F] bg-white hover:bg-[#F4F4F5] transition-colors">
                       <SelectValue placeholder="Status" />
                     </SelectTrigger>
@@ -537,7 +537,7 @@ export default function AdminPoetryListPage() {
                     </SelectContent>
                   </Select>
                   
-                  <Select value={filterLanguage} onValueChange={(v: any) => { setFilterLanguage(v); setPage(1); }}>
+                  <Select value={filterLanguage} onValueChange={(v: string) => { setFilterLanguage(v); setPage(1); }}>
                     <SelectTrigger className="h-9 w-[120px] rounded-lg border-[#E5E5E5] focus:border-[#1F1F1F] focus:ring-[#1F1F1F] bg-white hover:bg-[#F4F4F5] transition-colors">
                       <SelectValue placeholder="Language" />
                     </SelectTrigger>

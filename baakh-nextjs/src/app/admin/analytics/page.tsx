@@ -627,7 +627,7 @@ export default function AdminAnalyticsPage() {
                     </li>
                     <li className="flex items-start gap-2">
                       <div className="w-2 h-2 bg-orange-500 rounded-full mt-2 flex-shrink-0" />
-                      <span className="text-base text-[#1F1F1F]">Increase engagement with Bedil's poetry</span>
+                      <span className="text-base text-[#1F1F1F]">Increase engagement with Bedil&apos;s poetry</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <div className="w-2 h-2 bg-orange-500 rounded-full mt-2 flex-shrink-0" />

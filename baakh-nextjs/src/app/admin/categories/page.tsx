@@ -771,7 +771,7 @@ export default function CategoriesPage() {
             >
               <h3 className="text-lg font-bold text-[#1F1F1F] mb-4">Confirm Deletion</h3>
               <p className="text-base text-[#6B6B6B] mb-6">
-                Are you sure you want to delete "{categoryToDelete.name}"? This action cannot be undone.
+                Are you sure you want to delete &ldquo;{categoryToDelete.name}&rdquo;? This action cannot be undone.
               </p>
               <div className="flex justify-end gap-3">
                 <Button variant="outline" onClick={cancelDelete} className="h-10 px-6 rounded-lg border-[#E5E5E5] text-[#6B6B6B] hover:bg-[#F4F4F5] transition-colors">

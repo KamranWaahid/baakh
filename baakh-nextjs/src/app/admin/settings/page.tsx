@@ -200,7 +200,7 @@ export default function AdminSettingsPage() {
   };
 
   // Validate form data
-  const validateForm = (section: string, data: any): boolean => {
+  const validateForm = (section: string, data: Record<string, unknown>): boolean => {
     const newErrors: Record<string, string> = {};
 
     if (section === 'profile') {
@@ -334,7 +334,7 @@ export default function AdminSettingsPage() {
   };
 
   // Update settings data
-  const updateSettingsData = (section: keyof SettingsData, field: string, value: any) => {
+  const updateSettingsData = (section: keyof SettingsData, field: string, value: unknown) => {
     setSettingsData(prev => ({
       ...prev,
       [section]: {
