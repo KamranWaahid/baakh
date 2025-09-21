@@ -69,7 +69,7 @@ export async function GET() {
     let sessionData;
     try {
       // Check if the cookie is base64 encoded
-      if (sessionCookie.value.startsWith('base64-')) {
+      if (sessionCookie?.value.startsWith('base64-')) {
         // Extract the base64 part after "base64-"
         const base64Data = sessionCookie.value.substring(7);
         // Decode base64 to string
@@ -81,7 +81,7 @@ export async function GET() {
         }
       } else {
         // Try to parse as regular JSON (fallback)
-        sessionData = JSON.parse(sessionCookie.value);
+        sessionData = JSON.parse(sessionCookie?.value || '{}');
         if (process.env.NODE_ENV !== 'production') {
           console.log('✅ /api/auth/me: Regular JSON session cookie parsed successfully');
         }

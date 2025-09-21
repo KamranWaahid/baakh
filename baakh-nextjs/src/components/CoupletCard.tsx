@@ -175,8 +175,8 @@ export default function CoupletCard({ couplet, isSindhi, index }: CoupletCardPro
                 )}>
                   {couplet.poet?.englishName || couplet.poet?.sindhiName ? (
                     couplet.lang === 'sd' 
-                      ? (couplet.poet.sindhiName || couplet.poet.englishName).charAt(0)
-                      : (couplet.poet.englishName || couplet.poet.sindhiName).charAt(0).toUpperCase()
+                      ? (couplet.poet?.sindhiName || couplet.poet?.englishName)?.charAt(0)
+                      : (couplet.poet?.englishName || couplet.poet?.sindhiName)?.charAt(0).toUpperCase()
                   ) : '?'}
                 </AvatarFallback>
               </Avatar>

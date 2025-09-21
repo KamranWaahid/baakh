@@ -7,14 +7,14 @@ export default function GlobalErrorHandler() {
   useEffect(() => {
     // Wrap Promise.reject to catch Event objects before they become unhandled rejections
     const originalReject = Promise.reject;
-    Promise.reject = function(reason) {
-      return originalReject.call(this, toError(reason));
+    Promise.reject = function<T = never>(reason: any): Promise<T> {
+      return originalReject.call(this, toError(reason)) as Promise<T>;
     };
 
     // Add a more targeted approach - wrap specific methods that might create Event objects
     const originalAddEventListener = EventTarget.prototype.addEventListener;
     EventTarget.prototype.addEventListener = function(type, listener, options) {
-      const wrappedListener = (event) => {
+      const wrappedListener = (event: any) => {
         try {
           if (typeof listener === 'function') {
             listener(event);

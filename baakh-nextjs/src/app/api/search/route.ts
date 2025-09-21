@@ -124,8 +124,8 @@ async function searchHandler(req: NextRequest) {
       if (poetryComplex && !poetryComplexError && poetryComplex.length > 0) {
         // Use complex hierarchical data
         for (const poem of poetryComplex) {
-          const poet = poem.poets;
-          const category = poem.categories;
+          const poet = poem.poets?.[0];
+          const category = poem.categories?.[0];
           const translation = poem.poetry_translations?.[0];
           
           if (poet && category && translation) {
@@ -210,7 +210,6 @@ async function searchHandler(req: NextRequest) {
       query: sanitizedQuery,
       lang,
       poets: poets?.length || 0,
-      poetry: poetry?.length || 0,
       tags: tags?.length || 0,
       total: results.length
     });

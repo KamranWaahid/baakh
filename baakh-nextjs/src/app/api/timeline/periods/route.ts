@@ -79,7 +79,7 @@ export async function GET(request: NextRequest) {
       is_ongoing: period.is_ongoing,
       name: isSindhi ? period.sindhi_name : period.english_name,
       description: isSindhi ? period.sindhi_description : period.english_description,
-      characteristics: (isSindhi ? (period.sindhi_characteristics || []) : (period.english_characteristics || [])).filter(char => char && char.trim() !== ''),
+      characteristics: (isSindhi ? (period.sindhi_characteristics || []) : (period.english_characteristics || [])).filter((char: any) => char && char.trim() !== ''),
       color_code: period.color_code,
       icon_name: period.icon_name,
       is_featured: period.is_featured,

@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
     console.log(`📊 Last entry ID: ${lastSync.lastEntryTimestamp}`);
     
     // Fetch only new entries since last sync with pagination
-    let allNewEntries = [];
+    let allNewEntries: any[] = [];
     let page = 0;
     const pageSize = 1000;
     let hasMore = true;

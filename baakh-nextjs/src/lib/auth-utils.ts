@@ -147,7 +147,7 @@ export async function checkUserPermissions(requiredPermissions: string[] = []) {
 
     // Check specific permissions if required
     if (requiredPermissions.length > 0) {
-      const userPermissions = [];
+      const userPermissions: string[] = [];
       if (profileData.profile?.is_admin) userPermissions.push('admin');
       if (profileData.profile?.is_editor) userPermissions.push('editor');
       if (profileData.profile?.is_reviewer) userPermissions.push('reviewer');

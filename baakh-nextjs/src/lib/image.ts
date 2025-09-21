@@ -57,7 +57,7 @@ async function removeBackground(imageFile: File): Promise<File> {
     const uint8Array = new Uint8Array(arrayBuffer);
     
     // Process image to get segmentation mask
-    const result = await segmenter([uint8Array]);
+    const result = await segmenter(uint8Array);
     
     // Find the person/object mask (usually the largest connected component)
     const mask = result[0]?.mask || result[0];
@@ -128,7 +128,7 @@ export async function processPoetImage(
   // Step 1: Remove background if requested
   if (removeBackground) {
     try {
-      processedFile = await removeBackgroundFromImage(file);
+      processedFile = await removeBackground(file);
     } catch (error) {
       console.warn('Background removal failed, continuing with compression:', error);
     }

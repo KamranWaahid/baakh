@@ -143,7 +143,7 @@ export function generatePoetAIContext(poet: any, lang: 'sd' | 'en'): PoetAIConte
 
 // Generate AI search context for poetry
 export function generatePoetryAIContext(poetry: any, lang: 'sd' | 'en'): PoetryAIContext {
-  const isSindhi = lang === 'sindhi'
+  const isSindhi = lang === 'sd'
   const title = poetry.title
   const poetName = isSindhi ? poetry.poet.sindhi_name : poetry.poet.english_name
   

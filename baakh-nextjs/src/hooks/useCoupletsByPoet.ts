@@ -59,8 +59,8 @@ export function useCoupletsByPoet(
   });
 
   // Computed values
-  const hasNextPage = pagination ? currentParams.page < pagination.totalPages : false;
-  const hasPreviousPage = pagination ? currentParams.page > 1 : false;
+  const hasNextPage = pagination ? (currentParams.page || 1) < pagination.totalPages : false;
+  const hasPreviousPage = pagination ? (currentParams.page || 1) > 1 : false;
 
   // Fetch couplets function
   const fetchCouplets = useCallback(async (params?: Partial<CoupletsByPoetParams>) => {
@@ -120,13 +120,13 @@ export function useCoupletsByPoet(
   // Pagination helpers
   const nextPage = useCallback(() => {
     if (hasNextPage) {
-      fetchCouplets({ page: currentParams.page + 1 });
+      fetchCouplets({ page: (currentParams.page || 1) + 1 });
     }
   }, [hasNextPage, currentParams.page, fetchCouplets]);
 
   const previousPage = useCallback(() => {
     if (hasPreviousPage) {
-      fetchCouplets({ page: currentParams.page - 1 });
+      fetchCouplets({ page: (currentParams.page || 1) - 1 });
     }
   }, [hasPreviousPage, currentParams.page, fetchCouplets]);
 

@@ -64,7 +64,7 @@ export class CryptoUtils {
         tagLength: 128
       },
       key,
-      plaintext
+      plaintext.buffer
     );
     
     return {
@@ -173,7 +173,7 @@ export class CryptoUtils {
       const derivedKey = await crypto.subtle.deriveKey(
         {
           name: 'PBKDF2',
-          salt: salt,
+          salt: salt.buffer,
           iterations: iterations,
           hash: 'SHA-256'
         },

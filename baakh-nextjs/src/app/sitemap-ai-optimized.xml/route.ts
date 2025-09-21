@@ -213,11 +213,15 @@ export async function GET(request: NextRequest) {
         if (poetSlug && categorySlug) {
           const sindhiDescription = generatePoetryDescription({
             ...poetry,
+            title: sindhiInfo || poetry.poetry_slug,
+            lang: 'sd',
             poet: (poetry as any).poets,
             category: (poetry as any).categories
           }, 'sd')
           const englishDescription = generatePoetryDescription({
             ...poetry,
+            title: englishInfo || poetry.poetry_slug,
+            lang: 'en',
             poet: (poetry as any).poets,
             category: (poetry as any).categories
           }, 'en')
