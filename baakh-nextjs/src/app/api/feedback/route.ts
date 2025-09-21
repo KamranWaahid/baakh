@@ -2,10 +2,17 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import crypto from 'crypto';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+// Create Supabase client function to avoid build-time errors
+function createSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+  if (!supabaseUrl || !supabaseServiceKey) {
+    throw new Error('Supabase not configured');
+  }
+
+  return createClient(supabaseUrl, supabaseServiceKey);
+}
 
 // Helper function to hash IP address for privacy
 function hashIP(ip: string): string {
@@ -14,6 +21,7 @@ function hashIP(ip: string): string {
 
 export async function POST(request: NextRequest) {
   try {
+    const supabase = createSupabaseClient();
     const body = await request.json();
     const { rating, comment, locale } = body;
 
@@ -90,6 +98,7 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
+    const supabase = createSupabaseClient();
     // Check if Supabase is configured
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL === 'your_supabase_project_url_here') {
       return NextResponse.json({ 
