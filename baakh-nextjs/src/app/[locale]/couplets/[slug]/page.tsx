@@ -11,7 +11,17 @@ import { Badge } from "@/components/ui/badge";
 import { Logo } from "@/components/ui/logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 
-const demoMap: Record<string, unknown> = {
+interface CoupletData {
+  title: string;
+  sindhi: string;
+  poet: string;
+  theme: string;
+  excerpt: string;
+  likes: number;
+  views: number;
+}
+
+const demoMap: Record<string, CoupletData> = {
   "dama-dam-mast-qalandar": {
     title: "Dama Dam Mast Qalandar",
     sindhi: "داما دم مست قلندر",
@@ -74,7 +84,7 @@ export default function CoupletPage() {
                 <div className="text-muted-foreground text-sm">{content.by} {couplet.poet}</div>
                 <div className="py-4 border-y">
                   <h2 className="text-xl md:text-2xl leading-relaxed mb-2 sindhi-text" dir="rtl">{couplet.sindhi}</h2>
-                  <p className="text-muted-foreground italic">"{couplet.excerpt}"</p>
+                  <p className="text-muted-foreground italic">&ldquo;{couplet.excerpt}&rdquo;</p>
                 </div>
 
                 <div className="flex items-center justify-between text-sm">

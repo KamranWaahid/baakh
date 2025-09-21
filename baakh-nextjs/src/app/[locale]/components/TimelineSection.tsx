@@ -31,10 +31,6 @@ export default function TimelineSection({ isSindhi }: TimelineSectionProps) {
   const [timelinePeriods, setTimelinePeriods] = useState<TimelinePeriod[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchTimelineData();
-  }, [fetchTimelineData]);
-
   const fetchTimelineData = useCallback(async () => {
     try {
       setLoading(true);
@@ -50,6 +46,10 @@ export default function TimelineSection({ isSindhi }: TimelineSectionProps) {
       setLoading(false);
     }
   }, [isSindhi]);
+
+  useEffect(() => {
+    fetchTimelineData();
+  }, [fetchTimelineData]);
 
   // Fallback data if API fails
   const fallbackPeriods = [

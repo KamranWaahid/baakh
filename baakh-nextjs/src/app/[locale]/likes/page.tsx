@@ -11,25 +11,35 @@ import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import CoupletCard from '@/components/CoupletCard';
 
+interface CoupletData {
+  id: number;
+  couplet_text: string;
+  couplet_slug: string;
+  lang: string;
+  lines: string[];
+  tags: string[];
+  poet: {
+    name: string;
+    slug: string;
+    photo: string | null;
+    sindhiName?: string;
+    englishName?: string;
+    sindhi_laqab?: string;
+    english_laqab?: string;
+  };
+  created_at: string;
+  likes: number;
+  views: number;
+}
+
 export default function LikesPage() {
   const { user, isAuthenticated, isLoading: authLoading } = useE2EEAuth();
   const router = useRouter();
   const { language, isRTL } = useLanguage();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [, setLikes] = useState<Record<string, unknown>[]>([]);
-  const [content, setContent] = useState<Record<string, unknown>[]>([]);
-
-  useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      router.push(`/${language}/login`);
-      return;
-    }
-
-    if (isAuthenticated && user?.userId) {
-      fetchLikes();
-    }
-  }, [authLoading, isAuthenticated, user, language, router, fetchLikes]);
+  const [, setLikes] = useState<CoupletData[]>([]);
+  const [content, setContent] = useState<CoupletData[]>([]);
 
   const fetchLikes = useCallback(async () => {
     try {
@@ -52,6 +62,17 @@ export default function LikesPage() {
       setIsLoading(false);
     }
   }, [user?.userId]);
+
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      router.push(`/${language}/login`);
+      return;
+    }
+
+    if (isAuthenticated && user?.userId) {
+      fetchLikes();
+    }
+  }, [authLoading, isAuthenticated, user, language, router, fetchLikes]);
 
   const getBackLink = () => `/${language}/dashboard`;
 
