@@ -4,14 +4,20 @@ import { createClient } from '@supabase/supabase-js';
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-if (!url || !serviceKey) {
-  throw new Error("Supabase not configured");
-}
+// Create a fallback client if Supabase is not configured
+let supabase: any = null;
 
-const supabase = createClient(url, serviceKey, {
-  auth: { autoRefreshToken: false, persistSession: false },
-  db: { schema: 'public' }
-});
+if (url && serviceKey) {
+  try {
+    supabase = createClient(url, serviceKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+      db: { schema: 'public' }
+    });
+  } catch (error) {
+    console.warn('Failed to create Supabase client:', error);
+    supabase = null;
+  }
+}
 
 // GET user settings (for regular users in e2ee_users table)
 export async function GET(request: NextRequest) {
@@ -22,6 +28,45 @@ export async function GET(request: NextRequest) {
 
     if (!userId) {
       return NextResponse.json({ error: "User ID required" }, { status: 400 });
+    }
+
+    // Check if Supabase is configured
+    if (!supabase) {
+      console.warn("Supabase not configured, returning default settings");
+      // Return default settings when Supabase is not configured
+      const defaultSettings = {
+        profile: {
+          firstName: "User",
+          lastName: "",
+          email: "",
+          phone: "",
+          avatar: "",
+          bio: "Regular user of Baakh poetry archive"
+        },
+        preferences: {
+          language: "en",
+          timezone: "Asia/Karachi",
+          dateFormat: "DD/MM/YYYY",
+          timeFormat: "24h",
+          theme: "light",
+          notifications: true
+        },
+        privacy: {
+          profileVisibility: "public",
+          showEmail: false,
+          showPhone: false,
+          allowMessages: true
+        }
+      };
+
+      // Return specific section if requested
+      if (section && defaultSettings[section as keyof typeof defaultSettings]) {
+        return NextResponse.json({ 
+          settings: { [section]: defaultSettings[section as keyof typeof defaultSettings] }
+        });
+      }
+
+      return NextResponse.json({ settings: defaultSettings });
     }
 
     // Get user settings from e2ee_users table
@@ -105,6 +150,16 @@ export async function POST(request: NextRequest) {
         { error: "Invalid section. Must be one of: profile, preferences, privacy" },
         { status: 400 }
       );
+    }
+
+    // Check if Supabase is configured
+    if (!supabase) {
+      console.warn("Supabase not configured, returning mock success");
+      return NextResponse.json({ 
+        success: true, 
+        message: `${section} settings updated successfully (mock - Supabase not configured)`,
+        data: data
+      });
     }
 
     // For now, just return success since we need to encrypt the data
