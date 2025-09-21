@@ -4,30 +4,29 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { updateNote, softDeleteNote } from './actions';
 import NoteCard from './NoteCard';
-
-type Note = Record<string, unknown>;
+import type { StickyNote } from '@/types/database';
 
 const columns = ['inbox','review','approved','archived'] as const;
 
-export default function NoteBoard({ initialNotes }: { initialNotes: Note[] }) {
-  const [notes, setNotes] = useState<Note[]>(initialNotes);
+export default function NoteBoard({ initialNotes }: { initialNotes: StickyNote[] }) {
+  const [notes, setNotes] = useState<StickyNote[]>(initialNotes);
 
   useEffect(() => {
     const channel = supabase
       .channel('notes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'sticky_notes' }, payload => {
-        if (payload.eventType === 'INSERT') setNotes(prev => [payload.new as Note, ...prev]);
-        if (payload.eventType === 'UPDATE') setNotes(prev => prev.map(n => n.id === (payload.new as Record<string, unknown>).id ? payload.new as Note : n));
-        if (payload.eventType === 'DELETE') setNotes(prev => prev.filter(n => n.id !== (payload.old as Record<string, unknown>).id));
+        if (payload.eventType === 'INSERT') setNotes(prev => [payload.new as StickyNote, ...prev]);
+        if (payload.eventType === 'UPDATE') setNotes(prev => prev.map(n => n.id === (payload.new as StickyNote).id ? payload.new as StickyNote : n));
+        if (payload.eventType === 'DELETE') setNotes(prev => prev.filter(n => n.id !== (payload.old as StickyNote).id));
       }).subscribe();
     return () => { supabase.removeChannel(channel); };
   }, []);
 
-  async function onDrop(note: Note, status: string) {
-    await updateNote(note.id, { status: status as string });
+  async function onDrop(note: StickyNote, status: string) {
+    await updateNote(note.id, { status: status as 'inbox' | 'review' | 'approved' | 'archived' });
   }
 
-  async function bump(note: Note) {
+  async function bump(note: StickyNote) {
     await updateNote(note.id, { priority: (note.priority ?? 0) + 1 });
   }
 

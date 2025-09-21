@@ -1,4 +1,14 @@
-export default function NoteList({ notes }:{ notes:Record<string, unknown>[] }) {
+import type { StickyNote } from '@/types/database';
+
+interface NoteWithTags extends StickyNote {
+  note_tags?: Array<{
+    tags?: {
+      label: string;
+    };
+  }>;
+}
+
+export default function NoteList({ notes }:{ notes: NoteWithTags[] }) {
   return (
     <table className="w-full text-sm border">
       <thead>
@@ -17,7 +27,7 @@ export default function NoteList({ notes }:{ notes:Record<string, unknown>[] }) 
             <td className="p-2">{n.title}</td>
             <td className="p-2">{(n.body || '').slice(0,160)}</td>
             <td className="p-2 text-center">{n.status}</td>
-            <td className="p-2">{n.note_tags?.map((nt:Record<string, unknown>)=>nt.tags?.label).filter(Boolean).join(', ')}</td>
+            <td className="p-2">{n.note_tags?.map((nt) => nt.tags?.label).filter(Boolean).join(', ')}</td>
             <td className="p-2">
               {n.source_url ? <a className="underline" href={n.source_url} target="_blank">link</a> : '—'}
             </td>
