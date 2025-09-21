@@ -7,7 +7,29 @@ function createSupabaseClient() {
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!url || !serviceKey) {
-    throw new Error("Supabase not configured");
+    console.warn('Supabase not configured, using mock client');
+    // Return a mock client that won't crash during build
+    return {
+      from: () => ({
+        select: () => ({
+          eq: () => ({
+            single: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } })
+          })
+        }),
+        insert: () => ({
+          select: () => ({
+            single: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } })
+          })
+        }),
+        update: () => ({
+          eq: () => ({
+            select: () => ({
+              single: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } })
+            })
+          })
+        })
+      })
+    } as any;
   }
 
   return createClient(url, serviceKey, {
