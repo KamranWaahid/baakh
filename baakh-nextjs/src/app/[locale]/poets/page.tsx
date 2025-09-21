@@ -17,7 +17,7 @@ import {
   ChevronDown
 } from "lucide-react";
 import { useState, useEffect } from "react";
-import { AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+// Removed unused Avatar and Image imports
 import { usePathname, useRouter } from "next/navigation";
 import { NumberFont, MixedContentWithNumbers } from "@/components/ui/NumberFont";
 import { getSmartFontClass } from "@/lib/font-detection-utils";
@@ -69,7 +69,7 @@ export default function PoetsPage() {
 
   const [sortBy, setSortBy] = useState<'english_name' | 'birth_date' | 'is_featured'>('birth_date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
-  const [perPage, setPerPage] = useState(12);
+  const [perPage] = useState(12);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [databaseTags, setDatabaseTags] = useState<{[key: string]: string}>({});
@@ -129,8 +129,7 @@ export default function PoetsPage() {
     content.twentiethCentury
   ];
 
-  // Apply Sindhi font only if text contains Arabic/Sindhi characters
-  const sd = (text?: string | null) => (text && /[\u0600-\u06FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(text) ? 'auto-sindhi-font' : '');
+  // Removed unused sd function
   // Handlers for card actions
   const handleViewClick = (poet: Poet) => {
     const base = isSindhi ? '/sd' : '/en';
@@ -492,7 +491,6 @@ export default function PoetsPage() {
 
   // Use the new utility functions for consistent poet name handling
   const getDisplayName = (poet: Poet) => getPrimaryPoetName(poet, isSindhi);
-  const getDisplayLaqab = (poet: Poet) => getPrimaryPoetName(poet, isSindhi);
 
   const getDisplayTagline = (poet: Poet) => {
     if ('display_tagline' in poet && poet.display_tagline) {

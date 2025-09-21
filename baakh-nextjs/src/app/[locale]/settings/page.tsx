@@ -37,7 +37,7 @@ export default function SettingsPage() {
   const [settingsData, setSettingsData] = useState({
     profile: {
       englishName: user?.profile?.name || '',
-      sindhiName: (user?.profile as any)?.sindhi_name || '',
+      sindhiName: (user?.profile as { sindhi_name?: string })?.sindhi_name || '',
       username: user?.username || '',
       bio: 'Sindhi Poetry Enthusiast'
     },
@@ -123,7 +123,7 @@ export default function SettingsPage() {
     setIsSaving(false)
   }
 
-  const updateSettingsData = (section: string, field: string, value: any) => {
+  const updateSettingsData = (section: string, field: string, value: string | boolean | number) => {
     setSettingsData(prev => ({
       ...prev,
       [section]: {
