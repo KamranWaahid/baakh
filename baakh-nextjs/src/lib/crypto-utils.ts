@@ -111,7 +111,7 @@ export class CryptoUtils {
           tagLength: 128
         },
         key,
-        cipher
+        cipher.buffer
       );
       
       return new TextDecoder().decode(decrypted);
@@ -350,7 +350,7 @@ export class CryptoUtils {
           tagLength: 128
         },
         key,
-        cipher
+        cipher.buffer
       );
 
       return new Uint8Array(decrypted);

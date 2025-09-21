@@ -165,7 +165,7 @@ export const getNumberSizeClass = (size: string = 'base'): string => {
  * @param props - Number font properties
  * @returns Complete CSS class string
  */
-export const createNumberFontClass = (props: NumberFontProps = {}): string => {
+export const createNumberFontClass = (props: Omit<NumberFontProps, 'children'> = {}): string => {
   const {
     className = '',
     weight = 'medium',

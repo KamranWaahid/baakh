@@ -19,7 +19,7 @@ export async function checkLockoutStatus(identifier: string): Promise<LockoutSta
     const supabase = createAdminClient();
     
     // If using fallback client, return default status
-    if (supabase.supabaseUrl === 'https://dummy.supabase.co') {
+    if ((supabase as any).supabaseUrl === 'https://dummy.supabase.co') {
       return { isLocked: false, attemptsRemaining: MAX_ATTEMPTS };
     }
     
@@ -93,7 +93,7 @@ export async function recordFailedAttempt(identifier: string, ipAddress?: string
     const supabase = createAdminClient();
     
     // If using fallback client, return default status
-    if (supabase.supabaseUrl === 'https://dummy.supabase.co') {
+    if ((supabase as any).supabaseUrl === 'https://dummy.supabase.co') {
       return { isLocked: false, attemptsRemaining: MAX_ATTEMPTS };
     }
     
@@ -147,7 +147,7 @@ export async function clearLockout(identifier: string): Promise<void> {
     const supabase = createAdminClient();
     
     // If using fallback client, do nothing
-    if (supabase.supabaseUrl === 'https://dummy.supabase.co') {
+    if ((supabase as any).supabaseUrl === 'https://dummy.supabase.co') {
       return;
     }
     

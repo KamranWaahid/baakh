@@ -43,7 +43,7 @@ export function verifyCSRFToken(token: string, storedToken: string, storedExpire
  * Create a signed CSRF token for additional security
  */
 export function createSignedCSRFToken(token: string): string {
-  const hmac = createHmac('sha256', CSRF_SECRET);
+  const hmac = createHmac('sha256', CSRF_SECRET!);
   hmac.update(token);
   const signature = hmac.digest('hex');
   return `${token}.${signature}`;
@@ -61,7 +61,7 @@ export function verifySignedCSRFToken(signedToken: string): string | null {
   const [token, signature] = parts;
   
   // Verify signature
-  const hmac = createHmac('sha256', CSRF_SECRET);
+  const hmac = createHmac('sha256', CSRF_SECRET!);
   hmac.update(token);
   const expectedSignature = hmac.digest('hex');
   

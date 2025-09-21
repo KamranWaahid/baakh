@@ -17,8 +17,8 @@ export default function LikesPage() {
   const { language, isRTL } = useLanguage();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [likes, setLikes] = useState([]);
-  const [content, setContent] = useState([]);
+  const [likes, setLikes] = useState<any[]>([]);
+  const [content, setContent] = useState<any[]>([]);
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {

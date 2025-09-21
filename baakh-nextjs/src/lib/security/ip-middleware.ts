@@ -128,7 +128,7 @@ export async function checkSuspiciousIP(ip: string): Promise<{
     
     // Check for known malicious IPs (in real implementation, use threat intelligence)
     // This is a placeholder - you'd integrate with threat feeds
-    const maliciousIPs = [
+    const maliciousIPs: string[] = [
       // Add known malicious IPs here
     ];
     

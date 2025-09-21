@@ -133,4 +133,4 @@ async function postHandler(request: NextRequest) {
   }
 }
 
-export const POST = withSecurity(postHandler);
+export const POST = withSecurity('admin')(postHandler);

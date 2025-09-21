@@ -1039,7 +1039,7 @@ export default function PoetPage() {
                                   const tagList = Array.isArray(poem.tags)
                                     ? poem.tags
                                     : (typeof poem.tags === 'string'
-                                        ? poem.tags.split(',').map((t: string) => t.trim()).filter(Boolean)
+                                        ? (poem.tags as string).split(',').map((t: string) => t.trim()).filter(Boolean)
                                         : []);
                                   return tagList.length > 0 ? (
                                     <div className="flex flex-wrap gap-1 mt-1">

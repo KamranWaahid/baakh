@@ -107,12 +107,12 @@ const databaseSchema: TableSchema[] = [
     icon: Quote,
     columns: [
       { name: "id", type: "SERIAL", nullable: false, primaryKey: true, description: "Unique identifier for the couplet" },
-      { name: "poetry_id", type: "UUID", nullable: false, foreignKey: "poetry.id", description: "Reference to the parent poetry work" },
-      { name: "couplet_text", type: "TEXT", nullable: false, description: "The actual couplet text" },
-      { name: "couplet_slug", type: "VARCHAR(255)", nullable: false, description: "URL-friendly slug for the couplet" },
-      { name: "lang", type: "VARCHAR(10)", nullable: false, description: "Language of the couplet" },
-      { name: "created_at", type: "TIMESTAMP", nullable: false, description: "Record creation timestamp" },
-      { name: "updated_at", type: "TIMESTAMP", nullable: false, description: "Record last update timestamp" }
+      { name: "poetry_id", type: "UUID", nullable: false, primaryKey: false, foreignKey: "poetry.id", description: "Reference to the parent poetry work" },
+      { name: "couplet_text", type: "TEXT", nullable: false, primaryKey: false, description: "The actual couplet text" },
+      { name: "couplet_slug", type: "VARCHAR(255)", nullable: false, primaryKey: false, description: "URL-friendly slug for the couplet" },
+      { name: "lang", type: "VARCHAR(10)", nullable: false, primaryKey: false, description: "Language of the couplet" },
+      { name: "created_at", type: "TIMESTAMP", nullable: false, primaryKey: false, description: "Record creation timestamp" },
+      { name: "updated_at", type: "TIMESTAMP", nullable: false, primaryKey: false, description: "Record last update timestamp" }
     ],
     relationships: [
       { type: "one-to-many", table: "poetry", description: "A couplet belongs to one poetry work" }
@@ -125,11 +125,11 @@ const databaseSchema: TableSchema[] = [
     icon: FileText,
     columns: [
       { name: "id", type: "SERIAL", nullable: false, primaryKey: true, description: "Unique identifier for the translation" },
-      { name: "poetry_id", type: "UUID", nullable: false, foreignKey: "poetry.id", description: "Reference to the parent poetry work" },
-      { name: "title", type: "VARCHAR(255)", nullable: false, description: "Translated title" },
-      { name: "lang", type: "VARCHAR(10)", nullable: false, description: "Language of the translation" },
-      { name: "created_at", type: "TIMESTAMP", nullable: false, description: "Record creation timestamp" },
-      { name: "updated_at", type: "TIMESTAMP", nullable: false, description: "Record last update timestamp" }
+      { name: "poetry_id", type: "UUID", nullable: false, primaryKey: false, foreignKey: "poetry.id", description: "Reference to the parent poetry work" },
+      { name: "title", type: "VARCHAR(255)", nullable: false, primaryKey: false, description: "Translated title" },
+      { name: "lang", type: "VARCHAR(10)", nullable: false, primaryKey: false, description: "Language of the translation" },
+      { name: "created_at", type: "TIMESTAMP", nullable: false, primaryKey: false, description: "Record creation timestamp" },
+      { name: "updated_at", type: "TIMESTAMP", nullable: false, primaryKey: false, description: "Record last update timestamp" }
     ],
     relationships: [
       { type: "one-to-many", table: "poetry", description: "A translation belongs to one poetry work" }
@@ -142,12 +142,12 @@ const databaseSchema: TableSchema[] = [
     icon: Layers,
     columns: [
       { name: "id", type: "SERIAL", nullable: false, primaryKey: true, description: "Unique identifier for the category" },
-      { name: "name", type: "VARCHAR(255)", nullable: false, description: "Category name" },
-      { name: "slug", type: "VARCHAR(255)", nullable: false, description: "URL-friendly slug for the category" },
-      { name: "description", type: "TEXT", nullable: true, description: "Category description" },
-      { name: "parent_id", type: "INTEGER", nullable: true, foreignKey: "categories.id", description: "Reference to parent category for hierarchy" },
-      { name: "created_at", type: "TIMESTAMP", nullable: false, description: "Record creation timestamp" },
-      { name: "updated_at", type: "TIMESTAMP", nullable: false, description: "Record last update timestamp" }
+      { name: "name", type: "VARCHAR(255)", nullable: false, primaryKey: false, description: "Category name" },
+      { name: "slug", type: "VARCHAR(255)", nullable: false, primaryKey: false, description: "URL-friendly slug for the category" },
+      { name: "description", type: "TEXT", nullable: true, primaryKey: false, description: "Category description" },
+      { name: "parent_id", type: "INTEGER", nullable: true, primaryKey: false, foreignKey: "categories.id", description: "Reference to parent category for hierarchy" },
+      { name: "created_at", type: "TIMESTAMP", nullable: false, primaryKey: false, description: "Record creation timestamp" },
+      { name: "updated_at", type: "TIMESTAMP", nullable: false, primaryKey: false, description: "Record last update timestamp" }
     ],
     relationships: [
       { type: "one-to-many", table: "poetry", description: "A category can contain multiple poetry works" },
@@ -161,12 +161,12 @@ const databaseSchema: TableSchema[] = [
     icon: Tag,
     columns: [
       { name: "id", type: "SERIAL", nullable: false, primaryKey: true, description: "Unique identifier for the tag" },
-      { name: "name", type: "VARCHAR(255)", nullable: false, description: "Tag name" },
-      { name: "slug", type: "VARCHAR(255)", nullable: false, description: "URL-friendly slug for the tag" },
-      { name: "type", type: "VARCHAR(50)", nullable: false, description: "Type of tag (poet, poetry)" },
-      { name: "description", type: "TEXT", nullable: true, description: "Tag description" },
-      { name: "created_at", type: "TIMESTAMP", nullable: false, description: "Record creation timestamp" },
-      { name: "updated_at", type: "TIMESTAMP", nullable: false, description: "Record last update timestamp" }
+      { name: "name", type: "VARCHAR(255)", nullable: false, primaryKey: false, description: "Tag name" },
+      { name: "slug", type: "VARCHAR(255)", nullable: false, primaryKey: false, description: "URL-friendly slug for the tag" },
+      { name: "type", type: "VARCHAR(50)", nullable: false, primaryKey: false, description: "Type of tag (poet, poetry)" },
+      { name: "description", type: "TEXT", nullable: true, primaryKey: false, description: "Tag description" },
+      { name: "created_at", type: "TIMESTAMP", nullable: false, primaryKey: false, description: "Record creation timestamp" },
+      { name: "updated_at", type: "TIMESTAMP", nullable: false, primaryKey: false, description: "Record last update timestamp" }
     ],
     relationships: [
       { type: "many-to-many", table: "poet_tags", description: "A tag can be associated with multiple poets" },
@@ -179,9 +179,9 @@ const databaseSchema: TableSchema[] = [
     description: "Junction table for poet-tag many-to-many relationship",
     icon: Link,
     columns: [
-      { name: "poet_id", type: "UUID", nullable: false, foreignKey: "poets.id", description: "Reference to the poet" },
-      { name: "tag_id", type: "INTEGER", nullable: false, foreignKey: "tags.id", description: "Reference to the tag" },
-      { name: "created_at", type: "TIMESTAMP", nullable: false, description: "Record creation timestamp" }
+      { name: "poet_id", type: "UUID", nullable: false, primaryKey: false, foreignKey: "poets.id", description: "Reference to the poet" },
+      { name: "tag_id", type: "INTEGER", nullable: false, primaryKey: false, foreignKey: "tags.id", description: "Reference to the tag" },
+      { name: "created_at", type: "TIMESTAMP", nullable: false, primaryKey: false, description: "Record creation timestamp" }
     ],
     relationships: [
       { type: "one-to-many", table: "poets", description: "A poet-tag relationship belongs to one poet" },
@@ -194,9 +194,9 @@ const databaseSchema: TableSchema[] = [
     description: "Junction table for poetry-tag many-to-many relationship",
     icon: Link,
     columns: [
-      { name: "poetry_id", type: "UUID", nullable: false, foreignKey: "poetry.id", description: "Reference to the poetry work" },
-      { name: "tag_id", type: "INTEGER", nullable: false, foreignKey: "tags.id", description: "Reference to the tag" },
-      { name: "created_at", type: "TIMESTAMP", nullable: false, description: "Record creation timestamp" }
+      { name: "poetry_id", type: "UUID", nullable: false, primaryKey: false, foreignKey: "poetry.id", description: "Reference to the poetry work" },
+      { name: "tag_id", type: "INTEGER", nullable: false, primaryKey: false, foreignKey: "tags.id", description: "Reference to the tag" },
+      { name: "created_at", type: "TIMESTAMP", nullable: false, primaryKey: false, description: "Record creation timestamp" }
     ],
     relationships: [
       { type: "one-to-many", table: "poetry", description: "A poetry-tag relationship belongs to one poetry work" },
@@ -210,12 +210,12 @@ const databaseSchema: TableSchema[] = [
     icon: Globe,
     columns: [
       { name: "id", type: "SERIAL", nullable: false, primaryKey: true, description: "Unique identifier for the location" },
-      { name: "name", type: "VARCHAR(255)", nullable: false, description: "Location name" },
-      { name: "sindhi_name", type: "VARCHAR(255)", nullable: true, description: "Sindhi name of the location" },
-      { name: "type", type: "VARCHAR(50)", nullable: false, description: "Type of location (country, province, city)" },
-      { name: "parent_id", type: "INTEGER", nullable: true, foreignKey: "locations.id", description: "Reference to parent location for hierarchy" },
-      { name: "created_at", type: "TIMESTAMP", nullable: false, description: "Record creation timestamp" },
-      { name: "updated_at", type: "TIMESTAMP", nullable: false, description: "Record last update timestamp" }
+      { name: "name", type: "VARCHAR(255)", nullable: false, primaryKey: false, description: "Location name" },
+      { name: "sindhi_name", type: "VARCHAR(255)", nullable: true, primaryKey: false, description: "Sindhi name of the location" },
+      { name: "type", type: "VARCHAR(50)", nullable: false, primaryKey: false, description: "Type of location (country, province, city)" },
+      { name: "parent_id", type: "INTEGER", nullable: true, primaryKey: false, foreignKey: "locations.id", description: "Reference to parent location for hierarchy" },
+      { name: "created_at", type: "TIMESTAMP", nullable: false, primaryKey: false, description: "Record creation timestamp" },
+      { name: "updated_at", type: "TIMESTAMP", nullable: false, primaryKey: false, description: "Record last update timestamp" }
     ],
     relationships: [
       { type: "one-to-many", table: "locations", description: "Self-referencing for location hierarchy" }

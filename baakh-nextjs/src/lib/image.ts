@@ -57,10 +57,10 @@ async function removeBackground(imageFile: File): Promise<File> {
     const uint8Array = new Uint8Array(arrayBuffer);
     
     // Process image to get segmentation mask
-    const result = await segmenter(uint8Array);
+    const result = await segmenter([uint8Array]);
     
     // Find the person/object mask (usually the largest connected component)
-    const mask = result[0].mask;
+    const mask = result[0]?.mask || result[0];
     
     // Create canvas with transparent background
     const canvas = document.createElement('canvas');
@@ -80,11 +80,13 @@ async function removeBackground(imageFile: File): Promise<File> {
     const data = imageData.data;
     
     // Apply mask to make background transparent
-    for (let i = 0; i < mask.length; i++) {
-      const maskValue = mask[i];
-      // If mask value is low (background), make pixel transparent
-      if (maskValue < 0.5) {
-        data[i * 4 + 3] = 0; // Set alpha to 0
+    if (Array.isArray(mask) && mask.length > 0) {
+      for (let i = 0; i < Math.min(mask.length, data.length / 4); i++) {
+        const maskValue = mask[i];
+        // If mask value is low (background), make pixel transparent
+        if (typeof maskValue === 'number' && maskValue < 0.5) {
+          data[i * 4 + 3] = 0; // Set alpha to 0
+        }
       }
     }
     
@@ -126,7 +128,7 @@ export async function processPoetImage(
   // Step 1: Remove background if requested
   if (removeBackground) {
     try {
-      processedFile = await removeBackground(file);
+      processedFile = await removeBackgroundFromImage(file);
     } catch (error) {
       console.warn('Background removal failed, continuing with compression:', error);
     }

@@ -99,7 +99,7 @@ class RedisRateLimiter {
       const allowed = totalHits < this.config.maxRequests;
 
       // Calculate reset time
-      const oldestRequest = await this.client.zRange(key, 0, 0, { REV: true, WITHSCORES: true });
+      const oldestRequest = await this.client.zRangeWithScores(key, 0, 0, { REV: true });
       const resetTime = oldestRequest.length > 0 
         ? Number(oldestRequest[1]) + this.config.windowMs
         : now + this.config.windowMs;
@@ -153,7 +153,7 @@ class RedisRateLimiter {
       const allowed = totalHits < this.config.maxRequests;
 
       // Calculate reset time
-      const oldestRequest = await this.client.zRange(key, 0, 0, { REV: true, WITHSCORES: true });
+      const oldestRequest = await this.client.zRangeWithScores(key, 0, 0, { REV: true });
       const resetTime = oldestRequest.length > 0 
         ? Number(oldestRequest[1]) + this.config.windowMs
         : now + this.config.windowMs;

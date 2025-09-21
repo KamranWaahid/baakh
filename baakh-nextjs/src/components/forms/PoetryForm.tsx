@@ -74,7 +74,7 @@ interface PoetryFormProps {
   mode: 'create' | 'edit';
 }
 
-export default function PoetryForm({ poetry }: Omit<PoetryFormProps, 'mode'>) {
+export default function PoetryForm({ poetry, mode }: PoetryFormProps) {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(false);

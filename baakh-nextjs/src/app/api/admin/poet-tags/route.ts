@@ -57,7 +57,7 @@ export async function GET(request: Request) {
       return {
         id: row.id,
         slug: row.slug,
-        label: sindhi.title || english.title || row.label,
+        label: sindhi.title || english.title || row.name,
         tag_type: row.tag_type || "",
         created_at: row.created_at,
         updated_at: row.updated_at,

@@ -376,7 +376,7 @@ export function generateHomeMetadata(lang: 'sd' | 'en'): PageMetadata {
 }
 
 // Generate AI-optimized meta tags for search engines
-export function generateAIMetaTags(content: any, type: 'poet' | 'poetry' | 'category' | 'home', lang: 'sd' | 'en') {
+export function generateAIMetaTagsForPage(content: any, type: 'poet' | 'poetry' | 'category' | 'home', lang: 'sd' | 'en') {
   const isSindhi = lang === 'sd'
   
   const baseTags = {
