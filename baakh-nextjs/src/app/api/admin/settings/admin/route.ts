@@ -1,21 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+// Create Supabase client function to avoid build-time errors
+function createSupabaseClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-if (!url || !serviceKey) {
-  throw new Error("Supabase not configured");
+  if (!url || !serviceKey) {
+    throw new Error("Supabase not configured");
+  }
+
+  return createClient(url, serviceKey, {
+    auth: { autoRefreshToken: false, persistSession: false },
+    db: { schema: 'public' }
+  });
 }
-
-const supabase = createClient(url, serviceKey, {
-  auth: { autoRefreshToken: false, persistSession: false },
-  db: { schema: 'public' }
-});
 
 // GET supabase settings
 export async function GET(request: NextRequest) {
   try {
+    const supabase = createSupabaseClient();
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get("userId");
     const section = searchParams.get("section");
@@ -145,6 +149,7 @@ export async function GET(request: NextRequest) {
 // POST/PUT supabase settings
 export async function POST(request: NextRequest) {
   try {
+    const supabase = createSupabaseClient();
     const body = await request.json();
     const { userId, section, data } = body;
 
