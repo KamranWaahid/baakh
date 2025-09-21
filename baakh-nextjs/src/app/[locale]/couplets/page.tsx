@@ -5,10 +5,9 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+// import { Badge } from "@/components/ui/badge";
 import { 
   Search, 
-  Filter, 
   ChevronDown, 
   Heart, 
   Eye, 
@@ -17,10 +16,9 @@ import {
   Calendar, 
   User,
   BookOpen,
-  Users,
   Calendar as CalendarIcon
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { NumberFont, MixedContentWithNumbers } from "@/components/ui/NumberFont";
 import { getSmartFontClass } from "@/lib/font-detection-utils";
 import { getPrimaryPoetName } from "@/lib/poet-name-utils";
@@ -29,11 +27,10 @@ import { AuthModal } from "@/components/ui/AuthModal";
 import { useViewTracking } from "@/hooks/useViewTracking";
 
 // Couplet Card Component with View Tracking
-function CoupletCard({ couplet, index, isSindhi, isRTL, isAuthenticated, handleLikeClick, handleBookmarkClick }: {
+function CoupletCard({ couplet, index, isSindhi, isAuthenticated, handleLikeClick, handleBookmarkClick }: {
   couplet: Couplet;
   index: number;
   isSindhi: boolean;
-  isRTL: boolean;
   isAuthenticated: boolean;
   handleLikeClick: (coupletId: string) => void;
   handleBookmarkClick: (coupletId: string) => void;
@@ -222,7 +219,7 @@ export default function CoupletsPage() {
   };
 
   // Apply Sindhi font only if text contains Arabic/Sindhi characters
-  const sd = (text?: string | null) => (text && /[\u0600-\u06FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(text) ? 'auto-sindhi-font' : '');
+  // const sd = (text?: string | null) => (text && /[\u0600-\u06FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(text) ? 'auto-sindhi-font' : '');
 
   const fetchCouplets = useCallback(async () => {
     try {
@@ -679,7 +676,6 @@ export default function CoupletsPage() {
                   couplet={couplet}
                   index={index}
                   isSindhi={isSindhi}
-                  isRTL={isRTL}
                   isAuthenticated={isAuthenticated}
                   handleLikeClick={handleLikeClick}
                   handleBookmarkClick={handleBookmarkClick}
