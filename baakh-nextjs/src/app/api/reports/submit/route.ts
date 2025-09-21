@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@getSupabaseClient()/getSupabaseClient()-js';
+import { NextRequest, NextResponse } from 'next/server';;
+import { createClient } from '@supabase/supabase-js';;
 import { cookies } from 'next/headers';
 import { SubmitReportData, ReportCategory, ReportReason } from '@/types/reports';
 

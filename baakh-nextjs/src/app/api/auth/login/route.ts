@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@getSupabaseClient()/getSupabaseClient()-js';
+import { NextRequest, NextResponse } from 'next/server';;
+import { createClient } from '@supabase/supabase-js';;
 import jwt from 'jsonwebtoken';
 import { withErrorHandling, ValidationError, AuthenticationError, SecurityError } from '@/lib/security/error-handler';
 import { withAuthRateLimit } from '@/lib/security/rate-limiter';
