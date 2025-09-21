@@ -86,7 +86,7 @@ export default function AdminLoginPage() {
     const checkAuth = async () => {
       try {
         // Check if Supabase is configured
-        if ((supabase as Record<string, unknown>).supabaseUrl === 'dummy.supabase.co') {
+        if ((supabase as any).supabaseUrl === 'dummy.supabase.co') {
           console.log('⚠️ Supabase not configured, skipping auth check');
           return;
         }
@@ -125,11 +125,11 @@ export default function AdminLoginPage() {
     
     try {
       console.log('🔐 Attempting sign in with email:', email);
-      console.log('🔧 Supabase client URL:', (supabase as Record<string, unknown>).supabaseUrl);
-      console.log('🔧 Supabase client key:', (supabase as Record<string, unknown>).supabaseKey ? 'Set' : 'Missing');
+      console.log('🔧 Supabase client URL:', (supabase as any).supabaseUrl);
+      console.log('🔧 Supabase client key:', (supabase as any).supabaseKey ? 'Set' : 'Missing');
       
       // Check if Supabase is configured
-      if ((supabase as Record<string, unknown>).supabaseUrl === 'dummy.supabase.co') {
+      if ((supabase as any).supabaseUrl === 'dummy.supabase.co') {
         throw new Error('Supabase is not configured. Please contact an administrator to set up the authentication system.');
       }
       
@@ -197,7 +197,7 @@ export default function AdminLoginPage() {
       router.replace('/admin');
     } catch (err: unknown) {
       console.error('❌ Login error:', err);
-      const errorMessage = err?.message || 'Sign in failed';
+      const errorMessage = (err as Error)?.message || 'Sign in failed';
       setError(errorMessage);
       
       // Record failed attempt on server
@@ -244,7 +244,7 @@ export default function AdminLoginPage() {
       setInfo(null);
       
       // Check if Supabase is configured
-      if ((supabase as Record<string, unknown>).supabaseUrl === 'dummy.supabase.co') {
+      if ((supabase as any).supabaseUrl === 'dummy.supabase.co') {
         throw new Error('Supabase is not configured. Password reset is not available.');
       }
       
@@ -254,7 +254,7 @@ export default function AdminLoginPage() {
       
       setInfo('Password reset email sent. Please check your inbox.');
     } catch (err: unknown) {
-      setError(err?.message || 'Failed to send reset email');
+      setError((err as Error)?.message || 'Failed to send reset email');
     } finally {
       setLoading(false);
     }
