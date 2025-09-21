@@ -6,15 +6,16 @@ import NoteForm from './NoteForm';
 
 export const dynamic = 'force-dynamic';
 
-export default async function NotesPage({ searchParams }: { searchParams: Record<string,string | string[] | undefined> }) {
+export default async function NotesPage({ searchParams }: { searchParams: Promise<Record<string,string | string[] | undefined>> }) {
   const gate = await requireEditor();
   if (!gate.allowed) return <div>Access denied.</div>;
 
   const sb = await createClient();
 
-  const status = (searchParams.status as string) || 'inbox';
-  const q = (searchParams.q as string) || '';
-  const view = (searchParams.view as string) || 'board';
+  const resolvedSearchParams = await searchParams;
+  const status = (resolvedSearchParams.status as string) || 'inbox';
+  const q = (resolvedSearchParams.q as string) || '';
+  const view = (resolvedSearchParams.view as string) || 'board';
 
   let query = sb
     .from('sticky_notes')
