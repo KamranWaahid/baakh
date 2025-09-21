@@ -82,7 +82,7 @@ export default function TopicPage() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center space-y-4">
             <h1 className="text-2xl font-bold text-foreground">Topic Not Found</h1>
-            <p className="text-muted-foreground">The topic you're looking for doesn't exist.</p>
+            <p className="text-muted-foreground">The topic you&apos;re looking for doesn&apos;t exist.</p>
           </div>
         </div>
       </div>

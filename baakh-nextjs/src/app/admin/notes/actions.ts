@@ -44,7 +44,7 @@ export async function createNote(form: unknown) {
   if (parsed.tags.length) {
     const { data: tagRows } = await sb.from('tags').select('id,slug').in('slug', parsed.tags);
     if (tagRows?.length) {
-      await sb.from('note_tags').insert(tagRows.map((t: any) => ({ note_id: note.id, tag_id: t.id })));
+      await sb.from('note_tags').insert(tagRows.map((t: Record<string, unknown>) => ({ note_id: note.id, tag_id: t.id })));
     }
   }
 
@@ -57,7 +57,7 @@ export async function updateNote(id: string, patch: Partial<z.infer<typeof NoteS
   const { data: { user } } = await sb.auth.getUser();
   if (!user) throw new Error('Not authenticated');
 
-  const { tags, ...fields } = patch as any;
+  const { tags, ...fields } = patch as Record<string, unknown>;
 
   if (Object.keys(fields).length) {
     const { error } = await sb.from('sticky_notes').update({ ...fields, updated_by: user.id }).eq('id', id);
@@ -70,7 +70,7 @@ export async function updateNote(id: string, patch: Partial<z.infer<typeof NoteS
       const { data: tagRows } = await sb.from('tags').select('id,slug').in('slug', tags as string[]);
       await sb.from('note_tags').delete().eq('note_id', id);
       if (tagRows?.length) {
-        await sb.from('note_tags').insert(tagRows.map((t: any) => ({ note_id: id, tag_id: t.id })));
+        await sb.from('note_tags').insert(tagRows.map((t: Record<string, unknown>) => ({ note_id: id, tag_id: t.id })));
       }
     } else {
       await sb.from('note_tags').delete().eq('note_id', id);
