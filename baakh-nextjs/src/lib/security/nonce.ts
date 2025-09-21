@@ -23,8 +23,8 @@ export function getNonce(): string {
 export function createCSPHeader(nonce: string): string {
   return [
     "default-src 'self'",
-    `script-src 'self' 'strict-dynamic' 'nonce-${nonce}' 'unsafe-inline'`,
-    `style-src 'self' 'strict-dynamic' 'nonce-${nonce}' 'unsafe-inline' https://fonts.googleapis.com`,
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "img-src 'self' data: https: blob:",
     "font-src 'self' data: https://fonts.gstatic.com https://r2cdn.perplexity.ai",
     "connect-src 'self' https://*.supabase.co https://uhbqcaxwfossrjwusclc.supabase.co",
@@ -34,7 +34,6 @@ export function createCSPHeader(nonce: string): string {
     "object-src 'none'",
     "media-src 'self'",
     "worker-src 'self' blob:",
-    "child-src 'self' blob:",
-    "upgrade-insecure-requests"
+    "child-src 'self' blob:"
   ].join('; ');
 }
