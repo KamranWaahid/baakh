@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams, usePathname } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { Heart, Share2, MessageCircle, BookOpen, Clock, User, Tag, Calendar, ChevronRight, Eye, Flag, MoreHorizontal, AlertTriangle, Shield, MessageSquare, X } from 'lucide-react';
 import { useReports } from '@/hooks/useReports';
@@ -308,7 +308,7 @@ export default function PoetryPage() {
   const { submitReport, loading: reportLoading, error: reportError } = useReports();
 
   // Fetch poetry data from database
-  const fetchPoetry = async () => {
+  const fetchPoetry = useCallback(async () => {
     if (!poetrySlug || !poetId || !formSlug) {
       console.log('Missing parameters:', { poetrySlug, poetId, formSlug });
       return;
@@ -333,10 +333,10 @@ export default function PoetryPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [poetrySlug, poetId, formSlug, currentLang]);
 
   // Fetch other poetry for pagination
-  const fetchOtherPoetry = async () => {
+  const fetchOtherPoetry = useCallback(async () => {
     if (!poetId || !formSlug) return;
     
     try {
@@ -363,7 +363,7 @@ export default function PoetryPage() {
     } finally {
       setLoadingOtherPoetry(false);
     }
-  };
+  }, [poetId, formSlug, currentLang, poetrySlug]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -376,7 +376,7 @@ export default function PoetryPage() {
     };
     
     loadData();
-  }, [poetrySlug, poetId, formSlug, currentLang]);
+  }, [poetrySlug, poetId, formSlug, currentLang, fetchPoetry, fetchOtherPoetry]);
 
   // Close dropdown when clicking outside
   useEffect(() => {

@@ -68,10 +68,10 @@ async function getPoetryHandler(request: NextRequest) {
     // Fetch related data manually since foreign keys aren't working
     const poetryWithRelations = await Promise.all(
       poetry.map(async (poem) => {
-        let poetData: any = null;
-        let categoryData: any = null;
-        let translationsData: any[] = [];
-        let coupletsData: any[] = [];
+        let poetData: { poet_id: number; poet_slug: string; sindhi_name: string; english_name: string } | null = null;
+        let categoryData: { id: number; slug: string; name: string } | null = null;
+        let translationsData: { id: string; title: string; lang: string; info: string; source?: string }[] = [];
+        let coupletsData: { id: string; couplet_text: string; couplet_slug: string; couplet_tags?: string; lang: string }[] = [];
 
         // Fetch poet data if poet_id exists
         if (poem.poet_id) {
@@ -82,8 +82,8 @@ async function getPoetryHandler(request: NextRequest) {
               .eq('poet_id', poem.poet_id)
               .single();
             poetData = poet;
-          } catch (error: any) {
-            console.log(`Could not fetch poet ${poem.poet_id}:`, error.message);
+          } catch (error: unknown) {
+            console.log(`Could not fetch poet ${poem.poet_id}:`, error instanceof Error ? error.message : 'Unknown error');
           }
         }
 
@@ -96,8 +96,8 @@ async function getPoetryHandler(request: NextRequest) {
               .eq('id', poem.category_id)
               .single();
             categoryData = category;
-          } catch (error: any) {
-            console.log(`Could not fetch category ${poem.category_id}:`, error.message);
+          } catch (error: unknown) {
+            console.log(`Could not fetch category ${poem.category_id}:`, error instanceof Error ? error.message : 'Unknown error');
           }
         }
 
@@ -108,8 +108,8 @@ async function getPoetryHandler(request: NextRequest) {
             .select('id, title, lang')
             .eq('poetry_id', poem.id);
           translationsData = translations || [];
-        } catch (error: any) {
-          console.log(`Could not fetch translations for poetry ${poem.id}:`, error.message);
+        } catch (error: unknown) {
+          console.log(`Could not fetch translations for poetry ${poem.id}:`, error instanceof Error ? error.message : 'Unknown error');
         }
 
         // Fetch couplets if they exist
@@ -119,8 +119,8 @@ async function getPoetryHandler(request: NextRequest) {
             .select('id, couplet_text, couplet_slug')
             .eq('poetry_id', poem.id);
           coupletsData = couplets || [];
-        } catch (error: any) {
-          console.log(`Could not fetch couplets for poetry ${poem.id}:`, error.message);
+        } catch (error: unknown) {
+          console.log(`Could not fetch couplets for poetry ${poem.id}:`, error instanceof Error ? error.message : 'Unknown error');
         }
 
         return {
@@ -143,7 +143,7 @@ async function getPoetryHandler(request: NextRequest) {
       }
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error in poetry API:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
@@ -169,7 +169,7 @@ async function createPoetryHandler(request: NextRequest) {
     }
 
     return NextResponse.json(data);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error in poetry POST API:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
@@ -202,7 +202,7 @@ async function updatePoetryHandler(request: NextRequest) {
     }
 
     return NextResponse.json(data);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error in poetry PUT API:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }

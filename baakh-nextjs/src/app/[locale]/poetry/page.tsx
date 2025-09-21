@@ -2,6 +2,7 @@
 import { getSmartFontClass } from "@/lib/font-detection-utils";
 
 import { motion, AnimatePresence } from "framer-motion";
+import { useCallback } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -136,7 +137,7 @@ export default function PoetryPage() {
   // Removed unused sd function
 
   // Fetch categories from database
-  const fetchCategories = async () => {
+  const fetchCategories = useCallback(async () => {
     try {
       setCategoriesLoading(true);
       const response = await fetch(`/api/poetry/categories?lang=${isSindhi ? 'sd' : 'en'}`);
@@ -151,13 +152,13 @@ export default function PoetryPage() {
     } finally {
       setCategoriesLoading(false);
     }
-  };
+  }, [isSindhi]);
 
   // Pagination logic
   const totalPages = Math.max(1, Math.ceil(total / perPage));
   const startIdx = (page-1)*perPage + 1;
 
-  const fetchPoetry = async () => {
+  const fetchPoetry = useCallback(async () => {
     try {
       setLoading(true);
       const params = new URLSearchParams({
@@ -183,7 +184,7 @@ export default function PoetryPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, perPage, searchQuery, selectedCategory, sortBy, sortOrder, isSindhi]);
 
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage !== page) {
@@ -272,12 +273,12 @@ export default function PoetryPage() {
 
   useEffect(() => {
     fetchPoetry();
-  }, [page, perPage, searchQuery, selectedCategory, sortBy, sortOrder]);
+  }, [page, perPage, searchQuery, selectedCategory, sortBy, sortOrder, fetchPoetry]);
 
   // Fetch categories on component mount
   useEffect(() => {
     fetchCategories();
-  }, [isSindhi]);
+  }, [isSindhi, fetchCategories]);
 
   // Hide tooltip on scroll or resize to prevent positioning issues
   useEffect(() => {

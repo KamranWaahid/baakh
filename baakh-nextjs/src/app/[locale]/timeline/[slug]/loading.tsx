@@ -1,6 +1,6 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { ArrowLeft, Calendar, Star, MapPin, Tag, Award } from "lucide-react";
+import { Calendar, MapPin, Tag, Award } from "lucide-react";
 
 export default function Loading() {
   return (

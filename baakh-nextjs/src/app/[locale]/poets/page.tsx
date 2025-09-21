@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -16,7 +17,7 @@ import {
   Share,
   ChevronDown
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 // Removed unused Avatar and Image imports
 import { usePathname, useRouter } from "next/navigation";
 import { NumberFont, MixedContentWithNumbers } from "@/components/ui/NumberFont";
@@ -163,7 +164,7 @@ export default function PoetsPage() {
         setCopiedPoetId(poet.id);
         setTimeout(() => setCopiedPoetId((cur) => (cur === poet.id ? null : cur)), 1500);
       }
-    } catch (err) {
+    } catch {
       // ignore share errors
     }
   };
@@ -228,7 +229,7 @@ export default function PoetsPage() {
   };
 
   // Fetch poet statistics (views and poetry count)
-  const fetchPoetStats = async (poetIds: string[]) => {
+  const fetchPoetStats = useCallback(async (poetIds: string[]) => {
     try {
       const response = await fetch(`/api/poets/stats?poetIds=${poetIds.join(',')}`);
       if (response.ok) {
@@ -246,10 +247,10 @@ export default function PoetsPage() {
     } catch (error) {
       console.error('Error fetching poet stats:', error);
     }
-  };
+  }, []);
 
   // Fetch tags from database
-  const fetchDatabaseTags = async () => {
+  const fetchDatabaseTags = useCallback(async () => {
     try {
       setTagsLoading(true);
       const response = await fetch(`/api/tags?lang=${isSindhi ? 'sd' : 'en'}&type=Poet`);
@@ -306,13 +307,13 @@ export default function PoetsPage() {
     } finally {
       setTagsLoading(false);
     }
-  };
+  }, [isSindhi]);
 
   // Pagination logic
   const totalPages = Math.max(1, Math.ceil(total / perPage));
   const startIdx = (page-1)*perPage + 1;
 
-  const fetchPoets = async () => {
+  const fetchPoets = useCallback(async () => {
     try {
       setLoading(true);
       setError(null); // Clear previous errors
@@ -398,7 +399,7 @@ export default function PoetsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, perPage, searchQuery, selectedPeriod, sortBy, sortOrder, isSindhi, fetchPoetStats]);
 
   const retryFetch = () => {
     fetchPoets();
@@ -441,7 +442,7 @@ export default function PoetsPage() {
   // Fetch database tags on component mount
   useEffect(() => {
     fetchDatabaseTags();
-  }, [isSindhi]);
+  }, [fetchDatabaseTags]);
 
   useEffect(() => {
     // Check network status before fetching
@@ -463,7 +464,7 @@ export default function PoetsPage() {
     });
     
     fetchPoets();
-  }, [page, perPage, searchQuery, selectedPeriod, sortBy, sortOrder]);
+  }, [page, perPage, searchQuery, selectedPeriod, sortBy, sortOrder, fetchPoets, isSindhi]);
 
   // Add network status listeners
   useEffect(() => {
@@ -487,7 +488,7 @@ export default function PoetsPage() {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, [error]);
+  }, [error, fetchPoets]);
 
   // Use the new utility functions for consistent poet name handling
   const getDisplayName = (poet: Poet) => getPrimaryPoetName(poet, isSindhi);
@@ -847,10 +848,12 @@ export default function PoetsPage() {
                       <div className="relative">
                         <div className="aspect-square bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center overflow-hidden">
                           {poet.file_url ? (
-                            <img 
+                            <Image 
                               src={poet.file_url.startsWith('http') ? poet.file_url : poet.file_url}
                               alt={getPrimaryPoetName(poet, isSindhi)}
                               className="w-full h-full object-cover"
+                              width={300}
+                              height={300}
                               onLoad={() => console.log(`Image loaded successfully for ${getPrimaryPoetName(poet, isSindhi)}:`, poet.file_url)}
                               onError={(e) => {
                                 console.log(`Image failed to load for ${getPrimaryPoetName(poet, isSindhi)}:`, poet.file_url);

@@ -12,13 +12,10 @@ import {
   Eye, 
   EyeOff, 
   Database, 
-  Key, 
   Users, 
   Heart, 
   Bookmark, 
   ArrowLeft,
-  ChevronLeft,
-  ChevronRight,
   CheckCircle,
   Info
 } from 'lucide-react'
@@ -235,7 +232,6 @@ export default function PrivacyPage() {
     )
   }
 
-  const ChevronIcon = isSindhi ? ChevronLeft : ChevronRight
 
   return (
     <div className={`min-h-screen bg-white ${isSindhi ? 'dir-rtl' : ''}`}>

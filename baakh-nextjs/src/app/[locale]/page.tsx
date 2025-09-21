@@ -461,7 +461,7 @@ export default function HomePage() {
   }, [isSindhi]);
 
   // compute unified loading state - include all sections
-  const [isLoading, setIsLoading] = useState(true);
+  const [, setIsLoading] = useState(true);
   
   useEffect(() => {
     // Set a very short timeout to prevent infinite loading
@@ -484,7 +484,7 @@ export default function HomePage() {
     setIsLoading(criticalLoaded);
     
     return () => clearTimeout(timeoutId);
-  }, [coupletsLoaded]);
+  }, [coupletsLoaded, anniversaryLoading, poetsLoading, categoriesLoaded, tagsLoaded]);
 
   // Featured poets are now lazy loaded in the LazyFeaturedPoets component
 

@@ -132,7 +132,7 @@ export default function EditPoetPage() {
             <div className="text-center">
               <div className="bg-white border-[#E5E5E5] rounded-lg p-8 shadow-sm">
                 <h2 className="text-2xl font-bold text-[#DC2626] mb-4">Poet Not Found</h2>
-                <p className="text-[#6B6B6B] mb-6">The poet you're looking for could not be found or there was an error loading the data.</p>
+                <p className="text-[#6B6B6B] mb-6">The poet you&apos;re looking for could not be found or there was an error loading the data.</p>
                 <Link href="/admin/poets">
                   <Button className="bg-[#1F1F1F] hover:bg-[#2B2B2B] text-white border-0">
                     <ArrowLeft className="w-4 h-4 mr-2" />

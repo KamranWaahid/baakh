@@ -8,15 +8,12 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
   Settings, 
   User, 
   Save, 
   LogOut,
-  ChevronLeft,
-  ChevronRight,
   Trash2
 } from 'lucide-react'
 
@@ -116,7 +113,7 @@ export default function SettingsPage() {
     }
   }
 
-  const handleSave = async (section: string) => {
+  const handleSave = async () => {
     setIsSaving(true)
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000))
@@ -155,7 +152,6 @@ export default function SettingsPage() {
     )
   }
 
-  const ChevronIcon = isSindhi ? ChevronLeft : ChevronRight
 
   const tabs = [
     {

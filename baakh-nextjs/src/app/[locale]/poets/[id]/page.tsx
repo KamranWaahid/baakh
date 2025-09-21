@@ -357,7 +357,7 @@ export default function PoetPage() {
       setLoading(false);
       setCategoriesLoading(false);
     }
-  }, [poetId, language, isSindhi]);
+  }, [poetId, language, isSindhi, retryCount]);
 
   // Ensure component is mounted before fetching data
   useEffect(() => {
@@ -384,7 +384,7 @@ export default function PoetPage() {
       setError(true);
       setLoading(false);
     }
-  }, [poetId, fetchPoetData, mounted]);
+  }, [poetId, fetchPoetData, fetchPoetStats, isSindhi, language, router, mounted]);
 
   // Fallback: compute stats on client if API returns zeros
   useEffect(() => {
@@ -443,7 +443,7 @@ export default function PoetPage() {
           })
           .filter((p: { id: string; name: string; avatar: string; period: string; tagline: string }) => p.id && p.id !== String(poetId));
         setMorePoets(normalized.slice(0, 7));
-      } catch (e) {
+      } catch {
         setMorePoets([]);
       } finally {
         setMorePoetsLoading(false);
@@ -451,7 +451,7 @@ export default function PoetPage() {
     };
 
     fetchMorePoets();
-  }, [poetId, language]);
+  }, [poetId, language, isSindhi]);
 
   // Debug effect to track state changes
   useEffect(() => {

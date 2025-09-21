@@ -9,31 +9,20 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   Plus, 
   Search, 
-  Filter, 
-  MoreHorizontal, 
   Edit, 
   Trash2,
-  ArrowUpDown,
   Eye,
   BookOpen,
   Users,
   Calendar,
   Tag,
-  AlignHorizontalJustifyStart,
-  AlignHorizontalJustifyCenter,
-  AlignHorizontalJustifyEnd,
-  RotateCcw,
   Layers,
   Copy
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { supabase } from "@/lib/supabase/client";
-import { Textarea } from "@/components/ui/textarea";
 
 type Alignment = "start" | "center" | "justified";
 type Language = "Sindhi" | "English";
@@ -65,15 +54,9 @@ type CategoryDetail = {
   error?: string;
 };
 
-const initialRows: CategoryRow[] = [];
-
 export default function CategoriesPage() {
   const router = useRouter();
   const [categories, setCategories] = useState<CategoryRow[]>([]);
-  const [filteredCategories, setFilteredCategories] = useState<CategoryRow[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [sortBy, setSortBy] = useState<"name" | "created_at" | "updated_at">("name");
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -86,18 +69,6 @@ export default function CategoriesPage() {
   const [sortKey, setSortKey] = useState<keyof CategoryRow>("name");
   const [sortAsc, setSortAsc] = useState(true);
 
-  const [editing, setEditing] = useState<CategoryRow | null>(null);
-  const [draft, setDraft] = useState<CategoryRow | null>(null);
-  const [viewId, setViewId] = useState<string | null>(null);
-  const [viewData, setViewData] = useState<CategoryDetail | null>(null);
-  const [editId, setEditId] = useState<string | null>(null);
-  const [editData, setEditData] = useState<CategoryDetail | null>(null);
-  const [editDraft, setEditDraft] = useState<CategoryDetail | null>(null);
-  const [savingEdit, setSavingEdit] = useState<boolean>(false);
-  const [showTrash, setShowTrash] = useState<boolean>(false);
-  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
-  const [confirmText, setConfirmText] = useState<string>("");
-  const [hardDelete, setHardDelete] = useState<boolean>(false);
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState<CategoryRow | null>(null);

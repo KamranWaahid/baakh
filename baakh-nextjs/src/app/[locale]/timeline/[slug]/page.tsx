@@ -1,12 +1,9 @@
 "use client";
 
 import { motion } from "framer-motion";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Logo } from "@/components/ui/logo";
 import { 
   ArrowLeft,
   Clock,
@@ -28,21 +25,14 @@ import {
   History,
   User,
   Languages,
-  Search,
-  Filter,
-  ChevronDown,
   AlertCircle,
   MapPin,
   Tag,
-  ExternalLink,
   Share2,
   BookmarkPlus,
-  Heart as HeartIcon,
-  ThumbsUp,
-  MessageCircle,
-  MoreHorizontal
+  Heart as HeartIcon
 } from "lucide-react";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { usePathname, useRouter, useParams } from "next/navigation";
 import { NumberFont } from "@/components/ui/NumberFont";
 

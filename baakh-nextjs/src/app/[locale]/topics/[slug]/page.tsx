@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { usePathname, useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -8,19 +8,13 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { 
-  Search, 
-  ChevronDown,
-  Filter,
   BookOpenCheck,
-  Hash,
   Clock,
   Heart,
   Bookmark,
   Share2,
-  Users,
   Eye,
-  Calendar,
-  Tag
+  Calendar
 } from 'lucide-react';
 import Link from 'next/link';
 import { NumberFont, MixedContentWithNumbers } from '@/components/ui/NumberFont';
@@ -197,31 +191,9 @@ export default function TopicPage() {
     return item.englishTitle || item.englishName || item.title || item.name || item.label || '';
   };
 
-  // Get tag color based on tag type
-  const getTagColor = useCallback((tagType: string) => {
-    const colors = [
-      'bg-blue-100 text-blue-800 border-blue-200',
-      'bg-green-100 text-green-800 border-green-200',
-      'bg-purple-100 text-purple-800 border-purple-200',
-      'bg-pink-100 text-pink-800 border-pink-200',
-      'bg-indigo-100 text-indigo-800 border-indigo-200',
-      'bg-yellow-100 text-yellow-800 border-yellow-200',
-      'bg-red-100 text-red-800 border-red-200',
-      'bg-teal-100 text-teal-800 border-teal-200',
-      'bg-orange-100 text-orange-800 border-orange-200',
-      'bg-cyan-100 text-cyan-800 border-cyan-200'
-    ];
-
-    const hash = tagType.split('').reduce((a, b) => {
-      a = ((a << 5) - a) + b.charCodeAt(0);
-      return a & a;
-    }, 0);
-    
-    return colors[Math.abs(hash) % colors.length];
-  }, []);
 
   // Fetch topic data (couplets + poetry)
-  const fetchTopicData = async () => {
+  const fetchTopicData = useCallback(async () => {
     try {
       setLoading(true);
       setCoupletsLoaded(false);
@@ -253,12 +225,12 @@ export default function TopicPage() {
       setCoupletsLoaded(true);
       setPoetryLoaded(true);
     }
-  };
+  }, [topicSlug, isSindhi]);
 
   // Initial fetch
   useEffect(() => {
     fetchTopicData();
-  }, [topicSlug, isSindhi]);
+  }, [fetchTopicData]);
 
   // Pagination handlers
   const handleCoupletsPageChange = (newPage: number) => {

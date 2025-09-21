@@ -158,14 +158,14 @@ export default function PoetryDetailPage() {
         is_featured: data.is_featured || false,
         poet_id: data.poets?.poet_id?.toString() || '',
         category_id: data.categories?.id?.toString() || '',
-        translations: data.poetry_translations?.map((t: any) => ({
+        translations: data.poetry_translations?.map((t: { id: string; title: string; lang: string; info: string; source?: string }) => ({
           id: t.id,
           title: t.title || '',
           lang: t.lang || 'sd',
           info: t.info || '',
           source: t.source || ''
         })) || [],
-        couplets: data.poetry_couplets?.map((c: any) => ({
+        couplets: data.poetry_couplets?.map((c: { id: string; couplet_text: string; couplet_slug: string; couplet_tags?: string; lang: string }) => ({
           id: c.id,
           couplet_text: c.couplet_text || '',
           couplet_slug: c.couplet_slug || '',
@@ -176,9 +176,9 @@ export default function PoetryDetailPage() {
       
       console.log('Initializing form data:', initialFormData);
       setFormData(initialFormData);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error fetching poetry:', err);
-      setError(err.message);
+      setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);
     }
@@ -190,7 +190,7 @@ export default function PoetryDetailPage() {
       if (response.ok) {
         const data = await response.json();
         const rawPoets = Array.isArray(data?.poets) ? data.poets : (Array.isArray(data) ? data : []);
-        const mappedPoets: Poet[] = rawPoets.map((p: any) => ({
+        const mappedPoets: Poet[] = rawPoets.map((p: { poet_id?: number; id?: number; poet_slug?: string; sindhi_name?: string; english_name?: string }) => ({
           poet_id: Number(p.poet_id ?? p.id ?? 0),
           poet_slug: String(p.poet_slug ?? ''),
           sindhi_name: String(p.sindhi_name ?? ''),
@@ -209,7 +209,7 @@ export default function PoetryDetailPage() {
       if (response.ok) {
         const data = await response.json();
         const rows = Array.isArray(data?.rows) ? data.rows : (Array.isArray(data) ? data : []);
-        const mappedCategories: Category[] = rows.map((row: any) => ({
+        const mappedCategories: Category[] = rows.map((row: { id?: number; slug?: string; name?: string }) => ({
           id: Number(row.id ?? 0),
           slug: String(row.slug ?? row.name ?? '')
         })).filter((c: Category) => !!c.id);
@@ -306,8 +306,8 @@ export default function PoetryDetailPage() {
       setToast({ message: 'Poetry updated successfully!', type: 'success' });
       setEditing(false);
       fetchPoetry(); // Refresh data
-    } catch (err: any) {
-      setToast({ message: err.message, type: 'error' });
+    } catch (err: unknown) {
+      setToast({ message: err instanceof Error ? err.message : 'An error occurred', type: 'error' });
     } finally {
       setSaving(false);
     }

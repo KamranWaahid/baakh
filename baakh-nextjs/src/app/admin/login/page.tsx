@@ -19,7 +19,6 @@ import {
   EyeOff, 
   AlertCircle,
   CheckCircle2,
-  Building2,
   Users,
   Settings,
   Database,
@@ -86,7 +85,7 @@ export default function AdminLoginPage() {
     const checkAuth = async () => {
       try {
         // Check if Supabase is configured
-        if ((supabase as any).supabaseUrl === 'dummy.supabase.co') {
+        if ((supabase as unknown as { supabaseUrl?: string }).supabaseUrl === 'dummy.supabase.co') {
           console.log('⚠️ Supabase not configured, skipping auth check');
           return;
         }
@@ -107,7 +106,7 @@ export default function AdminLoginPage() {
             // Don't redirect on error, let user try to login
           }
         }
-      } catch (error) {
+      } catch {
         // Ignore errors during auth check
       }
     };
@@ -125,11 +124,11 @@ export default function AdminLoginPage() {
     
     try {
       console.log('🔐 Attempting sign in with email:', email);
-      console.log('🔧 Supabase client URL:', (supabase as any).supabaseUrl);
-      console.log('🔧 Supabase client key:', (supabase as any).supabaseKey ? 'Set' : 'Missing');
+      console.log('🔧 Supabase client URL:', (supabase as unknown as { supabaseUrl?: string }).supabaseUrl);
+      console.log('🔧 Supabase client key:', (supabase as unknown as { supabaseKey?: string }).supabaseKey ? 'Set' : 'Missing');
       
       // Check if Supabase is configured
-      if ((supabase as any).supabaseUrl === 'dummy.supabase.co') {
+      if ((supabase as unknown as { supabaseUrl?: string }).supabaseUrl === 'dummy.supabase.co') {
         throw new Error('Supabase is not configured. Please contact an administrator to set up the authentication system.');
       }
       
@@ -244,7 +243,7 @@ export default function AdminLoginPage() {
       setInfo(null);
       
       // Check if Supabase is configured
-      if ((supabase as any).supabaseUrl === 'dummy.supabase.co') {
+      if ((supabase as unknown as { supabaseUrl?: string }).supabaseUrl === 'dummy.supabase.co') {
         throw new Error('Supabase is not configured. Password reset is not available.');
       }
       

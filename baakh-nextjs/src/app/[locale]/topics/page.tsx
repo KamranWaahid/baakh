@@ -9,7 +9,6 @@ import { NumberFont } from '@/components/ui/NumberFont';
 import { 
   Search, 
   ChevronDown,
-  Filter,
   BookOpenCheck,
   Hash
 } from 'lucide-react';
@@ -183,7 +182,7 @@ export default function TopicsPage() {
     });
 
     return filtered;
-  }, [topics, debouncedSearchQuery, sortBy, sortOrder, isSindhi]);
+  }, [topics, debouncedSearchQuery, sortBy, sortOrder, getDisplayName, getDisplayDetail]);
 
   // Client-side pagination
   const paginatedTopics = useMemo(() => {
@@ -257,7 +256,7 @@ export default function TopicsPage() {
   useEffect(() => {
     console.log('useEffect running, calling fetchTopics, isSindhi:', isSindhi);
     fetchTopics();
-  }, [fetchTopics]);
+  }, [fetchTopics, isSindhi]);
 
   // Debug state changes
   useEffect(() => {
@@ -291,12 +290,6 @@ export default function TopicsPage() {
   const startIdx = total > 0 ? (page - 1) * perPage + 1 : 0;
   const endIdx = Math.min(page * perPage, total);
 
-  // Skeleton loader component for topic chips
-  const TopicChipSkeleton = () => (
-    <div className="animate-pulse">
-      <div className="h-8 bg-gray-200 rounded-full w-24"></div>
-    </div>
-  );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50" dir={isRTL ? 'rtl' : 'ltr'}>

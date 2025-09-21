@@ -124,7 +124,7 @@ export default function AdminPoetryViewPage() {
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">
-                The poetry you're looking for could not be loaded. Please check the URL and try again.
+                The poetry you&apos;re looking for could not be loaded. Please check the URL and try again.
               </p>
             </CardContent>
           </Card>

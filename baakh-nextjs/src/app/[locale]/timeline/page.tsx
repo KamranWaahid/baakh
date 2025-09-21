@@ -5,11 +5,8 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
 import { EnhancedTimelineSkeleton } from "@/components/ui/timeline-skeleton";
-import { Logo } from "@/components/ui/logo";
 import { 
-  ArrowLeft,
   Clock,
   Users,
   Quote,
@@ -34,8 +31,8 @@ import {
   ChevronDown,
   AlertCircle
 } from "lucide-react";
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import React, { useEffect, useMemo, useState } from "react";
+import { usePathname } from "next/navigation";
 
 interface TimelinePeriod {
   id: string;
@@ -57,7 +54,6 @@ export default function TimelinePage() {
   const [timelinePeriods, setTimelinePeriods] = useState<TimelinePeriod[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
   const pathname = usePathname();
   const isSindhi = pathname?.startsWith('/sd');
   const isRTL = isSindhi;
@@ -171,12 +167,11 @@ export default function TimelinePage() {
     return `${startYear}`;
   };
 
-  // Use API data or fallback to empty array
-  const displayPeriods = timelinePeriods.length > 0 ? timelinePeriods : [];
-
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
   const filteredPeriods = useMemo(() => {
+    // Use API data or fallback to empty array
+    const displayPeriods = timelinePeriods.length > 0 ? timelinePeriods : [];
     let filtered = displayPeriods;
     
     // Filter by selected period
@@ -197,7 +192,7 @@ export default function TimelinePage() {
     });
     
     return filtered;
-  }, [selectedPeriod, sortOrder, displayPeriods]);
+  }, [selectedPeriod, sortOrder, timelinePeriods]);
 
   return (
     <div key={`timeline-${isSindhi ? 'sd' : 'en'}`} className="min-h-screen bg-background" dir={isRTL ? 'rtl' : 'ltr'}>
