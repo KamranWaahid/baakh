@@ -60,7 +60,7 @@ export async function createClient() {
   return supabaseServer();
 }
 
-// Export supabase for backward compatibility
-export const supabase = createClient();
+// Export supabase for backward compatibility - removed module-level call
+// Use createClient() or supabaseServer() within request handlers instead
 
 

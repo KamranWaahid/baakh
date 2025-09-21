@@ -337,11 +337,5 @@ class SecretRotationManager {
 // Export singleton instance
 export const secretRotationManager = new SecretRotationManager();
 
-// Initialize on module load
-secretRotationManager.initializeSecrets();
-
-// Run checks every hour
-setInterval(async () => {
-  await secretRotationManager.checkUpcomingRotations();
-  await secretRotationManager.runAutomaticRotation();
-}, 60 * 60 * 1000); // 1 hour
+// Note: Initialization moved to API routes to avoid build-time errors
+// The interval timer should be started in a server-side context, not at module level

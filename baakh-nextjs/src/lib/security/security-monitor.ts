@@ -450,5 +450,4 @@ class SecurityMonitor {
 // Export singleton instance
 export const securityMonitor = new SecurityMonitor();
 
-// Initialize table on module load
-securityMonitor.createSecurityEventsTable();
+// Note: Table initialization moved to API routes to avoid build-time errors
