@@ -80,10 +80,10 @@ export async function PATCH(
 // DELETE - Delete a report
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const reportId = params.id;
+    const { id: reportId } = await params;
 
     const { error } = await supabase
       .from('poetry_reports')
