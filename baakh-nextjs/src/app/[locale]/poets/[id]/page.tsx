@@ -1,33 +1,22 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Logo } from "@/components/ui/logo";
 import { 
-  ArrowLeft,
   Users,
   Quote,
-  Heart,
-  Eye,
   Calendar,
   MapPin,
   BookOpen,
-  Star,
   Sparkles,
   Music,
   FileText,
-  Hash,
-  Clock,
-  Languages,
   ChevronRight,
-  ExternalLink,
-  Loader2,
-  User,
-  Share2
+  Loader2
 } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { useParams, usePathname, useRouter } from "next/navigation";
@@ -205,39 +194,9 @@ export default function PoetPage() {
   const [morePoets, setMorePoets] = useState<Array<{ id: string; name: string; avatar?: string; period?: string; tagline?: string }>>([]);
   const [morePoetsLoading, setMorePoetsLoading] = useState(false);
 
-  // Apply Sindhi font only when text contains Arabic/Sindhi characters
-  const sd = (text?: string | null) => (text && /[\u0600-\u06FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(text) ? 'sindhi-text' : '');
+  // Removed unused sd function
 
-  // Ensure couplets render as two centered lines
-  const getCoupletLines = (couplet: {
-    sindhi?: string;
-    english?: string;
-    displayText?: string;
-  }): string[] => {
-    const baseText = (isSindhi ? (couplet.sindhi ?? couplet.displayText) : (couplet.english ?? couplet.displayText)) || '';
-    const trimSafe = (s: string) => s.replace(/\s+/g, ' ').trim();
-    const trySplit = (s: string): string[] => {
-      // Prefer explicit newline split
-      const nl = s.indexOf('\n');
-      if (nl >= 0) {
-        return [trimSafe(s.slice(0, nl)), trimSafe(s.slice(nl + 1))];
-      }
-      // Unicode-aware split keeping punctuation (Arabic comma/semicolon/period and Latin variants)
-      const m = s.match(/^([\s\S]+?[،؛۔,;—])\s*(.+)$/u);
-      if (m) {
-        return [trimSafe(m[1]), trimSafe(m[2])];
-      }
-      // Fallback: split near middle at whitespace
-      const mid = Math.floor(s.length / 2);
-      const left = s.lastIndexOf(' ', mid);
-      const idx = left > 0 ? left : s.indexOf(' ', mid);
-      if (idx > 0) return [trimSafe(s.slice(0, idx)), trimSafe(s.slice(idx + 1))];
-      return [trimSafe(s), ''];
-    };
-    const lines = trySplit(baseText).filter(Boolean).slice(0, 2);
-    if (lines.length === 1) lines.push('');
-    return lines;
-  };
+  // Removed unused getCoupletLines function
 
   // Fetch poet stats
   const fetchPoetStats = useCallback(async () => {

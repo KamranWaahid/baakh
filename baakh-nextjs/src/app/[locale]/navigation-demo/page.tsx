@@ -12,22 +12,15 @@ import {
 } from "@/components/navigation";
 import { 
   BookOpen, 
-  Users, 
-  Tag, 
   Clock, 
   Heart, 
   Eye, 
-  Star,
   Filter,
-  Grid3X3,
-  List,
   Search
 } from "lucide-react";
 
 export default function NavigationDemoPage() {
   const [currentPage, setCurrentPage] = useState(1);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [showFilters, setShowFilters] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   const mockData = {
@@ -37,19 +30,7 @@ export default function NavigationDemoPage() {
     itemsPerPage: 20
   };
 
-  const sortOptions = [
-    { value: "newest", label: "Newest First" },
-    { value: "oldest", label: "Oldest First" },
-    { value: "title", label: "Title A-Z" },
-    { value: "popular", label: "Most Popular" }
-  ];
-
-  const filterOptions = [
-    { value: "sufi", label: "Sufi Poetry" },
-    { value: "classical", label: "Classical" },
-    { value: "modern", label: "Modern" },
-    { value: "spiritual", label: "Spiritual" }
-  ];
+  // Removed unused sortOptions and filterOptions
 
   const mockItems = Array.from({ length: 6 }, (_, i) => ({
     id: i + 1,

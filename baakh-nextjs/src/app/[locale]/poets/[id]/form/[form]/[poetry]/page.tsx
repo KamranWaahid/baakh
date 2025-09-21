@@ -2,16 +2,15 @@
 
 import { useParams, usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { Heart, Share2, MessageCircle, BookOpen, Clock, User, Tag, Calendar, ChevronRight, Eye, Flag, MoreHorizontal, AlertTriangle, Shield, MessageSquare, X } from 'lucide-react';
 import { useReports } from '@/hooks/useReports';
 import { ReportCategory, ReportReason } from '@/types/reports';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
-import { getSmartFontClass, processMixedContent } from '@/lib/sindhi-font-utils';
+import { getSmartFontClass } from '@/lib/sindhi-font-utils';
 import { NumberFont, MixedContentWithNumbers } from '@/components/ui/NumberFont';
 import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 
@@ -900,10 +899,11 @@ export default function PoetryPage() {
                     whileTap={{ scale: 0.95 }}
                   >
                     {poetry.poets?.file_url ? (
-                      <img 
+                      <Image 
                         src={poetry.poets.file_url} 
                         alt={getPrimaryPoetTitle() || 'Poet'} 
-                        className="w-full h-full object-cover"
+                        fill
+                        className="object-cover"
                         onError={(e) => {
                           // Fallback to default avatar if image fails to load
                           const target = e.target as HTMLImageElement;
@@ -1219,10 +1219,11 @@ export default function PoetryPage() {
                   whileTap={{ scale: 0.95 }}
                 >
                   {poetry.poets?.file_url ? (
-                    <img 
+                    <Image 
                       src={poetry.poets.file_url} 
                       alt={getPrimaryPoetTitle() || 'Poet'} 
-                      className="w-full h-full object-cover"
+                      fill
+                      className="object-cover"
                       onError={(e) => {
                         // Fallback to default avatar if image fails to load
                         const target = e.target as HTMLImageElement;

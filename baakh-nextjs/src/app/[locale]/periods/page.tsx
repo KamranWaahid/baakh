@@ -1,42 +1,18 @@
 "use client";
 
 import { motion } from "framer-motion";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
-  Clock,
-  Users,
-  Quote,
-  Heart,
-  BookOpen,
   Sparkles,
   Star,
   TrendingUp,
-  Award,
-  Eye,
-  Bookmark,
-  Menu,
-  Globe,
-  Palette,
-  ChevronRight,
-  ExternalLink,
-  Calendar,
-  FileText,
-  History,
-  User,
-  ChevronDown,
-  Languages,
-  Type,
-  Search,
-  Filter
+  History
 } from "lucide-react";
 import { useState } from "react";
 
 export default function PeriodsPage() {
   const [selectedPeriod, setSelectedPeriod] = useState("All");
-  const [showFilters, setShowFilters] = useState(false);
 
   const periods = [
     {

@@ -15,6 +15,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import Image from 'next/image';
 import { cn } from '@/lib/utils';
 // Import components directly
 import CategoriesSection from './components/CategoriesSection';
@@ -560,9 +561,11 @@ export default function HomePage() {
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.6, delay: 0.2 }}
                 >
-                  <img
+                  <Image
                     src="/Baakh.svg"
                     alt="Baakh"
+                    width={64}
+                    height={64}
                     className="h-16 w-auto"
                   />
                 </motion.div>

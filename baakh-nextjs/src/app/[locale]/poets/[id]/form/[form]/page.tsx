@@ -2,17 +2,15 @@
 
 import { useParams, usePathname } from 'next/navigation';
 import { useState, useEffect, useCallback } from 'react';
+import Image from 'next/image';
 import { getSmartFontClass } from '@/lib/font-detection-utils';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Heart, Eye, Share2, Calendar, Tag } from 'lucide-react';
+import { ArrowLeft, Heart, Eye, Calendar, Tag } from 'lucide-react';
 import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Logo } from '@/components/ui/logo';
-import { ThemeToggle } from '@/components/theme-toggle';
-import { Languages } from 'lucide-react';
 
 interface PoetryItem {
   id: number;
@@ -127,8 +125,7 @@ export default function PoetFormPage() {
   const [form, setForm] = useState<FormData | null>(null);
   const [poetry, setPoetry] = useState<PoetryItem[]>([]);
   
-  // Apply Sindhi font only when the text contains Arabic/Sindhi characters (avoid numbers)
-  const sd = (text?: string | null) => (text && /[\u0600-\u06FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(text) ? 'auto-sindhi-font' : '');
+  // Removed unused sd function
 
   const fetchFormData = useCallback(async () => {
     try {
@@ -186,18 +183,7 @@ export default function PoetFormPage() {
     );
   }
 
-  const formatDate = (dateString: string) => {
-    if (!dateString) return content.unknownDate;
-    try {
-      return new Date(dateString).toLocaleDateString(isSindhi ? 'sd' : 'en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      });
-    } catch {
-      return content.unknownDate;
-    }
-  };
+  // Removed unused formatDate function
 
   // Get display names based on language
   const getDisplayName = (poet: PoetData) => {
@@ -240,9 +226,11 @@ export default function PoetFormPage() {
             
             <div className="flex items-center gap-4 mb-4">
               {poet.avatar && (
-                <img
+                <Image
                   src={poet.avatar}
                   alt={getDisplayName(poet)}
+                  width={64}
+                  height={64}
                   className="w-16 h-16 rounded-full object-cover border-2 border-border"
                   onError={(e) => {
                     e.currentTarget.style.display = 'none';

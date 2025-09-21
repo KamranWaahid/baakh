@@ -1,6 +1,5 @@
 "use client";
 import { getSmartFontClass } from "@/lib/font-detection-utils";
-import { getPrimaryPoetName, getAvatarPoetName } from "@/lib/poet-name-utils";
 
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
@@ -9,7 +8,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { 
-  Users, 
   Search, 
   Calendar,
   Star,
@@ -65,7 +63,7 @@ export default function PoetryPage() {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [sortBy, setSortBy] = useState<'title' | 'created_at' | 'is_featured'>('created_at');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
-  const [perPage, setPerPage] = useState(12);
+  const [perPage] = useState(12);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [categories, setCategories] = useState<Array<{id: number, slug: string, name: string}>>([]);
@@ -135,8 +133,7 @@ export default function PoetryPage() {
 
   // Categories will be fetched from database
 
-  // Apply Sindhi font only if text contains Arabic/Sindhi characters
-  const sd = (text?: string | null) => (text && /[\u0600-\u06FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(text) ? 'auto-sindhi-font' : '');
+  // Removed unused sd function
 
   // Fetch categories from database
   const fetchCategories = async () => {
