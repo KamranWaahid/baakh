@@ -18,7 +18,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
   }
 
-  const admin = createClient(url, serviceKey, {
+  const getSupabaseClient() = createClient(url, serviceKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 
@@ -27,7 +27,7 @@ export async function GET(request: Request) {
     const id = searchParams.get("id");
     const trashed = searchParams.get("trashed") === "true";
     if (id) {
-      const { data, error } = await admin
+      const { data, error } = await getSupabaseClient()
         .from("categories")
         .select("id, slug, is_featured, content_style, gender, category_details:category_details(cat_name, cat_name_plural, cat_detail, lang)")
         .eq("id", id)
@@ -48,7 +48,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ category: result }, { status: 200 });
     }
 
-    let query = admin
+    let query = getSupabaseClient()
       .from("categories")
       .select("id, slug, content_style, deleted_at, category_details:category_details(cat_name, cat_detail, lang)")
       .order("id", { ascending: false });
@@ -85,7 +85,7 @@ export async function PATCH(req: Request) {
   if (!url || !serviceKey) {
     return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
   }
-  const admin = createClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
+  const getSupabaseClient() = createClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
 
   try {
     const body = await req.json();
@@ -94,7 +94,7 @@ export async function PATCH(req: Request) {
 
     const slug = String(body.slug || "").trim();
     if (body?.restore === true) {
-      const { error: restoreErr } = await admin.from("categories").update({ deleted_at: null }).eq("id", id);
+      const { error: restoreErr } = await getSupabaseClient().from("categories").update({ deleted_at: null }).eq("id", id);
       if (restoreErr) return NextResponse.json({ error: restoreErr.message }, { status: 500 });
       return NextResponse.json({ ok: true }, { status: 200 });
     }
@@ -107,7 +107,7 @@ export async function PATCH(req: Request) {
     // Update categories
     const updateCat: Record<string, any> = { is_featured: isFeatured, content_style: contentStyle, gender };
     if (slug) updateCat.slug = slug;
-    const { error: upErr } = await admin.from("categories").update(updateCat).eq("id", id);
+    const { error: upErr } = await getSupabaseClient().from("categories").update(updateCat).eq("id", id);
     if (upErr) return NextResponse.json({ error: upErr.message }, { status: 500 });
 
     // Upsert details
@@ -115,7 +115,7 @@ export async function PATCH(req: Request) {
       { cat_id: Number(id), cat_name: english.name || slug, cat_name_plural: english.plural || null, cat_detail: english.details || null, lang: "en" },
       { cat_id: Number(id), cat_name: sindhi.name || slug, cat_name_plural: sindhi.plural || null, cat_detail: sindhi.details || null, lang: "sd" },
     ];
-    const { error: detErr } = await admin.from("category_details").upsert(detailsPayload, { onConflict: "cat_id,lang" });
+    const { error: detErr } = await getSupabaseClient().from("category_details").upsert(detailsPayload, { onConflict: "cat_id,lang" });
     if (detErr) return NextResponse.json({ error: detErr.message }, { status: 500 });
 
     return NextResponse.json({ ok: true }, { status: 200 });
@@ -130,18 +130,18 @@ export async function DELETE(req: Request) {
   if (!url || !serviceKey) {
     return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
   }
-  const admin = createClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
+  const getSupabaseClient() = createClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
   try {
     const body = await req.json();
     const id = body?.id as number | string | undefined;
     const hard = Boolean(body?.hard);
     if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
     if (hard) {
-      const { error: delErr } = await admin.from("categories").delete().eq("id", id);
+      const { error: delErr } = await getSupabaseClient().from("categories").delete().eq("id", id);
       if (delErr) return NextResponse.json({ error: delErr.message }, { status: 500 });
       return NextResponse.json({ ok: true }, { status: 200 });
     }
-    const { error: softErr } = await admin.from("categories").update({ deleted_at: new Date().toISOString() }).eq("id", id);
+    const { error: softErr } = await getSupabaseClient().from("categories").update({ deleted_at: new Date().toISOString() }).eq("id", id);
     if (softErr) return NextResponse.json({ error: softErr.message }, { status: 500 });
     return NextResponse.json({ ok: true }, { status: 200 });
   } catch (err: any) {
@@ -156,7 +156,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
   }
 
-  const admin = createClient(url, serviceKey, {
+  const getSupabaseClient() = createClient(url, serviceKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 
@@ -175,7 +175,7 @@ export async function POST(req: Request) {
     // 1) Find or insert into categories by unique slug (idempotent)
     let catId: number | null = null;
     {
-      const { data: found, error: findErr } = await admin
+      const { data: found, error: findErr } = await getSupabaseClient()
         .from("categories")
         .select("id")
         .eq("slug", slug)
@@ -183,7 +183,7 @@ export async function POST(req: Request) {
       if (!findErr && found && found[0]) catId = found[0].id as number;
     }
     if (!catId) {
-      const { data: catRow, error: catErr } = await admin
+      const { data: catRow, error: catErr } = await getSupabaseClient()
         .from("categories")
         .insert([{ slug, is_featured: isFeatured, content_style: contentStyle, gender }])
         .select("id, slug")
@@ -193,7 +193,7 @@ export async function POST(req: Request) {
         const msg = (catErr as any)?.message || "";
         const code = (catErr as any)?.code || "";
         if (code === "23505" || msg.includes("duplicate key value") || msg.includes("categories_slug_key")) {
-          const { data: foundAgain } = await admin
+          const { data: foundAgain } = await getSupabaseClient()
             .from("categories")
             .select("id")
             .eq("slug", slug)
@@ -217,7 +217,7 @@ export async function POST(req: Request) {
       { cat_id: catId, cat_name: sindhi.name || slug, cat_name_plural: sindhi.plural || null, cat_detail: sindhi.details || null, lang: "sd" },
     ];
 
-    const { error: detErr } = await admin
+    const { error: detErr } = await getSupabaseClient()
       .from("category_details")
       .upsert(detailsPayload, { onConflict: "cat_id,lang" });
     if (detErr) return NextResponse.json({ error: detErr.message }, { status: 500 });

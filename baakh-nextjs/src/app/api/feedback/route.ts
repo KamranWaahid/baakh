@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from '@getSupabaseClient()/getSupabaseClient()-js';
 import crypto from 'crypto';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+const getSupabaseClient() = createClient(supabaseUrl, supabaseServiceKey);
 
 // Helper function to hash IP address for privacy
 function hashIP(ip: string): string {
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Insert feedback into database
-    const { data, error } = await supabase
+    const { data, error } = await getSupabaseClient()
       .from('feedback')
       .insert({
         rating: parseInt(rating),
@@ -110,7 +110,7 @@ export async function GET(request: NextRequest) {
       
       const ipHash = hashIP(ip);
       
-      const { data: existingFeedback, error } = await supabase
+      const { data: existingFeedback, error } = await getSupabaseClient()
         .from('feedback')
         .select('id')
         .eq('ip_hash', ipHash)
@@ -134,7 +134,7 @@ export async function GET(request: NextRequest) {
     const offset = parseInt(searchParams.get('offset') || '0');
 
     // Fetch feedback with pagination
-    const { data: feedback, error, count } = await supabase
+    const { data: feedback, error, count } = await getSupabaseClient()
       .from('feedback')
       .select('id, rating, comment, created_at', { count: 'exact' })
       .order('created_at', { ascending: false })

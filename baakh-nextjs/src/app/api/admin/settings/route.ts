@@ -8,7 +8,7 @@ if (!url || !serviceKey) {
   throw new Error("Supabase not configured");
 }
 
-const admin = createClient(url, serviceKey, {
+const getSupabaseClient() = createClient(url, serviceKey, {
   auth: { autoRefreshToken: false, persistSession: false },
   db: { schema: 'public' }
 });
@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get user settings from database using RPC to bypass RLS
-    const { data: settings, error } = await admin.rpc('get_admin_settings', {
+    const { data: settings, error } = await getSupabaseClient().rpc('get_admin_settings', {
       user_id: userId
     });
 
@@ -90,7 +90,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ settings: parsedSettings });
 
   } catch (error) {
-    console.error("Error in GET /api/admin/settings:", error);
+    console.error("Error in GET /api/getSupabaseClient()/settings:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
@@ -121,7 +121,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if settings exist for this user
-    const { data: existingSettings, error: fetchError } = await admin
+    const { data: existingSettings, error: fetchError } = await getSupabaseClient()
       .from("admin_settings")
       .select("*")
       .eq("user_id", userId)
@@ -142,7 +142,7 @@ export async function POST(request: NextRequest) {
     let result;
     if (existingSettings) {
       // Update existing settings
-      const { data: updatedSettings, error: updateError } = await admin
+      const { data: updatedSettings, error: updateError } = await getSupabaseClient()
         .from("admin_settings")
         .update(updateData)
         .eq("user_id", userId)
@@ -156,7 +156,7 @@ export async function POST(request: NextRequest) {
       result = updatedSettings;
     } else {
       // Create new settings
-      const { data: newSettings, error: insertError } = await admin
+      const { data: newSettings, error: insertError } = await getSupabaseClient()
         .from("admin_settings")
         .insert({
           user_id: userId,
@@ -181,7 +181,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error("Error in POST /api/admin/settings:", error);
+    console.error("Error in POST /api/getSupabaseClient()/settings:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
@@ -236,7 +236,7 @@ export async function DELETE(request: NextRequest) {
       };
 
       const settingsColumn = `${section}_settings`;
-      const { error } = await admin
+      const { error } = await getSupabaseClient()
         .from("admin_settings")
         .update({
           [settingsColumn]: defaultSettings[section as keyof typeof defaultSettings],
@@ -255,7 +255,7 @@ export async function DELETE(request: NextRequest) {
       });
     } else {
       // Delete all settings for user
-      const { error } = await admin
+      const { error } = await getSupabaseClient()
         .from("admin_settings")
         .delete()
         .eq("user_id", userId);
@@ -272,7 +272,7 @@ export async function DELETE(request: NextRequest) {
     }
 
   } catch (error) {
-    console.error("Error in DELETE /api/admin/settings:", error);
+    console.error("Error in DELETE /api/getSupabaseClient()/settings:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

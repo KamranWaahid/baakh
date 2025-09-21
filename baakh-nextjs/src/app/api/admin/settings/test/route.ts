@@ -8,7 +8,7 @@ if (!url || !serviceKey) {
   throw new Error('Missing required environment variables');
 }
 
-const admin = createClient(url, serviceKey, {
+const getSupabaseClient() = createClient(url, serviceKey, {
   auth: { autoRefreshToken: false, persistSession: false },
   db: { schema: 'public' }
 });
@@ -24,14 +24,14 @@ export async function GET(request: NextRequest) {
     }
 
     // Get real profile data from database
-    const { data: profile, error: profileError } = await admin
+    const { data: profile, error: profileError } = await getSupabaseClient()
       .from("profiles")
       .select("display_name, email, avatar_url")
       .eq("id", userId)
       .single();
 
     // Get user email from auth.users table
-    const { data: authUser, error: authError } = await admin.auth.admin.getUserById(userId);
+    const { data: authUser, error: authError } = await getSupabaseClient().auth.getSupabaseClient().getUserById(userId);
 
     // Extract name parts from display_name
     const displayName = profile?.display_name || "";
@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
       profile: {
         firstName: firstName || "Admin",
         lastName: lastName || "User",
-        email: authUser?.user?.email || profile?.email || "admin@baakh.com",
+        email: authUser?.user?.email || profile?.email || "getSupabaseClient()@baakh.com",
         phone: "+92 300 1234567",
         avatar: profile?.avatar_url || "",
         bio: "System administrator for Baakh poetry archive"

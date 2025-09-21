@@ -9,11 +9,11 @@ export async function GET() {
     return NextResponse.json({ error: 'Supabase not configured' }, { status: 500 });
   }
   
-  const admin = createClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
+  const getSupabaseClient() = createClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
   
   try {
     // Check tags table
-    const { data: tags, error: tagsError } = await admin
+    const { data: tags, error: tagsError } = await getSupabaseClient()
       .from('tags')
       .select('*')
       .limit(10);
@@ -24,7 +24,7 @@ export async function GET() {
     }
     
     // Check tags_translations table
-    const { data: translations, error: translationsError } = await admin
+    const { data: translations, error: translationsError } = await getSupabaseClient()
       .from('tags_translations')
       .select('*')
       .limit(10);
@@ -35,7 +35,7 @@ export async function GET() {
     }
     
     // Check table structure
-    const { data: tableInfo, error: tableError } = await admin
+    const { data: tableInfo, error: tableError } = await getSupabaseClient()
       .from('tags')
       .select('*', { head: true, count: 'exact' });
     

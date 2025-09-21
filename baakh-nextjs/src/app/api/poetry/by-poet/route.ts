@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from '@getSupabaseClient()/getSupabaseClient()-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+const getSupabaseClient() = createClient(supabaseUrl, supabaseServiceKey);
 
 export async function GET(request: NextRequest) {
   try {
@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
 
     // Resolve poetId by poetSlug if provided
     if (!poetId && poetSlug) {
-      const { data: poetRow } = await supabase
+      const { data: poetRow } = await getSupabaseClient()
         .from('poets')
         .select('poet_id')
         .eq('poet_slug', poetSlug)
@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Poet ID or slug is required' }, { status: 400 });
     }
 
-    let query = supabase
+    let query = getSupabaseClient()
       .from('poetry_main')
       .select(`
         id,

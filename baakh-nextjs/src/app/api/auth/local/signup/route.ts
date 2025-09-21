@@ -25,10 +25,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'supabase-not-configured' }, { status: 500 });
     }
 
-    const admin = createClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
+    const getSupabaseClient() = createClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
 
     // Check if user exists
-    const { data: existing, error: existingError } = await admin
+    const { data: existing, error: existingError } = await getSupabaseClient()
       .from('users')
       .select('id')
       .eq('email', email.toLowerCase())
@@ -43,7 +43,7 @@ export async function POST(req: Request) {
     const password_hash = hashPassword(password);
     const remember_token = randomBytes(24).toString('base64url');
 
-    const { data: created, error: insertError } = await admin
+    const { data: created, error: insertError } = await getSupabaseClient()
       .from('users')
       .insert({ name, email: email.toLowerCase(), password: password_hash, remember_token })
       .select('id,name,email')

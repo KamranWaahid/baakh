@@ -8,7 +8,7 @@ if (!url || !serviceKey) {
   throw new Error("Supabase not configured");
 }
 
-const admin = createClient(url, serviceKey, {
+const getSupabaseClient() = createClient(url, serviceKey, {
   auth: { autoRefreshToken: false, persistSession: false },
   db: { schema: 'public' }
 });
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get user email for verification
-    const { data: userData, error: userError } = await admin.auth.admin.getUserById(userId);
+    const { data: userData, error: userError } = await getSupabaseClient().auth.getSupabaseClient().getUserById(userId);
     if (userError) {
       return NextResponse.json(
         { error: "User not found" },
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify the current password matches the user's actual password
-    const { error: verifyError } = await admin.auth.signInWithPassword({
+    const { error: verifyError } = await getSupabaseClient().auth.signInWithPassword({
       email: userData.user.email || '',
       password: currentPassword
     });
@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Update password
-    const { data: updateData, error: updateError } = await admin.auth.admin.updateUserById(userId, {
+    const { data: updateData, error: updateError } = await getSupabaseClient().auth.getSupabaseClient().updateUserById(userId, {
       password: newPassword
     });
 
@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error("Error in POST /api/admin/settings/password:", error);
+    console.error("Error in POST /api/getSupabaseClient()/settings/password:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
@@ -112,7 +112,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Get user email
-    const { data: userData, error: userError } = await admin.auth.admin.getUserById(userId);
+    const { data: userData, error: userError } = await getSupabaseClient().auth.getSupabaseClient().getUserById(userId);
     if (userError) {
       return NextResponse.json(
         { error: "User not found" },
@@ -121,7 +121,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Verify current password
-    const { error: verifyError } = await admin.auth.signInWithPassword({
+    const { error: verifyError } = await getSupabaseClient().auth.signInWithPassword({
       email: userData.user.email || '',
       password: currentPassword
     });
@@ -139,7 +139,7 @@ export async function PUT(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error("Error in PUT /api/admin/settings/password:", error);
+    console.error("Error in PUT /api/getSupabaseClient()/settings/password:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

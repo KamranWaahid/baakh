@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from '@getSupabaseClient()/getSupabaseClient()-js'
 import jwt from 'jsonwebtoken'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
-const supabase = createClient(supabaseUrl, supabaseServiceKey)
+const getSupabaseClient() = createClient(supabaseUrl, supabaseServiceKey)
 
 export async function POST(request: NextRequest) {
   try {
@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
     
     // Update the e2ee_users table with the Sindhi name
     console.log('Updating e2ee_users table...')
-    const { error: e2eeError } = await supabase
+    const { error: e2eeError } = await getSupabaseClient()
       .from('e2ee_users')
       .update({
         sindhi_name: sindhiName,
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
     // Also try to update the profiles table if it exists
     try {
       console.log('Attempting to update profiles table...')
-      const { error: profileError } = await supabase
+      const { error: profileError } = await getSupabaseClient()
         .from('profiles')
         .upsert({
           id: userId,

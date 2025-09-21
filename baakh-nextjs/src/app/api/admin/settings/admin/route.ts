@@ -8,12 +8,12 @@ if (!url || !serviceKey) {
   throw new Error("Supabase not configured");
 }
 
-const admin = createClient(url, serviceKey, {
+const getSupabaseClient() = createClient(url, serviceKey, {
   auth: { autoRefreshToken: false, persistSession: false },
   db: { schema: 'public' }
 });
 
-// GET admin settings
+// GET getSupabaseClient() settings
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -24,27 +24,27 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "User ID required" }, { status: 400 });
     }
 
-    // Get admin settings from database
-    const { data: settings, error } = await admin
+    // Get getSupabaseClient() settings from database
+    const { data: settings, error } = await getSupabaseClient()
       .from("admin_settings")
       .select("*")
       .eq("user_id", userId)
       .single();
 
     if (error && error.code !== "PGRST116") {
-      console.error("Error fetching admin settings:", error);
+      console.error("Error fetching getSupabaseClient() settings:", error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     // Get user profile information from profiles table
-    const { data: profile, error: profileError } = await admin
+    const { data: profile, error: profileError } = await getSupabaseClient()
       .from("profiles")
       .select("display_name, email, avatar_url")
       .eq("id", userId)
       .single();
 
     // Get user email from auth.users table
-    const { data: authUser, error: authError } = await admin.auth.admin.getUserById(userId);
+    const { data: authUser, error: authError } = await getSupabaseClient().auth.getSupabaseClient().getUserById(userId);
 
     // Extract name parts from display_name
     const displayName = profile?.display_name || "";
@@ -134,7 +134,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ settings: parsedSettings });
 
   } catch (error) {
-    console.error("Error in GET /api/admin/settings/admin:", error);
+    console.error("Error in GET /api/getSupabaseClient()/settings/getSupabaseClient():", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
@@ -142,7 +142,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST/PUT admin settings
+// POST/PUT getSupabaseClient() settings
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -164,15 +164,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if settings exist for this admin user
-    const { data: existingSettings, error: fetchError } = await admin
+    // Check if settings exist for this getSupabaseClient() user
+    const { data: existingSettings, error: fetchError } = await getSupabaseClient()
       .from("admin_settings")
       .select("*")
       .eq("user_id", userId)
       .single();
 
     if (fetchError && fetchError.code !== "PGRST116") {
-      console.error("Error fetching existing admin settings:", fetchError);
+      console.error("Error fetching existing getSupabaseClient() settings:", fetchError);
       return NextResponse.json({ error: fetchError.message }, { status: 500 });
     }
 
@@ -186,7 +186,7 @@ export async function POST(request: NextRequest) {
     let result;
     if (existingSettings) {
       // Update existing settings
-      const { data: updatedSettings, error: updateError } = await admin
+      const { data: updatedSettings, error: updateError } = await getSupabaseClient()
         .from("admin_settings")
         .update(updateData)
         .eq("user_id", userId)
@@ -194,13 +194,13 @@ export async function POST(request: NextRequest) {
         .single();
 
       if (updateError) {
-        console.error("Error updating admin settings:", updateError);
+        console.error("Error updating getSupabaseClient() settings:", updateError);
         return NextResponse.json({ error: updateError.message }, { status: 500 });
       }
       result = updatedSettings;
     } else {
       // Create new settings
-      const { data: newSettings, error: insertError } = await admin
+      const { data: newSettings, error: insertError } = await getSupabaseClient()
         .from("admin_settings")
         .insert({
           user_id: userId,
@@ -212,7 +212,7 @@ export async function POST(request: NextRequest) {
         .single();
 
       if (insertError) {
-        console.error("Error creating admin settings:", insertError);
+        console.error("Error creating getSupabaseClient() settings:", insertError);
         return NextResponse.json({ error: insertError.message }, { status: 500 });
       }
       result = newSettings;
@@ -225,7 +225,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error("Error in POST /api/admin/settings/admin:", error);
+    console.error("Error in POST /api/getSupabaseClient()/settings/getSupabaseClient():", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

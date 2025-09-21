@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from '@getSupabaseClient()/getSupabaseClient()-js';
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     const token = authHeader.substring(7);
     
     // Create Supabase client with user JWT
-    const supabase = createClient(
+    const getSupabaseClient() = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
     );
 
     // Check if bookmark already exists
-    const { data: existing } = await supabase
+    const { data: existing } = await getSupabaseClient()
       .from('e2ee_user_data')
       .select('record_id')
       .eq('type', 'bookmark')
@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Insert the bookmark record
-    const { data, error } = await supabase
+    const { data, error } = await getSupabaseClient()
       .from('e2ee_user_data')
       .insert({
         type: 'bookmark',
@@ -108,7 +108,7 @@ export async function DELETE(request: NextRequest) {
     const token = authHeader.substring(7);
     
     // Create Supabase client with user JWT
-    const supabase = createClient(
+    const getSupabaseClient() = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
@@ -121,7 +121,7 @@ export async function DELETE(request: NextRequest) {
     );
 
     // Delete the bookmark record
-    const { error } = await supabase
+    const { error } = await getSupabaseClient()
       .from('e2ee_user_data')
       .delete()
       .eq('type', 'bookmark')
@@ -164,7 +164,7 @@ export async function GET(request: NextRequest) {
     const token = authHeader.substring(7);
     
     // Create Supabase client with user JWT
-    const supabase = createClient(
+    const getSupabaseClient() = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
@@ -177,7 +177,7 @@ export async function GET(request: NextRequest) {
     );
 
     // Get user's bookmarks
-    const { data: bookmarks, error } = await supabase
+    const { data: bookmarks, error } = await getSupabaseClient()
       .from('e2ee_user_data')
       .select('*')
       .eq('type', 'bookmark')

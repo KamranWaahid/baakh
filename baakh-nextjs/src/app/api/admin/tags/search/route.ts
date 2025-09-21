@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
   }
   
-  const admin = createClient(url, serviceKey, { 
+  const getSupabaseClient() = createClient(url, serviceKey, { 
     auth: { autoRefreshToken: false, persistSession: false } 
   });
   
@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '10');
     
     // Search for topic tags only
-    const { data: tags, error: tagsError } = await admin
+    const { data: tags, error: tagsError } = await getSupabaseClient()
       .from("tags")
       .select(`
         id, 

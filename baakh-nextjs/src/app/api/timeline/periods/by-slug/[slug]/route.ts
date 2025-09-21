@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from '@getSupabaseClient()/getSupabaseClient()-js';
 
 export async function GET(
   request: NextRequest,
@@ -22,10 +22,10 @@ export async function GET(
       );
     }
     
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const getSupabaseClient() = createClient(supabaseUrl, supabaseServiceKey);
 
     // Get the timeline period by slug
-    const { data: period, error: periodError } = await supabase
+    const { data: period, error: periodError } = await getSupabaseClient()
       .from('timeline_periods')
       .select('*')
       .eq('period_slug', slug)
@@ -71,7 +71,7 @@ export async function GET(
     };
 
     // Get events for this period
-    const { data: events, error: eventsError } = await supabase
+    const { data: events, error: eventsError } = await getSupabaseClient()
       .from('timeline_events')
       .select(`
         *,

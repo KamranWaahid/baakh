@@ -7,7 +7,7 @@ export async function GET(req: Request) {
   if (!url || !serviceKey) {
     return NextResponse.json({ error: 'Supabase not configured' }, { status: 500 });
   }
-  const admin = createClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
+  const getSupabaseClient() = createClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
   
   try {
     const { searchParams } = new URL(req.url);
@@ -26,14 +26,14 @@ export async function GET(req: Request) {
     console.log('Categories API - Starting query with', `page: ${page}, limit: ${limit}, offset: ${offset}`, 'lang:', lang);
     
     // Get total count first for accurate pagination
-    const { count: totalCount } = await admin
+    const { count: totalCount } = await getSupabaseClient()
       .from('categories')
       .select('*', { head: true, count: 'exact' })
       .is('deleted_at', null);
     
     console.log('Categories API - Total count in database:', totalCount);
     
-    let query = admin
+    let query = getSupabaseClient()
       .from('categories')
       .select(`
         id, 
@@ -99,7 +99,7 @@ export async function GET(req: Request) {
     let poetryCounts: { [key: number]: number } = {};
     
     if (categoryIds.length > 0) {
-      const { data: countData, error: countError } = await admin
+      const { data: countData, error: countError } = await getSupabaseClient()
         .from('poetry_main')
         .select('category_id')
         .in('category_id', categoryIds)

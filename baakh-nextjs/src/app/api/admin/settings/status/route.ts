@@ -8,7 +8,7 @@ if (!url || !serviceKey) {
   throw new Error("Supabase not configured");
 }
 
-const admin = createClient(url, serviceKey, {
+const getSupabaseClient() = createClient(url, serviceKey, {
   auth: { autoRefreshToken: false, persistSession: false },
   db: { schema: 'public' }
 });
@@ -17,7 +17,7 @@ const admin = createClient(url, serviceKey, {
 export async function GET(request: NextRequest) {
   try {
     // Test if we can access the admin_settings table
-    const { data, error } = await admin
+    const { data, error } = await getSupabaseClient()
       .from("admin_settings")
       .select("id")
       .limit(1);

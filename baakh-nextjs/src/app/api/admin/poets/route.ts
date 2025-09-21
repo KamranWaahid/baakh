@@ -6,8 +6,8 @@ import { validateApiInput, poetCreateSchema } from '@/lib/security/validation';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
-// Create admin client with service role key for full access
-const admin = createClient(supabaseUrl, supabaseServiceKey);
+// Create getSupabaseClient() client with service role key for full access
+const getSupabaseClient() = createClient(supabaseUrl, supabaseServiceKey);
 
 export async function GET(request: NextRequest) {
   try {
@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
     // Calculate offset - support both page and offset parameters
     const finalOffset = offset || (page - 1) * limit;
 
-    let query = admin
+    let query = getSupabaseClient()
       .from('poets')
       .select('*', { count: 'exact' })
       .not("english_name", "is", null);
@@ -68,7 +68,7 @@ async function postHandler(request: NextRequest) {
     const validatedData = validateApiInput(body, poetCreateSchema);
 
     // Check if poet with same slug already exists
-    const { data: existingPoet } = await admin
+    const { data: existingPoet } = await getSupabaseClient()
       .from('poets')
       .select('id')
       .eq('poet_slug', validatedData.poet_slug)
@@ -108,7 +108,7 @@ async function postHandler(request: NextRequest) {
     };
 
     // Insert the poet
-    const { data: newPoet, error: insertError } = await admin
+    const { data: newPoet, error: insertError } = await getSupabaseClient()
       .from('poets')
       .insert([poetData])
       .select()
@@ -133,4 +133,4 @@ async function postHandler(request: NextRequest) {
   }
 }
 
-export const POST = withSecurity('admin')(postHandler);
+export const POST = withSecurity('getSupabaseClient()')(postHandler);

@@ -12,13 +12,13 @@ export async function GET() {
     );
   }
 
-  const admin = createClient(url, serviceKey, {
+  const getSupabaseClient() = createClient(url, serviceKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 
   try {
     // Fetch up to 1000 users; adjust as needed with pagination params
-    const { data, error } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
+    const { data, error } = await getSupabaseClient().auth.getSupabaseClient().listUsers({ page: 1, perPage: 1000 });
     if (error) {
       return NextResponse.json({ users: [], error: error.message }, { status: 500 });
     }
@@ -49,14 +49,14 @@ export async function POST(req: Request) {
   if (!url || !serviceKey) {
     return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
   }
-  const admin = createClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
+  const getSupabaseClient() = createClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
 
   try {
     const body = await req.json();
     const { email, password, name, role } = body || {};
     if (!email || !password) return NextResponse.json({ error: "email and password required" }, { status: 400 });
 
-    const { data, error } = await admin.auth.admin.createUser({
+    const { data, error } = await getSupabaseClient().auth.getSupabaseClient().createUser({
       email,
       password,
       email_confirm: true,
@@ -79,7 +79,7 @@ export async function PATCH(req: Request) {
   if (!url || !serviceKey) {
     return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
   }
-  const admin = createClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
+  const getSupabaseClient() = createClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
   try {
     const body = await req.json();
     const { id, email, password, name, role } = body || {};
@@ -91,7 +91,7 @@ export async function PATCH(req: Request) {
       ...(name ? { name } : {}),
       ...(role ? { role } : {}),
     };
-    const { data, error } = await admin.auth.admin.updateUserById(id, update);
+    const { data, error } = await getSupabaseClient().auth.getSupabaseClient().updateUserById(id, update);
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ user: data.user });
   } catch (err: any) {

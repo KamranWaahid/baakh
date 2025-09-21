@@ -4,10 +4,16 @@ import fs from 'fs';
 import path from 'path';
 import { clearRomanizerCache } from '../../../../../../lib/romanizer-utils';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+function getSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  
+  if (!supabaseUrl || !supabaseServiceKey) {
+    throw new Error('Missing Supabase environment variables');
+  }
+  
+  return createClient(supabaseUrl, supabaseServiceKey);
+}
 
 const ROMANIZER_FILE_PATH = path.join(process.cwd(), 'romanizer.txt');
 const SYNC_METADATA_PATH = path.join(process.cwd(), '.romanizer-sync-metadata.json');
@@ -49,6 +55,7 @@ async function saveSyncMetadata(lastEntryTimestamp: number, totalEntries: number
 
 export async function POST(request: NextRequest) {
   try {
+    const supabase = getSupabaseClient();
     // Check if user is authenticated (you can add more auth checks here)
     
     console.log('🔄 Starting incremental romanizer sync...');
@@ -202,6 +209,7 @@ export async function POST(request: NextRequest) {
 
 export async function GET() {
   try {
+    const supabase = getSupabaseClient();
     // Check if file exists
     if (!fs.existsSync(ROMANIZER_FILE_PATH)) {
       return NextResponse.json({
