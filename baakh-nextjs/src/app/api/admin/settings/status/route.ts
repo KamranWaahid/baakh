@@ -1,21 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+// Create Supabase client function to avoid build-time errors
+function createSupabaseClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-if (!url || !serviceKey) {
-  throw new Error("Supabase not configured");
+  if (!url || !serviceKey) {
+    throw new Error("Supabase not configured");
+  }
+
+  return createClient(url, serviceKey, {
+    auth: { autoRefreshToken: false, persistSession: false },
+    db: { schema: 'public' }
+  });
 }
-
-const supabase = createClient(url, serviceKey, {
-  auth: { autoRefreshToken: false, persistSession: false },
-  db: { schema: 'public' }
-});
 
 // Check if production database is accessible
 export async function GET(request: NextRequest) {
   try {
+    const supabase = createSupabaseClient();
     // Test if we can access the admin_settings table
     const { data, error } = await supabase
       .from("admin_settings")
