@@ -15,6 +15,7 @@ interface Tag {
   id: string;
   slug: string;
   label: string;
+  title?: string;
   tag_type: string;
   created_at: string;
   tags_translations?: Array<{

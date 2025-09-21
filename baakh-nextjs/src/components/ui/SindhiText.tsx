@@ -20,13 +20,13 @@ import {
  * Prevents Sindhi fonts from being applied to numbers and English characters
  */
 export const SindhiText: React.FC<SmartFontProps & { 
-  as?: keyof JSX.IntrinsicElements;
+  as?: keyof React.JSX.IntrinsicElements;
   size?: 'xs' | 'sm' | 'base' | 'lg' | 'xl' | '2xl';
   weight?: 'light' | 'normal' | 'medium' | 'semibold' | 'bold';
 }> = ({ 
   text, 
   children, 
-  as: Component = 'span',
+  as: Component = 'span' as keyof React.JSX.IntrinsicElements,
   size = 'base',
   weight = 'normal',
   className = '',
@@ -44,10 +44,11 @@ export const SindhiText: React.FC<SmartFontProps & {
   // Combine all classes
   const combinedClassName = [fontClass, sizeClass, weightClass, className].filter(Boolean).join(' ');
 
+  const Element = Component as React.ElementType;
   return (
-    <Component className={combinedClassName} {...props}>
+    <Element className={combinedClassName} {...props}>
       {content}
-    </Component>
+    </Element>
   );
 };
 
@@ -68,13 +69,14 @@ export const SindhiHeading: React.FC<{
   const headingClass = `text-h${level}`;
   const weightClass = weight !== 'bold' ? `font-${weight}` : '';
   
-  const Component = `h${level}` as keyof JSX.IntrinsicElements;
+  const Component = `h${level}` as keyof React.JSX.IntrinsicElements;
   const combinedClassName = [fontClass, headingClass, weightClass, className].filter(Boolean).join(' ');
 
+  const Element = Component as React.ElementType;
   return (
-    <Component className={combinedClassName} {...props}>
+    <Element className={combinedClassName} {...props}>
       {children}
-    </Component>
+    </Element>
   );
 };
 
@@ -130,7 +132,7 @@ export const NumberText: React.FC<{
     weight, 
     size, 
     variant 
-  });
+  } as any);
 
   return (
     <span className={fontClass} {...props}>
@@ -145,8 +147,8 @@ export const NumberText: React.FC<{
 export const useSindhiFont = () => {
   return {
     getSmartFontClass,
-    getHeadingFontClass,
     processMixedContent,
-    containsSindhiText
+    shouldUseSindhiFont,
+    shouldUseInterFont
   };
 };

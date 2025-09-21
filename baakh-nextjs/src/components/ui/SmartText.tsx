@@ -16,14 +16,14 @@ import {
  * Use this component anywhere you need smart font detection
  */
 export const SmartText: React.FC<SmartFontProps & { 
-  as?: keyof JSX.IntrinsicElements;
+  as?: keyof React.JSX.IntrinsicElements;
   size?: 'xs' | 'sm' | 'base' | 'lg' | 'xl' | '2xl';
   weight?: 'light' | 'normal' | 'medium' | 'semibold' | 'bold';
   processMixed?: boolean;
 }> = ({ 
   text, 
   children, 
-  as: Component = 'span',
+  as: Component = 'span' as keyof React.JSX.IntrinsicElements,
   size = 'base',
   weight = 'normal',
   className = '',
@@ -39,8 +39,9 @@ export const SmartText: React.FC<SmartFontProps & {
     const parts = processMixedContent(contentString);
     const sizeClass = `text-${size}`;
     
+    const Element = Component as React.ElementType;
     return (
-      <Component className={className} {...props}>
+      <Element className={className} {...props}>
         {parts.map((part, index) => (
           <span 
             key={index} 
@@ -50,7 +51,7 @@ export const SmartText: React.FC<SmartFontProps & {
             {part.text}
           </span>
         ))}
-      </Component>
+      </Element>
     );
   }
   
@@ -62,10 +63,11 @@ export const SmartText: React.FC<SmartFontProps & {
   // Combine all classes
   const combinedClassName = [fontClass, sizeClass, weightClass, className].filter(Boolean).join(' ');
 
+  const Element = Component as React.ElementType;
   return (
-    <Component className={combinedClassName} {...props}>
+    <Element className={combinedClassName} {...props}>
       {content}
-    </Component>
+    </Element>
   );
 };
 
@@ -86,13 +88,14 @@ export const SmartHeading: React.FC<{
   const headingClass = `text-h${level}`;
   const weightClass = weight !== 'bold' ? `font-${weight}` : '';
   
-  const Component = `h${level}` as keyof JSX.IntrinsicElements;
+  const Component = `h${level}` as keyof React.JSX.IntrinsicElements;
   const combinedClassName = [fontClass, headingClass, weightClass, className].filter(Boolean).join(' ');
 
+  const Element = Component as React.ElementType;
   return (
-    <Component className={combinedClassName} {...props}>
+    <Element className={combinedClassName} {...props}>
       {children}
-    </Component>
+    </Element>
   );
 };
 

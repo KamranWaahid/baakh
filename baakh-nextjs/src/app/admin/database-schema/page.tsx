@@ -54,26 +54,26 @@ const databaseSchema: TableSchema[] = [
     icon: Users,
     columns: [
       { name: "id", type: "UUID", nullable: false, primaryKey: true, description: "Unique identifier for the poet" },
-      { name: "poet_slug", type: "VARCHAR(255)", nullable: false, description: "URL-friendly slug for the poet" },
-      { name: "english_name", type: "VARCHAR(255)", nullable: false, description: "English name of the poet" },
-      { name: "sindhi_name", type: "VARCHAR(255)", nullable: true, description: "Sindhi name of the poet" },
-      { name: "english_laqab", type: "VARCHAR(255)", nullable: true, description: "English laqab (honorific title)" },
-      { name: "sindhi_laqab", type: "VARCHAR(255)", nullable: true, description: "Sindhi laqab (honorific title)" },
-      { name: "english_takhalus", type: "VARCHAR(255)", nullable: true, description: "English takhalus (pen name)" },
-      { name: "sindhi_takhalus", type: "VARCHAR(255)", nullable: true, description: "Sindhi takhalus (pen name)" },
-      { name: "birth_date", type: "VARCHAR(50)", nullable: true, description: "Birth date (YYYY format)" },
-      { name: "death_date", type: "VARCHAR(50)", nullable: true, description: "Death date (YYYY format)" },
-      { name: "birth_place", type: "VARCHAR(255)", nullable: true, description: "Place of birth" },
-      { name: "death_place", type: "VARCHAR(255)", nullable: true, description: "Place of death" },
-      { name: "file_url", type: "TEXT", nullable: true, description: "URL to profile image" },
-      { name: "is_featured", type: "BOOLEAN", nullable: false, description: "Whether the poet is featured" },
-      { name: "is_hidden", type: "BOOLEAN", nullable: false, description: "Whether the poet is hidden from public view" },
-      { name: "created_at", type: "TIMESTAMP", nullable: false, description: "Record creation timestamp" },
-      { name: "updated_at", type: "TIMESTAMP", nullable: false, description: "Record last update timestamp" }
+      { name: "poet_slug", type: "VARCHAR(255)", nullable: false, primaryKey: false, description: "URL-friendly slug for the poet" },
+      { name: "english_name", type: "VARCHAR(255)", nullable: false, primaryKey: false, description: "English name of the poet" },
+      { name: "sindhi_name", type: "VARCHAR(255)", nullable: true, primaryKey: false, description: "Sindhi name of the poet" },
+      { name: "english_laqab", type: "VARCHAR(255)", nullable: true, primaryKey: false, description: "English laqab (honorific title)" },
+      { name: "sindhi_laqab", type: "VARCHAR(255)", nullable: true, primaryKey: false, description: "Sindhi laqab (honorific title)" },
+      { name: "english_takhalus", type: "VARCHAR(255)", nullable: true, primaryKey: false, description: "English takhalus (pen name)" },
+      { name: "sindhi_takhalus", type: "VARCHAR(255)", nullable: true, primaryKey: false, description: "Sindhi takhalus (pen name)" },
+      { name: "birth_date", type: "VARCHAR(50)", nullable: true, primaryKey: false, description: "Birth date (YYYY format)" },
+      { name: "death_date", type: "VARCHAR(50)", nullable: true, primaryKey: false, description: "Death date (YYYY format)" },
+      { name: "birth_place", type: "VARCHAR(255)", nullable: true, primaryKey: false, description: "Place of birth" },
+      { name: "death_place", type: "VARCHAR(255)", nullable: true, primaryKey: false, description: "Place of death" },
+      { name: "file_url", type: "TEXT", nullable: true, primaryKey: false, description: "URL to profile image" },
+      { name: "is_featured", type: "BOOLEAN", nullable: false, primaryKey: false, description: "Whether the poet is featured" },
+      { name: "is_hidden", type: "BOOLEAN", nullable: false, primaryKey: false, description: "Whether the poet is hidden from public view" },
+      { name: "created_at", type: "TIMESTAMP", nullable: false, primaryKey: false, description: "Record creation timestamp" },
+      { name: "updated_at", type: "TIMESTAMP", nullable: false, primaryKey: false, description: "Record last update timestamp" }
     ],
     relationships: [
       { type: "one-to-many", table: "poetry", description: "A poet can have multiple poetry works" },
-      { type: "many-to-many", table: "poet_tags", description: "A poet can have multiple tags" }
+      { type: "one-to-many", table: "poet_tags", description: "A poet can have multiple tags" }
     ]
   },
   {
@@ -83,18 +83,18 @@ const databaseSchema: TableSchema[] = [
     icon: BookOpen,
     columns: [
       { name: "id", type: "UUID", nullable: false, primaryKey: true, description: "Unique identifier for the poetry work" },
-      { name: "poetry_slug", type: "VARCHAR(255)", nullable: false, description: "URL-friendly slug for the poetry work" },
-      { name: "poet_id", type: "UUID", nullable: false, foreignKey: "poets.id", description: "Reference to the poet who wrote this work" },
-      { name: "category_id", type: "INTEGER", nullable: true, foreignKey: "categories.id", description: "Reference to the category" },
-      { name: "lang", type: "VARCHAR(10)", nullable: false, description: "Language of the poetry work" },
-      { name: "visibility", type: "BOOLEAN", nullable: false, description: "Whether the work is visible to public" },
-      { name: "is_featured", type: "BOOLEAN", nullable: false, description: "Whether the work is featured" },
-      { name: "created_at", type: "TIMESTAMP", nullable: false, description: "Record creation timestamp" },
-      { name: "updated_at", type: "TIMESTAMP", nullable: false, description: "Record last update timestamp" }
+      { name: "poetry_slug", type: "VARCHAR(255)", nullable: false, primaryKey: false, description: "URL-friendly slug for the poetry work" },
+      { name: "poet_id", type: "UUID", nullable: false, primaryKey: false, foreignKey: "poets.id", description: "Reference to the poet who wrote this work" },
+      { name: "category_id", type: "INTEGER", nullable: true, primaryKey: false, foreignKey: "categories.id", description: "Reference to the category" },
+      { name: "lang", type: "VARCHAR(10)", nullable: false, primaryKey: false, description: "Language of the poetry work" },
+      { name: "visibility", type: "BOOLEAN", nullable: false, primaryKey: false, description: "Whether the work is visible to public" },
+      { name: "is_featured", type: "BOOLEAN", nullable: false, primaryKey: false, description: "Whether the work is featured" },
+      { name: "created_at", type: "TIMESTAMP", nullable: false, primaryKey: false, description: "Record creation timestamp" },
+      { name: "updated_at", type: "TIMESTAMP", nullable: false, primaryKey: false, description: "Record last update timestamp" }
     ],
     relationships: [
-      { type: "many-to-one", table: "poets", description: "A poetry work belongs to one poet" },
-      { type: "many-to-one", table: "categories", description: "A poetry work can belong to one category" },
+      { type: "one-to-many", table: "poets", description: "A poetry work belongs to one poet" },
+      { type: "one-to-many", table: "categories", description: "A poetry work can belong to one category" },
       { type: "one-to-many", table: "poetry_couplets", description: "A poetry work can have multiple couplets" },
       { type: "one-to-many", table: "poetry_translations", description: "A poetry work can have multiple translations" },
       { type: "many-to-many", table: "poetry_tags", description: "A poetry work can have multiple tags" }
@@ -115,7 +115,7 @@ const databaseSchema: TableSchema[] = [
       { name: "updated_at", type: "TIMESTAMP", nullable: false, description: "Record last update timestamp" }
     ],
     relationships: [
-      { type: "many-to-one", table: "poetry", description: "A couplet belongs to one poetry work" }
+      { type: "one-to-many", table: "poetry", description: "A couplet belongs to one poetry work" }
     ]
   },
   {
@@ -132,7 +132,7 @@ const databaseSchema: TableSchema[] = [
       { name: "updated_at", type: "TIMESTAMP", nullable: false, description: "Record last update timestamp" }
     ],
     relationships: [
-      { type: "many-to-one", table: "poetry", description: "A translation belongs to one poetry work" }
+      { type: "one-to-many", table: "poetry", description: "A translation belongs to one poetry work" }
     ]
   },
   {
@@ -184,8 +184,8 @@ const databaseSchema: TableSchema[] = [
       { name: "created_at", type: "TIMESTAMP", nullable: false, description: "Record creation timestamp" }
     ],
     relationships: [
-      { type: "many-to-one", table: "poets", description: "A poet-tag relationship belongs to one poet" },
-      { type: "many-to-one", table: "tags", description: "A poet-tag relationship belongs to one tag" }
+      { type: "one-to-many", table: "poets", description: "A poet-tag relationship belongs to one poet" },
+      { type: "one-to-many", table: "tags", description: "A poet-tag relationship belongs to one tag" }
     ]
   },
   {
@@ -199,8 +199,8 @@ const databaseSchema: TableSchema[] = [
       { name: "created_at", type: "TIMESTAMP", nullable: false, description: "Record creation timestamp" }
     ],
     relationships: [
-      { type: "many-to-one", table: "poetry", description: "A poetry-tag relationship belongs to one poetry work" },
-      { type: "many-to-one", table: "tags", description: "A poetry-tag relationship belongs to one tag" }
+      { type: "one-to-many", table: "poetry", description: "A poetry-tag relationship belongs to one poetry work" },
+      { type: "one-to-many", table: "tags", description: "A poetry-tag relationship belongs to one tag" }
     ]
   },
   {

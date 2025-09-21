@@ -10,6 +10,7 @@ interface LanguageContextType {
   setLanguage: (lang: Language) => void;
   isLanguageOpen: boolean;
   setIsLanguageOpen: (open: boolean) => void;
+  isRTL: boolean;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -55,7 +56,8 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       language,
       setLanguage,
       isLanguageOpen,
-      setIsLanguageOpen
+      setIsLanguageOpen,
+      isRTL: language === 'sd'
     }}>
       {children}
     </LanguageContext.Provider>

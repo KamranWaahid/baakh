@@ -63,7 +63,7 @@ export const poetCreateSchema = z.object({
 // Poetry validation schema
 export const poetryCreateSchema = z.object({
   poetry_slug: slugSchema,
-  lang: z.enum(['sd', 'en'], { required_error: 'Language is required' }),
+  lang: z.enum(['sd', 'en'], { message: 'Language is required' }),
   visibility: z.boolean().optional().default(true),
   is_featured: z.boolean().optional().default(false),
   category_id: z.string().uuid('Invalid category ID').optional(),
@@ -78,7 +78,7 @@ export const coupletCreateSchema = z.object({
   couplet_slug: slugSchema,
   couplet_text: textSchema,
   couplet_tags: z.string().max(500, 'Tags too long').trim().optional().or(z.literal('')),
-  lang: z.enum(['sd', 'en'], { required_error: 'Language is required' })
+  lang: z.enum(['sd', 'en'], { message: 'Language is required' })
 });
 
 // Tag validation schema
@@ -108,7 +108,7 @@ export function sanitizeInput<T>(data: T, schema: z.ZodSchema<T>): T {
     return schema.parse(data);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      throw new Error(`Validation failed: ${error.errors.map(e => e.message).join(', ')}`);
+      throw new Error(`Validation failed: ${error.issues.map(e => e.message).join(', ')}`);
     }
     throw error;
   }
@@ -120,7 +120,7 @@ export function validateApiInput<T>(data: unknown, schema: z.ZodSchema<T>): T {
     return schema.parse(data);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      const errorMessage = error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ');
+      const errorMessage = error.issues.map(e => `${e.path.join('.')}: ${e.message}`).join(', ');
       throw new Error(`Input validation failed: ${errorMessage}`);
     }
     throw new Error('Invalid input data');

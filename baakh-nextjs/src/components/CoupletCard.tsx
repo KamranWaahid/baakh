@@ -168,23 +168,23 @@ export default function CoupletCard({ couplet, isSindhi, index }: CoupletCardPro
           <div className="flex items-center justify-between pt-6 border-t border-gray-100">
             <div className="flex items-center gap-3">
               <Avatar className="w-8 h-8 bg-background border border-gray-200/30 shadow-sm">
-                <AvatarImage src={couplet.poet?.file_url || undefined} alt={couplet.poet?.english_name || couplet.poet?.sindhi_name || 'Unknown Poet'} />
+                <AvatarImage src={couplet.poet?.photo || undefined} alt={couplet.poet?.englishName || couplet.poet?.sindhiName || 'Unknown Poet'} />
                 <AvatarFallback className={cn(
                   "text-sm font-medium text-foreground bg-gray-50 border border-gray-200/40",
                   couplet.lang === 'sd' ? 'auto-sindhi-font' : ''
                 )}>
-                  {couplet.poet?.english_name || couplet.poet?.sindhi_name ? (
+                  {couplet.poet?.englishName || couplet.poet?.sindhiName ? (
                     couplet.lang === 'sd' 
-                      ? (couplet.poet.sindhi_name || couplet.poet.english_name).charAt(0)
-                      : (couplet.poet.english_name || couplet.poet.sindhi_name).charAt(0).toUpperCase()
+                      ? (couplet.poet.sindhiName || couplet.poet.englishName).charAt(0)
+                      : (couplet.poet.englishName || couplet.poet.sindhiName).charAt(0).toUpperCase()
                   ) : '?'}
                 </AvatarFallback>
               </Avatar>
               <span className={`text-sm text-gray-700 font-medium ${isSindhi ? 'auto-sindhi-font' : ''}`}>
                 {couplet.poet ? (
                   isSindhi
-                    ? (couplet.poet.sindhi_laqab || couplet.poet.sindhi_name || couplet.poet.english_name)
-                    : (couplet.poet.english_laqab || couplet.poet.english_name || couplet.poet.sindhi_name)
+                    ? (couplet.poet.sindhi_laqab || couplet.poet.sindhiName || couplet.poet.englishName)
+                    : (couplet.poet.english_laqab || couplet.poet.englishName || couplet.poet.sindhiName)
                 ) : (
                   isSindhi ? 'نامعلوم شاعر' : 'Unknown Poet'
                 )}

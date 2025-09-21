@@ -116,7 +116,7 @@ export default function ContactPage() {
     },
     
     // Contact methods
-    email: {
+    contactEmail: {
       en: "Email",
       sd: "اي ميل"
     },
@@ -267,8 +267,8 @@ export default function ContactPage() {
                         </div>
                       </div>
                       <div>
-                        <label htmlFor="email" className={`block text-sm font-medium text-gray-700 mb-3 ${getSmartFontClass(content.email[locale])} ${!isRTL ? 'font-semibold' : ''}`}>
-                          {content.email[locale]}
+                        <label htmlFor="email" className={`block text-sm font-medium text-gray-700 mb-3 ${getSmartFontClass(content.contactEmail[locale])} ${!isRTL ? 'font-semibold' : ''}`}>
+                          {content.contactEmail[locale]}
                         </label>
                         <div className="relative">
                           <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
@@ -365,8 +365,8 @@ export default function ContactPage() {
                         <Mail className="w-6 h-6 text-gray-700" />
                       </div>
                       <div>
-                        <h3 className={`font-semibold text-gray-900 mb-1 ${getSmartFontClass(content.email[locale])} ${!isRTL ? 'font-bold' : ''}`}>
-                          {content.email[locale]}
+                        <h3 className={`font-semibold text-gray-900 mb-1 ${getSmartFontClass(content.contactEmail[locale])} ${!isRTL ? 'font-bold' : ''}`}>
+                          {content.contactEmail[locale]}
                         </h3>
                         <p className="text-gray-600 font-medium">contact@baakh.com</p>
                       </div>

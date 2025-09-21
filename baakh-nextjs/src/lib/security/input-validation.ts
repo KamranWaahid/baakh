@@ -105,7 +105,7 @@ export const apiSchemas = {
       profileAad: z.string(),
       masterKeyCipher: z.string(),
       masterKeyNonce: z.string(),
-      kdfParams: z.record(z.any())
+      kdfParams: z.record(z.string(), z.any())
     })
   }),
   
@@ -119,7 +119,7 @@ export const apiSchemas = {
     visibility: z.boolean().default(true),
     is_featured: z.boolean().default(false),
     tags: z.array(z.string().max(50)).max(10).optional(),
-    metadata: z.record(z.any()).optional()
+    metadata: z.record(z.string(), z.any()).optional()
   }),
   
   // Poet schemas
@@ -134,7 +134,7 @@ export const apiSchemas = {
     description: commonSchemas.htmlContent.optional(),
     file_url: commonSchemas.url.optional(),
     is_featured: z.boolean().default(false),
-    metadata: z.record(z.any()).optional()
+    metadata: z.record(z.string(), z.any()).optional()
   }),
   
   // Search schemas
@@ -143,7 +143,7 @@ export const apiSchemas = {
     lang: commonSchemas.language,
     page: z.number().int().min(1).default(1),
     limit: z.number().int().min(1).max(50).default(10),
-    filters: z.record(z.any()).optional()
+    filters: z.record(z.string(), z.any()).optional()
   }),
   
   // Report schemas
@@ -163,7 +163,7 @@ export const apiSchemas = {
   adminUpdate: z.object({
     status: commonSchemas.status,
     admin_notes: z.string().max(1000).optional(),
-    metadata: z.record(z.any()).optional()
+    metadata: z.record(z.string(), z.any()).optional()
   })
 };
 

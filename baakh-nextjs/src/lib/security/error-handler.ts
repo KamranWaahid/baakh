@@ -3,7 +3,7 @@ import { createSecurityAlert } from './alerts';
 import { getClientIP } from './ip-whitelist';
 
 export interface SecurityError extends Error {
-  code?: string;
+  code: string;
   statusCode?: number;
   isOperational?: boolean;
   context?: Record<string, any>;
@@ -129,8 +129,8 @@ export function createErrorResponse(
 
   // Handle known error types
   if (error instanceof AppError) {
-    statusCode = error.statusCode;
-    errorCode = error.code;
+    statusCode = error.statusCode || 500;
+    errorCode = error.code || 'UNKNOWN_ERROR';
     message = error.message;
     details = error.context;
   } else if (error instanceof Error) {

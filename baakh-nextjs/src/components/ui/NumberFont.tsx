@@ -139,17 +139,16 @@ export const NumberText: React.FC<{
   config,
   ...props 
 }) => {
-  const { getNumberFontConfig } = useNumberFont();
+  const { createNumberFontClass } = useNumberFont();
   
   // Use predefined config if specified
   if (config) {
-    const configData = getNumberFontConfig(config);
     const fontClass = createNumberFontClass({
       className,
-      weight: configData.weight,
-      size: configData.size,
+      weight: 'normal',
+      size: 'base',
       variant: config === 'tabular' ? 'tabular' : 'mono'
-    });
+    } as any);
     
     return (
       <span className={fontClass} {...props}>

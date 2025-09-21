@@ -81,7 +81,7 @@ export default function NavigationDemoPage() {
           </p>
         </div>
 
-        <Tabs defaultValue="overview" className="space-y-6">
+        <Tabs defaultValue="overview" className="space-y-6" onValueChange={() => {}}>
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="components">Components</TabsTrigger>
@@ -259,17 +259,16 @@ export default function NavigationDemoPage() {
                   <PageNavigation
                     currentPage={mockData.currentPage}
                     totalPages={mockData.totalPages}
-                    totalItems={mockData.totalItems}
                     itemsPerPage={mockData.itemsPerPage}
                     onPageChange={setCurrentPage}
                     viewMode={viewMode}
                     onViewModeChange={setViewMode}
                     sortOptions={sortOptions}
                     currentSort="newest"
-                    onSortChange={(sort) => console.log('Sort changed:', sort)}
+                    onSortChange={(sort: string) => console.log('Sort changed:', sort)}
                     filterOptions={filterOptions}
                     currentFilter=""
-                    onFilterChange={(filter) => console.log('Filter changed:', filter)}
+                    onFilterChange={(filter: string) => console.log('Filter changed:', filter)}
                     showFilters={showFilters}
                     onToggleFilters={() => setShowFilters(!showFilters)}
                   />

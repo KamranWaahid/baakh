@@ -1,5 +1,5 @@
 'use client';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 // Debug environment variables
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -31,7 +31,7 @@ if (!hasValidCredentials) {
 }
 
 // Create a fallback client with dummy credentials if needed
-let supabase;
+let supabase: SupabaseClient;
 
 if (hasValidCredentials) {
   try {

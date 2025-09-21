@@ -1,7 +1,7 @@
 import { cookies, headers } from 'next/headers';
-import { createServerClient } from '@supabase/ssr';
+import { createServerClient, SupabaseClient } from '@supabase/ssr';
 
-export async function supabaseServer() {
+export async function supabaseServer(): Promise<SupabaseClient> {
   const cookieStore = await cookies();
   const headersList = await headers();
   
@@ -55,8 +55,11 @@ export async function supabaseServer() {
   );
 }
 
-export function createClient() {
+export async function createClient(): Promise<SupabaseClient> {
   return supabaseServer();
 }
+
+// Export supabase for backward compatibility
+export const supabase = createClient();
 
 

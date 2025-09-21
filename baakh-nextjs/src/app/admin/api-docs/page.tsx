@@ -398,7 +398,7 @@ export default function APIDocumentationPage() {
                       <p className="text-gray-600 mt-2">{endpoint.description}</p>
                     </CardHeader>
                     <CardContent>
-                      <Tabs defaultValue="overview" className="w-full">
+                      <Tabs defaultValue="overview" className="w-full" onValueChange={() => {}}>
                         <TabsList className="grid w-full grid-cols-3">
                           <TabsTrigger value="overview">Overview</TabsTrigger>
                           <TabsTrigger value="parameters">Parameters</TabsTrigger>

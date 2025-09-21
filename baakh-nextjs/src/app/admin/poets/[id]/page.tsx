@@ -23,6 +23,7 @@ interface Poet {
   sindhi_laqab?: string;
   sindhi_takhalus?: string;
   sindhi_tagline?: string;
+  sindhi_details?: string;
   birth_date?: string;
   death_date?: string;
   birth_place?: string;
