@@ -14,17 +14,39 @@ export function createAdminClient() {
   
   if (!isConfigured) {
     console.warn('⚠️ Admin client: Supabase not properly configured, using fallback');
-    // Return a dummy client that won't crash
-    return createClient(
-      'https://dummy.supabase.co',
-      'dummy-service-key',
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false
-        }
-      }
-    );
+    // Return a mock client that won't crash during build
+    return {
+      from: () => ({
+        select: () => ({
+          eq: () => ({
+            single: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
+            range: () => Promise.resolve({ data: [], error: null }),
+            order: () => ({
+              or: () => ({
+                range: () => Promise.resolve({ data: [], error: null })
+              }),
+              range: () => Promise.resolve({ data: [], error: null })
+            })
+          }),
+          insert: () => ({
+            select: () => ({
+              single: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } })
+            })
+          }),
+          update: () => ({
+            eq: () => ({
+              select: () => ({
+                single: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } })
+              })
+            })
+          }),
+          delete: () => ({
+            eq: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } })
+          })
+        }),
+        count: () => Promise.resolve({ count: 0, error: null })
+      })
+    } as any;
   }
   
   return createClient(supabaseUrl!, supabaseServiceKey!, {

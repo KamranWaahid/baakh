@@ -7,6 +7,23 @@ async function getPoetryHandler(request: NextRequest) {
   try {
     const supabase = createAdminClient();
     
+    // Check if Supabase is configured by checking if we have a real client
+    const isSupabaseConfigured = supabase && typeof supabase.from === 'function' && 
+      !supabase.from.toString().includes('Supabase not configured');
+    
+    if (!isSupabaseConfigured) {
+      console.warn('Supabase not configured, returning empty poetry list');
+      return NextResponse.json({
+        poetry: [],
+        pagination: {
+          page: 1,
+          limit: 10,
+          total: 0,
+          totalPages: 0
+        }
+      });
+    }
+    
     // Get query parameters
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
@@ -152,6 +169,19 @@ async function getPoetryHandler(request: NextRequest) {
 async function createPoetryHandler(request: NextRequest) {
   try {
     const supabase = createAdminClient();
+    
+    // Check if Supabase is configured
+    const isSupabaseConfigured = supabase && typeof supabase.from === 'function' && 
+      !supabase.from.toString().includes('Supabase not configured');
+    
+    if (!isSupabaseConfigured) {
+      console.warn('Supabase not configured, returning mock success');
+      return NextResponse.json({ 
+        message: 'Poetry created successfully (mock - Supabase not configured)',
+        id: 'mock-id'
+      });
+    }
+    
     const body = await request.json();
     
     // Validate input data
@@ -178,6 +208,18 @@ async function createPoetryHandler(request: NextRequest) {
 async function updatePoetryHandler(request: NextRequest) {
   try {
     const supabase = createAdminClient();
+    
+    // Check if Supabase is configured
+    const isSupabaseConfigured = supabase && typeof supabase.from === 'function' && 
+      !supabase.from.toString().includes('Supabase not configured');
+    
+    if (!isSupabaseConfigured) {
+      console.warn('Supabase not configured, returning mock success');
+      return NextResponse.json({ 
+        message: 'Poetry updated successfully (mock - Supabase not configured)'
+      });
+    }
+    
     const body = await request.json();
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
