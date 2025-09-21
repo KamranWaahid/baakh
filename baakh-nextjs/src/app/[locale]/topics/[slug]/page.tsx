@@ -180,11 +180,21 @@ export default function TopicPage() {
   };
 
   // Get display name based on language
-  const getDisplayName = (item: { name_en?: string; name_sd?: string; title?: string }): string => {
+  const getDisplayName = (item: { 
+    name_en?: string; 
+    name_sd?: string; 
+    title?: string;
+    name?: string;
+    label?: string;
+    sindhiTitle?: string;
+    sindhiName?: string;
+    englishTitle?: string;
+    englishName?: string;
+  }): string => {
     if (isSindhi) {
-      return item.sindhiTitle || item.sindhiName || item.title || item.name || item.label;
+      return item.sindhiTitle || item.sindhiName || item.title || item.name || item.label || '';
     }
-    return item.englishTitle || item.englishName || item.title || item.name || item.label;
+    return item.englishTitle || item.englishName || item.title || item.name || item.label || '';
   };
 
   // Get tag color based on tag type

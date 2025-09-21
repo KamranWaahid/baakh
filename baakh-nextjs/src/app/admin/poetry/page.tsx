@@ -543,7 +543,7 @@ export default function AdminPoetryListPage() {
                     </SelectTrigger>
                     <SelectContent className="bg-white border-[#E5E5E5] shadow-lg">
                       <SelectItem value="all" className="hover:bg-[#F4F4F5] focus:bg-[#F4F4F5]">All Languages</SelectItem>
-                      <SelectItem value="sd" className="hover:bg-[#F4F5] focus:bg-[#F4F4F5]">Sindhi</SelectItem>
+                      <SelectItem value="sd" className="hover:bg-[#F4F4F5] focus:bg-[#F4F4F5]">Sindhi</SelectItem>
                       <SelectItem value="en" className="hover:bg-[#F4F4F5] focus:bg-[#F4F4F5]">English</SelectItem>
                     </SelectContent>
                   </Select>

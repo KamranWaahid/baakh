@@ -29,11 +29,18 @@ export default async function NotesPage({ searchParams }: { searchParams: Record
   const { data: notes } = await query;
   const { data: allTags } = await sb.from('tags').select('id,slug,label').order('label');
 
+  // Transform tags to match NoteForm expected type
+  const transformedTags = allTags?.map(tag => ({
+    id: Number(tag.id),
+    slug: tag.slug,
+    label: tag.label
+  })) ?? [];
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Sticky Notes</h1>
-        <NoteForm tags={allTags ?? []} />
+        <NoteForm tags={transformedTags} />
       </div>
 
       {view === 'board'

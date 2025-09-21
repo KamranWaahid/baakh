@@ -322,22 +322,25 @@ export default function HomePage() {
           }
           
           // Map couplets to proper type
-          const mappedCouplets = selectedCouplets.map((couplet: Record<string, unknown>) => ({
-            id: Number(couplet.id || 0),
-            couplet_text: String(couplet.couplet_text || ''),
-            couplet_slug: String(couplet.couplet_slug || ''),
-            lang: String(couplet.lang || ''),
-            lines: Array.isArray(couplet.lines) ? couplet.lines as string[] : String(couplet.couplet_text || '').split('\n').slice(0, 2),
-            tags: Array.isArray(couplet.tags) ? couplet.tags as string[] : [],
-            poet: {
-              name: String(couplet.poet?.name || 'Unknown Poet'),
-              slug: String(couplet.poet?.slug || ''),
-              photo: couplet.poet?.photo ? String(couplet.poet.photo) : null
-            },
-            created_at: String(couplet.created_at || new Date().toISOString()),
-            likes: Number(couplet.likes || 0),
-            views: Number(couplet.views || 0)
-          }));
+          const mappedCouplets = selectedCouplets.map((couplet: Record<string, unknown>) => {
+            const poet = couplet.poet as Record<string, unknown> || {};
+            return {
+              id: Number(couplet.id || 0),
+              couplet_text: String(couplet.couplet_text || ''),
+              couplet_slug: String(couplet.couplet_slug || ''),
+              lang: String(couplet.lang || ''),
+              lines: Array.isArray(couplet.lines) ? couplet.lines as string[] : String(couplet.couplet_text || '').split('\n').slice(0, 2),
+              tags: Array.isArray(couplet.tags) ? couplet.tags as string[] : [],
+              poet: {
+                name: String(poet.name || 'Unknown Poet'),
+                slug: String(poet.slug || ''),
+                photo: poet.photo ? String(poet.photo) : null
+              },
+              created_at: String(couplet.created_at || new Date().toISOString()),
+              likes: Number(couplet.likes || 0),
+              views: Number(couplet.views || 0)
+            };
+          });
           setFeaturedCouplets(mappedCouplets);
           console.log('Selected couplets from different poets:', selectedCouplets.length, 'Unique poets used:', usedPoetIds.size, 'Total available poets:', allPoets.length, 'Max couplets:', maxCouplets);
         } else {
@@ -457,6 +460,8 @@ export default function HomePage() {
   }, [isSindhi]);
 
   // compute unified loading state - include all sections
+  const [isLoading, setIsLoading] = useState(true);
+  
   useEffect(() => {
     // Set a very short timeout to prevent infinite loading
     const timeoutId = setTimeout(() => {

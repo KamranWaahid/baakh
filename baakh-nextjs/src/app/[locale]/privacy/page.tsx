@@ -29,7 +29,31 @@ export default function PrivacyPage() {
   const [hideEnglishName, setHideEnglishName] = useState(false)
   const [hideSindhiName, setHideSindhiName] = useState(false)
   const [hideUsername, setHideUsername] = useState(false)
-  const [encryptedData, setEncryptedData] = useState<Record<string, unknown> | null>(null)
+  interface EncryptedData {
+    user_id?: string;
+    userId?: string;
+    username?: string;
+    sindhi_name?: string;
+    english_name?: string;
+    password_salt?: string;
+    passwordSalt?: string;
+    password_verifier?: string;
+    passwordVerifier?: string;
+    profile_cipher?: string;
+    profileCipher?: string;
+    profile_nonce?: string;
+    profileNonce?: string;
+    master_key_cipher?: string;
+    masterKeyCipher?: string;
+    master_key_nonce?: string;
+    masterKeyNonce?: string;
+    profile?: {
+      sindhi_name?: string;
+      name?: string;
+    };
+  }
+
+  const [encryptedData, setEncryptedData] = useState<EncryptedData | null>(null)
   const [dataSource, setDataSource] = useState<'server' | 'cache' | null>(null)
   const { user, isAuthenticated, logout, isLoading: authLoading } = useE2EEAuth()
   const router = useRouter()

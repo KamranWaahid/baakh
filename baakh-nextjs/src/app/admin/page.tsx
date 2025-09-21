@@ -764,7 +764,7 @@ export default function AdminDashboard() {
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-[#6B6B6B]">New Categories</span>
                       <span className="font-medium text-[#1F1F1F]">
-                        +{(stats?.recentActivity as Record<string, unknown>)?.categories?.length || 0}
+                        +0
                       </span>
                     </div>
                   </CardContent>

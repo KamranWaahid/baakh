@@ -155,17 +155,18 @@ export default function CategoriesPage() {
       const transformedCategories: CategoryRow[] = data.rows?.map((cat: Record<string, unknown>) => {
         // Detect languages based on available data
         const languages: Language[] = [];
-        if (cat.languages?.includes('English')) languages.push('English');
-        if (cat.languages?.includes('Sindhi')) languages.push('Sindhi');
+        const catLanguages = cat.languages as string[] | undefined;
+        if (catLanguages?.includes('English')) languages.push('English');
+        if (catLanguages?.includes('Sindhi')) languages.push('Sindhi');
         
         // If no specific language data, assume both
         if (languages.length === 0) languages.push('Sindhi', 'English');
         
         return {
-          id: cat.id,
-          name: cat.name || 'Unnamed Category',
-          information: cat.information || 'No description available',
-          detailAlign: cat.detailAlign || 'start',
+          id: String(cat.id || ''),
+          name: String(cat.name || 'Unnamed Category'),
+          information: String(cat.information || 'No description available'),
+          detailAlign: (cat.detailAlign as Alignment) || 'start',
           languages: languages
         };
       }) || [];

@@ -52,6 +52,15 @@ interface Poet {
   avatar: string;
   description: string;
   longDescription: string;
+  birth_date?: string;
+  death_date?: string;
+  birth_place?: string;
+  birth_place_sd?: string;
+  birth_place_en?: string;
+  death_place?: string;
+  death_place_sd?: string;
+  death_place_en?: string;
+  tags?: string[];
   stats: {
     works: number;
     couplets: number;
@@ -799,9 +808,9 @@ export default function PoetPage() {
                   </h1>
                   
                   {/* Laqab (honorific title) - neutral color, no blue */}
-                  {(poet as any).sindhi_laqab || (poet as any).english_laqab ? (
-                    <p className={`text-xl text-gray-700 mb-1 ${getSmartFontClass(isSindhi ? (poet as any).sindhi_laqab : (poet as any).english_laqab)}`} dir={isSindhi ? 'rtl' : 'ltr'}>
-                      {isSindhi ? (poet as any).sindhi_laqab : (poet as any).english_laqab}
+                  {poet.sindhi_laqab || poet.english_laqab ? (
+                    <p className={`text-xl text-gray-700 mb-1 ${getSmartFontClass(isSindhi ? poet.sindhi_laqab : poet.english_laqab)}`} dir={isSindhi ? 'rtl' : 'ltr'}>
+                      {isSindhi ? poet.sindhi_laqab : poet.english_laqab}
                     </p>
                   ) : null}
 
@@ -819,30 +828,30 @@ export default function PoetPage() {
                     {/* Birth and Death Dates */}
                     <span className={`inline-flex items-center gap-2 ${getSmartFontClass(poet.period)}`}>
                       <Calendar className="w-4 h-4" /> 
-                      {(poet as any).birth_date && (poet as any).death_date ? (
+                      {poet.birth_date && poet.death_date ? (
                         <span>
-                          {isSindhi ? 'پيدائش: ' : 'Born: '}{(poet as any).birth_date} • {isSindhi ? 'وفات: ' : 'Died: '}{(poet as any).death_date}
+                          {isSindhi ? 'پيدائش: ' : 'Born: '}{poet.birth_date} • {isSindhi ? 'وفات: ' : 'Died: '}{poet.death_date}
                         </span>
-                      ) : (poet as any).birth_date ? (
+                      ) : poet.birth_date ? (
                         <span>
-                          {isSindhi ? 'پيدائش: ' : 'Born: '}{(poet as any).birth_date} • {isSindhi ? 'زنده' : 'Alive'}
+                          {isSindhi ? 'پيدائش: ' : 'Born: '}{poet.birth_date} • {isSindhi ? 'زنده' : 'Alive'}
                         </span>
                       ) : (
                         poet.period
                       )}
                     </span>
                     <span className="opacity-60">•</span>
-                    <span className={`inline-flex items-center gap-2 ${getSmartFontClass(isSindhi ? (poet as any).birth_place_sd || (poet as any).birth_place : (poet as any).birth_place_en || (poet as any).birth_place)}`}>
+                    <span className={`inline-flex items-center gap-2 ${getSmartFontClass(isSindhi ? poet.birth_place_sd || poet.birth_place : poet.birth_place_en || poet.birth_place)}`}>
                       <MapPin className="w-4 h-4" /> 
-                      {isSindhi ? (poet as any).birth_place_sd || (poet as any).birth_place : (poet as any).birth_place_en || (poet as any).birth_place}
+                      {isSindhi ? poet.birth_place_sd || poet.birth_place : poet.birth_place_en || poet.birth_place}
                     </span>
                     {/* Death place if different from birth place */}
-                    {(poet as any).death_place && (poet as any).death_place !== (poet as any).birth_place && (
+                    {poet.death_place && poet.death_place !== poet.birth_place && (
                       <>
                         <span className="opacity-60">•</span>
-                        <span className={`inline-flex items-center gap-2 ${getSmartFontClass(isSindhi ? (poet as any).death_place_sd || (poet as any).death_place : (poet as any).death_place_en || (poet as any).death_place)}`}>
+                        <span className={`inline-flex items-center gap-2 ${getSmartFontClass(isSindhi ? poet.death_place_sd || poet.death_place : poet.death_place_en || poet.death_place)}`}>
                           <MapPin className="w-4 h-4" /> 
-                          {isSindhi ? (isSindhi ? 'وفات: ' : 'Died: ') + ((poet as any).death_place_sd || (poet as any).death_place) : (isSindhi ? 'وفات: ' : 'Died: ') + ((poet as any).death_place_en || (poet as any).death_place)}
+                          {isSindhi ? (isSindhi ? 'وفات: ' : 'Died: ') + (poet.death_place_sd || poet.death_place) : (isSindhi ? 'وفات: ' : 'Died: ') + (poet.death_place_en || poet.death_place)}
                         </span>
                       </>
                     )}
@@ -883,13 +892,13 @@ export default function PoetPage() {
                     })()}
 
                     {/* Additional details if available */}
-                    {((poet as any).tags && (poet as any).tags.length > 0) && (
+                    {poet.tags && poet.tags.length > 0 && (
                       <div className="mt-4">
                         <h4 className={`text-sm font-medium text-gray-600 mb-2 ${isSindhi ? 'auto-sindhi-font' : ''}`}>
                           {isSindhi ? 'خاصيتون' : 'Characteristics'}
                         </h4>
                         <div className="flex flex-wrap gap-2">
-                          {(poet as any).tags.map((tag: string, index: number) => (
+                          {poet.tags.map((tag: string, index: number) => (
                             <Badge key={index} variant="secondary" className="text-xs bg-gray-100 text-gray-700">
                               {tag}
                             </Badge>
