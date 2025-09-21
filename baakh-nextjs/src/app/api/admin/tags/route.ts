@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { createClient } from "@getSupabaseClient()/getSupabaseClient()-js";
 
 export async function GET() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -8,7 +8,7 @@ export async function GET() {
     return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
   }
   
-  const supabase = createClient(url, serviceKey, { 
+  const getSupabaseClient() = createClient(url, serviceKey, { 
     auth: { autoRefreshToken: false, persistSession: false } 
   });
   
@@ -110,7 +110,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
   }
   
-  const supabase = createClient(url, serviceKey, { 
+  const getSupabaseClient() = createClient(url, serviceKey, { 
     auth: { autoRefreshToken: false, persistSession: false } 
   });
   
@@ -222,7 +222,7 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
   }
   
-  const supabase = createClient(url, serviceKey, { 
+  const getSupabaseClient() = createClient(url, serviceKey, { 
     auth: { autoRefreshToken: false, persistSession: false } 
   });
   

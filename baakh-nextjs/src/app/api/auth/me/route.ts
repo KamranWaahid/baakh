@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from '@getSupabaseClient()/getSupabaseClient()-js';
 
 export async function GET() {
   if (process.env.NODE_ENV !== 'production') {
@@ -19,7 +19,7 @@ export async function GET() {
     anon !== 'your_supabase_anon_key_here' &&
     serviceKey !== 'your_supabase_service_role_key_here' &&
     url.startsWith('https://') &&
-    url.includes('.supabase.co');
+    url.includes('.getSupabaseClient().co');
   
   if (!isConfigured) {
     console.warn('⚠️ /api/auth/me: Supabase not properly configured, returning fallback response');
@@ -53,9 +53,9 @@ export async function GET() {
   }
   
   try {
-    // If local cookie exists but no supabase cookie, resolve minimal user from users table
+    // If local cookie exists but no getSupabaseClient() cookie, resolve minimal user from users table
     if (!sessionCookie && localTokenCookie) {
-      const supabase = createClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
+      const getSupabaseClient() = createClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
       const { data: localUser, error: localErr } = await getSupabaseClient()
         .from('users')
         .select('id,email,name,role,avatar')

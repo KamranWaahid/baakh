@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { createClient } from "@getSupabaseClient()/getSupabaseClient()-js";
 
 type CreateCategoryBody = {
   key: string;
@@ -18,7 +18,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
   }
 
-  const supabase = createClient(url, serviceKey, {
+  const getSupabaseClient() = createClient(url, serviceKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 
@@ -85,7 +85,7 @@ export async function PATCH(req: Request) {
   if (!url || !serviceKey) {
     return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
   }
-  const supabase = createClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
+  const getSupabaseClient() = createClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
 
   try {
     const body = await req.json();
@@ -130,7 +130,7 @@ export async function DELETE(req: Request) {
   if (!url || !serviceKey) {
     return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
   }
-  const supabase = createClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
+  const getSupabaseClient() = createClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
   try {
     const body = await req.json();
     const id = body?.id as number | string | undefined;
@@ -156,7 +156,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
   }
 
-  const supabase = createClient(url, serviceKey, {
+  const getSupabaseClient() = createClient(url, serviceKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 

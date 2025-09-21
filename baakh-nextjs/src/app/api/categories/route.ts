@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from '@getSupabaseClient()/getSupabaseClient()-js';
 
 export async function GET(req: Request) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -7,7 +7,7 @@ export async function GET(req: Request) {
   if (!url || !serviceKey) {
     return NextResponse.json({ error: 'Supabase not configured' }, { status: 500 });
   }
-  const supabase = createClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
+  const getSupabaseClient() = createClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
   
   try {
     const { searchParams } = new URL(req.url);

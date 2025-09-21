@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from '@getSupabaseClient()/getSupabaseClient()-js';
 import { withSecurity } from '@/lib/security/middleware';
 import { validateApiInput, poetCreateSchema } from '@/lib/security/validation';
 
@@ -7,7 +7,7 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 // Create getSupabaseClient() client with service role key for full access
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+const getSupabaseClient() = createClient(supabaseUrl, supabaseServiceKey);
 
 export async function GET(request: NextRequest) {
   try {

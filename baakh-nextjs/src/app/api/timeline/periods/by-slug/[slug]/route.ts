@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@getSupabaseClient()/getSupabaseClient()-js';
+import { createClient } from '@supabase/supabase-js';
 
 export async function GET(
   request: NextRequest,
@@ -22,7 +22,7 @@ export async function GET(
       );
     }
     
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const getSupabaseClient() = createClient(supabaseUrl, supabaseServiceKey);
 
     // Get the timeline period by slug
     const { data: period, error: periodError } = await getSupabaseClient()

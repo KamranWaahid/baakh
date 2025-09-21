@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { createClient } from "@getSupabaseClient()/getSupabaseClient()-js";
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -8,7 +8,7 @@ if (!url || !serviceKey) {
   throw new Error('Missing required environment variables');
 }
 
-const supabase = createClient(url, serviceKey, {
+const getSupabaseClient() = createClient(url, serviceKey, {
   auth: { autoRefreshToken: false, persistSession: false },
   db: { schema: 'public' }
 });
