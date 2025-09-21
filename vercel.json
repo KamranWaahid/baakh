@@ -14,5 +14,6 @@
   ],
   "installCommand": "cd baakh-nextjs && pnpm install",
   "buildCommand": "cd baakh-nextjs && pnpm run build",
+  "framework": "nextjs",
   "outputDirectory": "baakh-nextjs/.next"
 }
