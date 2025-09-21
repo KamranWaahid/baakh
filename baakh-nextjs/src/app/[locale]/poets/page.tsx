@@ -237,7 +237,7 @@ export default function PoetsPage() {
       if (response.ok) {
         const data = await response.json();
         const statsMap: {[key: string]: {views: number, poetryCount: number}} = {};
-        data.stats?.forEach((stat: any) => {
+        data.stats?.forEach((stat: Record<string, unknown>) => {
           statsMap[stat.poet_id] = {
             views: stat.total_views || 0,
             poetryCount: stat.poetry_count || 0
@@ -260,7 +260,7 @@ export default function PoetsPage() {
         const tagMap: {[key: string]: string} = {};
         
         // Create a comprehensive mapping from various tag formats to the translated title
-        data.tags?.forEach((tag: any) => {
+        data.tags?.forEach((tag: Record<string, unknown>) => {
           const title = tag.title;
           
           // Map by slug

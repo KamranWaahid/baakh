@@ -110,7 +110,7 @@ export default function SecurityDashboard() {
   // Threat Events Management State
   const [threatFilter, setThreatFilter] = useState('all');
   const [threatSearch, setThreatSearch] = useState('');
-  const [selectedThreat, setSelectedThreat] = useState<any>(null);
+  const [selectedThreat, setSelectedThreat] = useState<Record<string, unknown> | null>(null);
   const [isThreatDetailsOpen, setIsThreatDetailsOpen] = useState(false);
   const [threatLoading, setThreatLoading] = useState(false);
 
@@ -668,7 +668,7 @@ export default function SecurityDashboard() {
     return filtered;
   }, [metrics?.recent_threats, threatFilter, threatSearch]);
 
-  const openThreatDetails = (threat: any) => {
+  const openThreatDetails = (threat: Record<string, unknown>) => {
     setSelectedThreat(threat);
     setIsThreatDetailsOpen(true);
   };

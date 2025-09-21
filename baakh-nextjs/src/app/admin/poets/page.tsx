@@ -95,7 +95,7 @@ export default function PoetsPage() {
       
       setTotal(json.total || 0);
       setTotalPages(Math.ceil((json.total || 0) / perPage));
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error fetching poets:', error);
     } finally {
       setLoading(false);
