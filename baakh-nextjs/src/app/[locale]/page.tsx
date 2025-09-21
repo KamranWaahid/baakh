@@ -227,16 +227,16 @@ export default function HomePage() {
           const seniors = poets.filter((p) => p.is_featured).slice(0, 6);
           const juniors = poets.filter((p) => !p.is_featured).slice(0, 6);
           const combined = [...seniors, ...juniors].map((p) => ({ 
-            id: p.id, 
-            slug: p.poet_slug || p.slug || '', 
-            name: p.english_name || p.name || 'Unknown Poet', 
-            sindhiName: p.sindhi_name || null, 
-            laqab: p.english_laqab || null, 
-            sindhiLaqab: p.sindhi_laqab || null, 
-            englishTagline: p.english_tagline || null, 
-            sindhiTagline: p.sindhi_tagline || null, 
-            photo: p.file_url || p.photo, 
-            is_featured: p.is_featured 
+            id: String(p.id || ''), 
+            slug: String(p.poet_slug || p.slug || ''), 
+            name: String(p.english_name || p.name || 'Unknown Poet'), 
+            sindhiName: p.sindhi_name ? String(p.sindhi_name) : null, 
+            laqab: p.english_laqab ? String(p.english_laqab) : null, 
+            sindhiLaqab: p.sindhi_laqab ? String(p.sindhi_laqab) : null, 
+            englishTagline: p.english_tagline ? String(p.english_tagline) : null, 
+            sindhiTagline: p.sindhi_tagline ? String(p.sindhi_tagline) : null, 
+            photo: p.file_url ? String(p.file_url) : (p.photo ? String(p.photo) : null), 
+            is_featured: Boolean(p.is_featured) 
           }));
           setHomePoets(combined);
         } else {
@@ -317,10 +317,11 @@ export default function HomePage() {
           
           // Group couplets by poet and find the poet with most couplets
           const poetGroups: Record<string, { poet: Record<string, unknown>; couplets: Record<string, unknown>[] }> = json.couplets.reduce((acc: Record<string, { poet: Record<string, unknown>; couplets: Record<string, unknown>[] }>, couplet: Record<string, unknown>) => {
-            const poetId = couplet.poet?.id || couplet.poet?.slug || 'unknown';
+            const poet = couplet.poet as Record<string, unknown> || {};
+            const poetId = String(poet.id || poet.slug || 'unknown');
             if (!acc[poetId]) {
               acc[poetId] = {
-                poet: couplet.poet,
+                poet: poet,
                 couplets: []
               };
             }
@@ -342,7 +343,7 @@ export default function HomePage() {
           for (const poetGroup of shuffledPoets) {
             if (selectedCouplets.length >= maxCouplets) break;
             
-            const poetId = poetGroup.poet?.id || poetGroup.poet?.slug || 'unknown';
+            const poetId = String(poetGroup.poet?.id || poetGroup.poet?.slug || 'unknown');
             
             // Skip if we already have a couplet from this poet
             if (usedPoetIds.has(poetId)) continue;
@@ -353,14 +354,32 @@ export default function HomePage() {
             usedPoetIds.add(poetId); // Mark this poet as used
           }
           
-          setFeaturedCouplets(selectedCouplets);
+          // Map couplets to proper type
+          const mappedCouplets = selectedCouplets.map((couplet: Record<string, unknown>) => ({
+            id: Number(couplet.id || 0),
+            couplet_text: String(couplet.couplet_text || ''),
+            couplet_slug: String(couplet.couplet_slug || ''),
+            lang: String(couplet.lang || ''),
+            lines: Array.isArray(couplet.lines) ? couplet.lines as string[] : String(couplet.couplet_text || '').split('\n').slice(0, 2),
+            tags: Array.isArray(couplet.tags) ? couplet.tags as string[] : [],
+            poet: {
+              name: String(couplet.poet?.name || 'Unknown Poet'),
+              slug: String(couplet.poet?.slug || ''),
+              photo: couplet.poet?.photo ? String(couplet.poet.photo) : null
+            },
+            created_at: String(couplet.created_at || new Date().toISOString()),
+            likes: Number(couplet.likes || 0),
+            views: Number(couplet.views || 0)
+          }));
+          setFeaturedCouplets(mappedCouplets);
           console.log('Selected couplets from different poets:', selectedCouplets.length, 'Unique poets used:', usedPoetIds.size, 'Total available poets:', allPoets.length, 'Max couplets:', maxCouplets);
         } else {
           console.log('No couplets in response:', json);
           setFeaturedCouplets([]);
         }
       } catch (e: unknown) {
-        if (e?.name === 'AbortError' || /timed out|signal timed out/i.test(String(e?.message))) {
+        const error = e as Error;
+        if (error?.name === 'AbortError' || /timed out|signal timed out/i.test(String(error?.message))) {
           console.warn('Featured couplets request timed out');
         } else {
           console.error('Error loading featured couplets:', e);
@@ -411,7 +430,8 @@ export default function HomePage() {
           setCategories(json.items as typeof categories);
         }
       } catch (e: unknown) {
-        if (e?.name === 'AbortError' || /timed out|signal timed out/i.test(String(e?.message))) {
+        const error = e as Error;
+        if (error?.name === 'AbortError' || /timed out|signal timed out/i.test(String(error?.message))) {
           console.warn('Homepage categories request timed out');
         } else {
           console.error('Error loading homepage categories:', e);
@@ -455,7 +475,8 @@ export default function HomePage() {
           setTags(json.tags as TagItem[]);
         }
       } catch (e: unknown) {
-        if (e?.name === 'AbortError' || /timed out|signal timed out/i.test(String(e?.message))) {
+        const error = e as Error;
+        if (error?.name === 'AbortError' || /timed out|signal timed out/i.test(String(error?.message))) {
           console.warn('Homepage tags request timed out');
         } else {
           console.error('Error loading homepage tags:', e);
@@ -923,9 +944,9 @@ export default function HomePage() {
                 ) : (
                   homePoets.slice(0, 12)
                     .slice((poetsPage - 1) * poetsPerPage, poetsPage * poetsPerPage)
-                    .map((poet: Record<string, unknown>, index: number) => (
+                    .map((poet: HomePoet, index: number) => (
                     <motion.div
-                      key={poet.slug}
+                      key={poet.slug || index}
                       initial={{ opacity: 0, y: 20, scale: 0.9 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: -20, scale: 0.9 }}
@@ -941,14 +962,14 @@ export default function HomePage() {
                           className="border border-gray-200/50 rounded-[12px] bg-white p-3 flex items-center gap-3 transition-colors hover:bg-gray-50"
                         >
                           <Avatar className="w-8 h-8 rounded-full ring-0">
-                            <AvatarImage src={poet.photo || undefined} alt={poet.name} />
+                            <AvatarImage src={poet.photo || ''} alt={poet.name} />
                             <AvatarFallback className={cn(
                               "text-[11px] font-medium bg-gray-50 border border-gray-200/40 text-foreground",
                               isSindhi ? 'auto-sindhi-font' : ''
                             )}>
                               {isSindhi 
-                                ? poet.name.charAt(0)
-                                : poet.name
+                                ? (poet.name || '').charAt(0)
+                                : (poet.name || '')
                                     .split(' ')
                                     .map((n: string) => n.charAt(0))
                                     .join('')
