@@ -37,7 +37,7 @@ export default function FeaturedPoets({ isSindhi }: FeaturedPoetsProps) {
           sortOrder: 'desc'
         });
         const timeoutSignal = AbortSignal.timeout(10000);
-        const combinedSignal = (AbortSignal as any).any ? (AbortSignal as any).any([controller.signal, timeoutSignal]) : timeoutSignal;
+        const combinedSignal = (AbortSignal as unknown as { any?: (signals: AbortSignal[]) => AbortSignal }).any ? (AbortSignal as unknown as { any: (signals: AbortSignal[]) => AbortSignal }).any([controller.signal, timeoutSignal]) : timeoutSignal;
         const res = await fetch(`/api/poets?${params.toString()}`, { signal: combinedSignal, cache: 'no-store' });
         if (!res.ok) return;
         const json = await res.json();
@@ -46,8 +46,9 @@ export default function FeaturedPoets({ isSindhi }: FeaturedPoetsProps) {
           const topThree = (featuredOnly.length > 0 ? featuredOnly : json.poets).slice(0, 3);
           setFeaturedPoets(topThree as typeof featuredPoets);
         }
-      } catch (e: any) {
-        if (e?.name === 'AbortError' || /timed out|signal timed out/i.test(String(e?.message))) {
+      } catch (e: unknown) {
+        const error = e as Error;
+        if (error?.name === 'AbortError' || /timed out|signal timed out/i.test(String(error?.message))) {
           console.warn('Featured poets request timed out');
         } else {
           console.error('Error loading featured poets:', e);

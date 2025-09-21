@@ -17,8 +17,8 @@ export default function BookmarksPage() {
   const { language, isRTL } = useLanguage();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [bookmarks, setBookmarks] = useState<any[]>([]);
-  const [content, setContent] = useState<any[]>([]);
+  const [bookmarks, setBookmarks] = useState<unknown[]>([]);
+  const [content, setContent] = useState<unknown[]>([]);
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {

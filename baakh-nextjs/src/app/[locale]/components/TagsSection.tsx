@@ -192,10 +192,11 @@ export default function TagsSection({ isSindhi, tags }: TagsSectionProps) {
           // Fallback if response format is unexpected
           setPopularTags(getFallbackTags(lang));
         }
-      } catch (e: any) {
+      } catch (e: unknown) {
+        const error = e as Error;
         // Only log errors that aren't abort errors
-        if (e.name !== 'AbortError') {
-          if (/timed out|signal timed out/i.test(String(e?.message))) {
+        if (error.name !== 'AbortError') {
+          if (/timed out|signal timed out/i.test(String(error?.message))) {
             console.warn('Tags request timed out - using fallback data');
             setPopularTags(getFallbackTags(isSindhi ? 'sd' : 'en'));
           } else {

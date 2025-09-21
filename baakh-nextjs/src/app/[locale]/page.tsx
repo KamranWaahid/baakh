@@ -97,8 +97,9 @@ export default function HomePage() {
           totalTopics: topicsData.total || 0,
           loading: false
         });
-      } catch (e: any) {
-        if (e?.name === 'AbortError') {
+      } catch (e: unknown) {
+        const error = e as Error;
+        if (error?.name === 'AbortError') {
           console.warn('Stats request was aborted');
         } else {
           console.error('Error loading stats:', e);

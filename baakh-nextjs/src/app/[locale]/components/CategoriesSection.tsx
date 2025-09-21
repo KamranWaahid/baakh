@@ -70,7 +70,7 @@ export default function CategoriesSection({ isSindhi, categories: categoriesProp
     async function loadCategories() {
       try {
         const timeoutSignal = AbortSignal.timeout(10000);
-        const combinedSignal = (AbortSignal as any).any ? (AbortSignal as any).any([controller.signal, timeoutSignal]) : timeoutSignal;
+        const combinedSignal = (AbortSignal as unknown as { any?: (signals: AbortSignal[]) => AbortSignal }).any ? (AbortSignal as unknown as { any: (signals: AbortSignal[]) => AbortSignal }).any([controller.signal, timeoutSignal]) : timeoutSignal;
         const res = await fetch(`/api/categories?limit=1000`, { signal: combinedSignal, cache: 'no-store' });
         if (!res.ok) return;
         const json = await res.json();
@@ -78,8 +78,9 @@ export default function CategoriesSection({ isSindhi, categories: categoriesProp
           setCategories(json.items);
           return;
         }
-      } catch (e: any) {
-        if (e?.name === 'AbortError' || /timed out|signal timed out/i.test(String(e?.message))) {
+      } catch (e: unknown) {
+        const error = e as Error;
+        if (error?.name === 'AbortError' || /timed out|signal timed out/i.test(String(error?.message))) {
           console.warn('Homepage categories request timed out');
         } else {
           console.error('Error loading categories:', e);

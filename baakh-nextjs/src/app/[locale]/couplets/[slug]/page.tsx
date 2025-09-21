@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Logo } from "@/components/ui/logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 
-const demoMap: Record<string, any> = {
+const demoMap: Record<string, unknown> = {
   "dama-dam-mast-qalandar": {
     title: "Dama Dam Mast Qalandar",
     sindhi: "داما دم مست قلندر",

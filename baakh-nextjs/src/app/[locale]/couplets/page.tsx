@@ -149,7 +149,7 @@ interface Couplet {
   lines: string[];
   couplet_slug: string;
   poetry_id?: number | null;
-  poetry?: any | null;
+  poetry?: unknown | null;
   poet: {
     id: string;
     name: string;

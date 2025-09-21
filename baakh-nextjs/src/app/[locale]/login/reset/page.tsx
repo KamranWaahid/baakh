@@ -37,8 +37,9 @@ export default function ResetPasswordPage() {
       if (error) throw error;
       setOk("Password updated. Redirecting to login…");
       setTimeout(()=> router.replace("/admin/login"), 1200);
-    } catch (err:any) {
-      setError(err?.message || "Failed to update password");
+    } catch (err: unknown) {
+      const error = err as Error;
+      setError(error?.message || "Failed to update password");
     } finally {
       setBusy(false);
     }
