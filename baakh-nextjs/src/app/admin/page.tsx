@@ -88,7 +88,7 @@ export default function AdminDashboard() {
     return <span ref={ref}>{display.toLocaleString()}</span>;
   };
   const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchResults, setSearchResults] = useState<Record<string, unknown>[]>([]);
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -497,7 +497,7 @@ export default function AdminDashboard() {
                   Welcome back, {adminProfile?.firstName || 'Admin'}
                 </h1>
                 <p className="text-[#6B6B6B] text-lg">
-                  Here's what's happening with your poetry archive today
+                  Here&apos;s what&apos;s happening with your poetry archive today
                 </p>
               </div>
               <div className="flex items-center space-x-4">
@@ -764,7 +764,7 @@ export default function AdminDashboard() {
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-[#6B6B6B]">New Categories</span>
                       <span className="font-medium text-[#1F1F1F]">
-                        +{(stats?.recentActivity as any)?.categories?.length || 0}
+                        +{(stats?.recentActivity as Record<string, unknown>)?.categories?.length || 0}
                       </span>
                     </div>
                   </CardContent>

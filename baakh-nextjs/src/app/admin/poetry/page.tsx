@@ -124,9 +124,9 @@ export default function AdminPoetryListPage() {
       setItems(data.poetry || []);
       setTotal(data.pagination?.total || 0);
       setTotalPages(data.pagination?.totalPages || 1);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error fetching poetry:', error);
-      setError(error.message || 'Failed to fetch poetry');
+      setError(error instanceof Error ? error.message : 'Failed to fetch poetry');
     } finally {
       setLoading(false);
     }

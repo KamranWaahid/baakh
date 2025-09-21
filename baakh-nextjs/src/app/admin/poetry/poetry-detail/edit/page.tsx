@@ -11,7 +11,7 @@ import PoetryForm from "@/components/forms/PoetryForm";
 
 export default function AdminPoetryEditPage() {
   const params = useParams();
-  const [poetry, setPoetry] = useState<any>(null);
+  const [poetry, setPoetry] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 

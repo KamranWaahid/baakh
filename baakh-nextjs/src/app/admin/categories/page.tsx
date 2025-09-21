@@ -297,7 +297,7 @@ export default function CategoriesPage() {
 
   // Filter categories based on search and filters
   const filteredAndSortedCategories = useMemo(() => {
-    let filtered = categories.filter(category => {
+    const filtered = categories.filter(category => {
       const matchesSearch = category.name.toLowerCase().includes(q.toLowerCase()) ||
                            category.information.toLowerCase().includes(q.toLowerCase());
       const matchesLang = langFilter === 'All' || category.languages.includes(langFilter);
