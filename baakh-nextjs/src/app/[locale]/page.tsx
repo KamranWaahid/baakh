@@ -231,7 +231,7 @@ export default function HomePage() {
         clearTimeout(timeoutId);
         if (!res.ok) throw new Error('failed');
         const json = await res.json();
-        const poets = (json?.poets || []) as Array<any>;
+        const poets = (json?.poets || []) as Array<Record<string, unknown>>;
         if (Array.isArray(poets) && poets.length > 0) {
           const seniors = poets.filter((p) => p.is_featured).slice(0, 6);
           const juniors = poets.filter((p) => !p.is_featured).slice(0, 6);
@@ -256,7 +256,7 @@ export default function HomePage() {
         // Fallback: derive from featured couplets if API fails
         try {
           const unique = Array.from(new Map(featuredCouplets.map((c) => [c.poet.slug, c.poet])).values()).slice(0, 12)
-            .map((p: any) => ({ 
+            .map((p: Record<string, unknown>) => ({ 
               slug: p.slug || '', 
               name: p.name || 'Unknown Poet', 
               sindhiName: p.sindhi_name || null, 
@@ -325,7 +325,7 @@ export default function HomePage() {
           console.log('Received couplets:', json.couplets.length, 'Language requested:', currentLang);
           
           // Group couplets by poet and find the poet with most couplets
-          const poetGroups: Record<string, { poet: any; couplets: any[] }> = json.couplets.reduce((acc: Record<string, { poet: any; couplets: any[] }>, couplet: any) => {
+          const poetGroups: Record<string, { poet: Record<string, unknown>; couplets: Record<string, unknown>[] }> = json.couplets.reduce((acc: Record<string, { poet: Record<string, unknown>; couplets: Record<string, unknown>[] }>, couplet: Record<string, unknown>) => {
             const poetId = couplet.poet?.id || couplet.poet?.slug || 'unknown';
             if (!acc[poetId]) {
               acc[poetId] = {
@@ -339,7 +339,7 @@ export default function HomePage() {
           
           // Ensure one couplet per poet for maximum diversity
           const allPoets = Object.values(poetGroups);
-          const selectedCouplets: any[] = [];
+          const selectedCouplets: Record<string, unknown>[] = [];
           const usedPoetIds = new Set<string>();
           
           // Shuffle the poets array for random selection
@@ -368,7 +368,7 @@ export default function HomePage() {
           console.log('No couplets in response:', json);
           setFeaturedCouplets([]);
         }
-      } catch (e: any) {
+      } catch (e: unknown) {
         if (e?.name === 'AbortError' || /timed out|signal timed out/i.test(String(e?.message))) {
           console.warn('Featured couplets request timed out');
         } else {
@@ -419,7 +419,7 @@ export default function HomePage() {
         if (json?.items) {
           setCategories(json.items as typeof categories);
         }
-      } catch (e: any) {
+      } catch (e: unknown) {
         if (e?.name === 'AbortError' || /timed out|signal timed out/i.test(String(e?.message))) {
           console.warn('Homepage categories request timed out');
         } else {
@@ -463,7 +463,7 @@ export default function HomePage() {
         if (json?.tags) {
           setTags(json.tags as TagItem[]);
         }
-      } catch (e: any) {
+      } catch (e: unknown) {
         if (e?.name === 'AbortError' || /timed out|signal timed out/i.test(String(e?.message))) {
           console.warn('Homepage tags request timed out');
         } else {
@@ -932,7 +932,7 @@ export default function HomePage() {
                 ) : (
                   homePoets.slice(0, 12)
                     .slice((poetsPage - 1) * poetsPerPage, poetsPage * poetsPerPage)
-                    .map((poet: any, index: number) => (
+                    .map((poet: Record<string, unknown>, index: number) => (
                     <motion.div
                       key={poet.slug}
                       initial={{ opacity: 0, y: 20, scale: 0.9 }}

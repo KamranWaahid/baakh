@@ -151,7 +151,7 @@ export default function PoetPage() {
     likes: number;
     views: number;
     poetry_id?: number | null;
-    poetry?: any | null;
+    poetry?: Record<string, unknown> | null;
   }>>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
@@ -265,7 +265,7 @@ export default function PoetPage() {
         let response: Response | null = null;
         try {
           response = await withTimeout(url);
-        } catch (fetchError: any) {
+        } catch (fetchError: unknown) {
           console.warn('⚠️ Fetch failed for', url, fetchError?.message || fetchError);
           continue;
         }
@@ -294,7 +294,7 @@ export default function PoetPage() {
           // Fallback: fetch couplets via public couplets API using poetId like homepage
           try {
             const fallbackParams = new URLSearchParams({
-              poetId: String((data.poet as any).poetNumericId || (data.poet as any).poet_id || (data.poet as any).id || ''),
+              poetId: String((data.poet as Record<string, unknown>).poetNumericId || (data.poet as Record<string, unknown>).poet_id || (data.poet as Record<string, unknown>).id || ''),
               lang: language,
               standalone: '1',
               limit: '12',

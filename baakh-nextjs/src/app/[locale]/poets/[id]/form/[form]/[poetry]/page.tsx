@@ -1290,7 +1290,7 @@ export default function PoetryPage() {
                         {/* Show tagline if available and no detailed description */}
                         {!(poetry.poets.sindhi_details || poetry.poets.english_details) && getPoetTagline() && (
                           <p className="italic text-gray-700">
-                            "{getPoetTagline()}"
+                            &ldquo;{getPoetTagline()}&rdquo;
                           </p>
                         )}
                       </div>
@@ -1300,7 +1300,7 @@ export default function PoetryPage() {
                         {/* Show tagline if available */}
                         {getPoetTagline() && (
                           <p className="italic text-gray-700">
-                            "{getPoetTagline()}"
+                            &ldquo;{getPoetTagline()}&rdquo;
                           </p>
                         )}
                         
