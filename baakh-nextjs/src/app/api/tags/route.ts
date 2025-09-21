@@ -1,13 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+function createSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+  if (!supabaseUrl || !supabaseServiceKey) {
+    console.error('Missing Supabase environment variables');
+    return null;
+  }
+
+  return createClient(supabaseUrl, supabaseServiceKey);
+}
 
 export async function GET(request: NextRequest) {
   try {
+    const supabase = createSupabaseClient();
+    
+    if (!supabase) {
+      return NextResponse.json({ 
+        error: 'Database not configured',
+        message: 'Please configure Supabase environment variables'
+      }, { status: 503 });
+    }
+
     const { searchParams } = new URL(request.url);
     const lang = searchParams.get('lang') || 'en';
     const tagTypeRaw = searchParams.get('type') || 'Poet';
@@ -25,15 +41,6 @@ export async function GET(request: NextRequest) {
     console.log('=== TAGS API ROUTE STARTED ===');
     console.log('Language:', lang);
     console.log('Tag Type:', tagType);
-
-    // Check if Supabase is configured
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL === 'your_supabase_project_url_here') {
-      console.warn('Supabase not configured - returning 503');
-      return NextResponse.json({ 
-        error: 'Database not configured',
-        message: 'Please configure Supabase environment variables'
-      }, { status: 503 });
-    }
 
     // Fetch tags with their translations
     const { data: tags, error: tagsError } = await supabase
@@ -194,6 +201,15 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const supabase = createSupabaseClient();
+    
+    if (!supabase) {
+      return NextResponse.json({ 
+        error: 'Database not configured',
+        message: 'Please configure Supabase environment variables'
+      }, { status: 503 });
+    }
+
     const body = await request.json();
     const { slug, label, tag_type = 'Poet', translations } = body;
 

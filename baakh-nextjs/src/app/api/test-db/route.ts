@@ -1,16 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+function createSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+  if (!supabaseUrl || !supabaseServiceKey) {
+    console.error('Missing Supabase environment variables');
+    return null;
+  }
+
+  return createClient(supabaseUrl, supabaseServiceKey);
+}
 
 export async function GET(request: NextRequest) {
   try {
+    const supabase = createSupabaseClient();
+    
+    if (!supabase) {
+      return NextResponse.json({
+        success: false,
+        error: 'Database not configured',
+        message: 'Missing Supabase environment variables'
+      });
+    }
+
     console.log('Testing database connection...');
-    console.log('Supabase URL:', supabaseUrl);
-    console.log('Service key exists:', !!supabaseServiceKey);
+    console.log('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
+    console.log('Service key exists:', !!process.env.SUPABASE_SERVICE_ROLE_KEY);
     
     // Test basic connection
     const { data, error } = await supabase
@@ -24,8 +41,8 @@ export async function GET(request: NextRequest) {
         success: false,
         error: 'Database connection failed',
         details: error.message,
-        supabaseUrl: supabaseUrl,
-        hasServiceKey: !!supabaseServiceKey
+        supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
+        hasServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY
       });
     }
     
