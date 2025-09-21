@@ -63,8 +63,8 @@ export async function GET(request: NextRequest) {
     }
 
     // Get poetry IDs and poet IDs for related data
-    const poetryIds = [...new Set(coupletsData.map(c => c.poetry_id).filter(Boolean))];
-    const poetIds = [...new Set(coupletsData.map(c => c.poet_id).filter(Boolean))];
+    const poetryIds = [...new Set(coupletsData.map((c: any) => c.poetry_id).filter(Boolean))];
+    const poetIds = [...new Set(coupletsData.map((c: any) => c.poet_id).filter(Boolean))];
 
     // Fetch related poetry data (include category_id for joining categories)
     let poetryData: any[] = [];
@@ -109,7 +109,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Fetch English couplets for each Sindhi couplet
-    const enrichedCouplets = await Promise.all(coupletsData.map(async (couplet) => {
+    const enrichedCouplets = await Promise.all(coupletsData.map(async (couplet: any) => {
       const poetry = poetryData.find(p => p.id === couplet.poetry_id);
       const poet = poetsData.find(p => p.poet_id === couplet.poet_id);
       const category = categoriesData.find(c => c.id === poetry?.category_id);

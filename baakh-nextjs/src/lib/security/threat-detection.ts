@@ -236,7 +236,7 @@ export async function detectSuspiciousAPIUsage(
       .gte('timestamp', oneHourAgo);
     
     const apiCallCount = recentAPIUsage?.length || 0;
-    const uniqueEndpoints = new Set(recentAPIUsage?.map(log => log.resource_id) || []).size;
+    const uniqueEndpoints = new Set(recentAPIUsage?.map((log: any) => log.resource_id) || []).size;
     
     // Detect unusual patterns
     const threats: ThreatEvent[] = [];
@@ -324,17 +324,17 @@ export async function getThreatMetrics(hours: number = 24): Promise<ThreatMetric
       .select('*')
       .gte('detected_at', since);
     
-    const threatsBySeverity = threats?.reduce((acc, threat) => {
+    const threatsBySeverity = threats?.reduce((acc: any, threat: any) => {
       acc[threat.severity] = (acc[threat.severity] || 0) + 1;
       return acc;
     }, {} as Record<string, number>) || {};
     
-    const threatsByType = threats?.reduce((acc, threat) => {
+    const threatsByType = threats?.reduce((acc: any, threat: any) => {
       acc[threat.event_type] = (acc[threat.event_type] || 0) + 1;
       return acc;
     }, {} as Record<string, number>) || {};
     
-    const topThreatIPs = threats?.reduce((acc, threat) => {
+    const topThreatIPs = threats?.reduce((acc: any, threat: any) => {
       const existing = acc.find((item: { ip: string; count: number }) => item.ip === threat.ip_address);
       if (existing) {
         existing.count++;

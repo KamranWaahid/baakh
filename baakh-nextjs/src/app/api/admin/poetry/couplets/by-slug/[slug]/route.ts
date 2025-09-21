@@ -46,7 +46,7 @@ export async function GET(
     }
 
     // Prioritize Sindhi couplet, but if not available, use any available couplet
-    let couplet = allCouplets.find(c => c.lang === 'sd') || allCouplets[0];
+    let couplet = allCouplets.find((c: any) => c.lang === 'sd') || allCouplets[0];
 
     // Fetch category separately since there's no direct relationship
     let categoryData = null;
@@ -64,7 +64,7 @@ export async function GET(
     const targetLang = couplet.lang === 'sd' ? 'en' : 'sd';
     
     // First check if we already have the other language in our results
-    englishCouplet = allCouplets.find(c => c.lang === targetLang);
+    englishCouplet = allCouplets.find((c: any) => c.lang === targetLang);
     
     // If not found in our results, search by poetry_id
     if (!englishCouplet && couplet.poetry_main?.id) {

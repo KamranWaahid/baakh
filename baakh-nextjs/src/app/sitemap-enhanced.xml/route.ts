@@ -99,7 +99,7 @@ export async function GET(request: NextRequest) {
 
     // Featured poets with enhanced metadata and AI optimization
     if (poetsResult.data) {
-      poetsResult.data.forEach(poet => {
+      poetsResult.data.forEach((poet: any) => {
         const lastmod = poet.updated_at || poet.created_at || new Date().toISOString()
         const priority = poet.is_featured ? '0.9' : '0.8'
         const sindhiName = poet.sindhi_name || ''
@@ -157,7 +157,7 @@ export async function GET(request: NextRequest) {
 
     // Categories with rich metadata
     if (categoriesResult.data) {
-      categoriesResult.data.forEach(category => {
+      categoriesResult.data.forEach((category: any) => {
         const lastmod = category.updated_at || category.created_at || new Date().toISOString()
         const details = (category as any).category_details || []
         const sindhiName = details.find((d: any) => d.lang === 'sd')?.cat_name
@@ -193,7 +193,7 @@ export async function GET(request: NextRequest) {
 
     // Topics with enhanced descriptions
     if (topicsResult.data) {
-      topicsResult.data.forEach(topic => {
+      topicsResult.data.forEach((topic: any) => {
         const lastmod = topic.updated_at || topic.created_at || new Date().toISOString()
         const translations = (topic as any).tags_translations || []
         const sindhiTitle = translations.find((t: any) => t.lang_code === 'sd')?.title
@@ -229,7 +229,7 @@ export async function GET(request: NextRequest) {
 
     // Featured poetry works
     if (poetryResult.data) {
-      poetryResult.data.forEach(poem => {
+      poetryResult.data.forEach((poem: any) => {
         const lastmod = poem.updated_at || poem.created_at || new Date().toISOString()
         const priority = poem.is_featured ? '0.8' : '0.6'
         const poetSlug = (poem as any).poets?.poet_slug

@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
 
     // Add individual couplet pages
     if (couplets) {
-      couplets.forEach(couplet => {
+      couplets.forEach((couplet: any) => {
         const lastmod = couplet.updated_at || couplet.created_at || new Date().toISOString()
         const priority = '0.6'
         const poetSlug = (couplet as any).poets?.poet_slug

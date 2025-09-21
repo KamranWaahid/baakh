@@ -84,7 +84,7 @@ async function getPoetryHandler(request: NextRequest) {
 
     // Fetch related data manually since foreign keys aren't working
     const poetryWithRelations = await Promise.all(
-      poetry.map(async (poem) => {
+      poetry.map(async (poem: any) => {
         let poetData: { poet_id: number; poet_slug: string; sindhi_name: string; english_name: string } | null = null;
         let categoryData: { id: number; slug: string; name: string } | null = null;
         let translationsData: { id: string; title: string; lang: string; info: string; source?: string }[] = [];

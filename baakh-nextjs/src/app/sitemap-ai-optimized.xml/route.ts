@@ -131,7 +131,7 @@ export async function GET(request: NextRequest) {
 
     // AI-optimized poet pages
     if (poetsResult.data) {
-      poetsResult.data.forEach(poet => {
+      poetsResult.data.forEach((poet: any) => {
         const lastmod = poet.updated_at || poet.created_at || new Date().toISOString()
         const priority = poet.is_featured ? '0.9' : '0.8'
         const sindhiDescription = generatePoetDescription(poet, 'sd')
@@ -199,7 +199,7 @@ export async function GET(request: NextRequest) {
 
     // AI-optimized poetry pages
     if (poetryResult.data) {
-      poetryResult.data.forEach(poetry => {
+      poetryResult.data.forEach((poetry: any) => {
         const lastmod = poetry.updated_at || poetry.created_at || new Date().toISOString()
         const priority = poetry.is_featured ? '0.8' : '0.6'
         const poetSlug = (poetry as any).poets?.poet_slug
@@ -276,7 +276,7 @@ export async function GET(request: NextRequest) {
 
     // AI-optimized category pages
     if (categoriesResult.data) {
-      categoriesResult.data.forEach(category => {
+      categoriesResult.data.forEach((category: any) => {
         const lastmod = category.updated_at || category.created_at || new Date().toISOString()
         const priority = '0.7'
         const details = (category as any).category_details || []

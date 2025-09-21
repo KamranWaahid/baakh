@@ -40,8 +40,8 @@ export async function GET(request: Request) {
     }
 
     // Process cities with related province data
-    const processedCities = cities?.map(city => {
-      const province = provinces?.find(p => p.id === city.province_id);
+    const processedCities = cities?.map((city: any) => {
+      const province = provinces?.find((p: any) => p.id === city.province_id);
       
       return {
         ...city,

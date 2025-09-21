@@ -82,7 +82,7 @@ export async function GET(request: NextRequest) {
     }
     
     // Get province and country names for each city
-    const provinceIds = [...new Set(cities?.map(c => c.province_id) || [])];
+    const provinceIds = [...new Set(cities?.map((c: any) => c.province_id) || [])];
     const provinceNames: Record<number, string> = {};
     const countryNames: Record<number, string> = {};
     
@@ -94,24 +94,24 @@ export async function GET(request: NextRequest) {
         .in('id', provinceIds)
         .is('deleted_at', null);
       
-      provinces?.forEach(province => {
+      provinces?.forEach((province: any) => {
         provinceNames[province.id] = province.province_name;
       });
       
       // Get country names
-      const countryIds = [...new Set(provinces?.map(p => p.country_id) || [])];
+      const countryIds = [...new Set(provinces?.map((p: any) => p.country_id) || [])];
       const { data: countries } = await supabase
         .from('location_countries')
         .select('id, countryname, lang')
         .in('id', countryIds)
         .is('deleted_at', null);
       
-      countries?.forEach(country => {
+      countries?.forEach((country: any) => {
         countryNames[country.id] = country.countryname;
       });
       
       // Map country names to provinces
-      provinces?.forEach(province => {
+      provinces?.forEach((province: any) => {
         if (province.country_id) {
           provinceNames[province.id] = `${provinceNames[province.id]} (${countryNames[province.country_id] || 'Unknown Country'})`;
         }
@@ -119,7 +119,7 @@ export async function GET(request: NextRequest) {
     }
     
     // Enhance cities with province and country names
-    const enhancedCities = cities?.map(city => ({
+    const enhancedCities = cities?.map((city: any) => ({
       ...city,
       province_name: provinceNames[city.province_id] || 'Unknown Province'
     })) || [];

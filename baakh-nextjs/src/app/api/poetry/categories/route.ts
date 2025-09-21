@@ -28,9 +28,9 @@ export async function GET(request: NextRequest) {
     }
 
     // Transform the data to get category names in the requested language
-    const transformedCategories = categories?.map(category => {
+    const transformedCategories = categories?.map((category: any) => {
       const details = Array.isArray(category.category_details) ? category.category_details : [];
-      const translation = details.find(d => d.lang === lang);
+      const translation = details.find((d: any) => d.lang === lang);
       const name = translation?.cat_name || category.slug;
       
       return {

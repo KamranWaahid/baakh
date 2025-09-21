@@ -169,7 +169,7 @@ async function fetchDynamicContent() {
       .is('deleted_at', null)
 
     if (poets) {
-      poets.forEach(poet => {
+      poets.forEach((poet: any) => {
         sitemapEntries.push({
           url: `/sd/poets/${poet.poet_slug}`,
           changefreq: 'monthly',
@@ -192,7 +192,7 @@ async function fetchDynamicContent() {
       .is('deleted_at', null)
 
     if (categories) {
-      categories.forEach(category => {
+      categories.forEach((category: any) => {
         sitemapEntries.push({
           url: `/sd/categories/${category.slug}`,
           changefreq: 'weekly',
@@ -216,7 +216,7 @@ async function fetchDynamicContent() {
       .is('deleted_at', null)
 
     if (topics) {
-      topics.forEach(topic => {
+      topics.forEach((topic: any) => {
         sitemapEntries.push({
           url: `/sd/topic/${topic.slug}`,
           changefreq: 'weekly',
@@ -247,7 +247,7 @@ async function fetchDynamicContent() {
       .limit(1000) // Limit to prevent memory issues
 
     if (poetry) {
-      poetry.forEach(poem => {
+      poetry.forEach((poem: any) => {
         const poetSlug = (poem as any).poets?.poet_slug
         const categorySlug = (poem as any).categories?.slug
         
@@ -276,7 +276,7 @@ async function fetchDynamicContent() {
       .limit(1000) // Limit to prevent memory issues
 
     if (couplets) {
-      couplets.forEach(couplet => {
+      couplets.forEach((couplet: any) => {
         sitemapEntries.push({
           url: `/sd/couplets/${couplet.couplet_slug}`,
           changefreq: 'monthly',

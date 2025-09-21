@@ -79,7 +79,7 @@ export async function GET(request: NextRequest) {
     }
     
     // Get country names and city counts for each province
-    const countryIds = [...new Set(provinces?.map(p => p.country_id) || [])];
+    const countryIds = [...new Set(provinces?.map((p: any) => p.country_id) || [])];
     let countryNames: Record<number, string> = {};
     let citiesCount: Record<number, number> = {};
     
@@ -91,25 +91,25 @@ export async function GET(request: NextRequest) {
         .in('id', countryIds)
         .is('deleted_at', null);
       
-      countries?.forEach(country => {
+      countries?.forEach((country: any) => {
         countryNames[country.id] = country.countryname;
       });
       
       // Get city counts
-      const provinceIds = provinces?.map(p => p.id) || [];
+      const provinceIds = provinces?.map((p: any) => p.id) || [];
       const { data: cities } = await supabase
         .from('location_cities')
         .select('province_id')
         .in('province_id', provinceIds)
         .is('deleted_at', null);
       
-      cities?.forEach(city => {
+      cities?.forEach((city: any) => {
         citiesCount[city.province_id] = (citiesCount[city.province_id] || 0) + 1;
       });
     }
     
     // Enhance provinces with country names and city counts
-    const enhancedProvinces = provinces?.map(province => ({
+    const enhancedProvinces = provinces?.map((province: any) => ({
       ...province,
       country_name: countryNames[province.country_id] || 'Unknown Country',
       cities_count: citiesCount[province.id] || 0

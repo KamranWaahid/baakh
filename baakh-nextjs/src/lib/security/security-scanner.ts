@@ -450,17 +450,17 @@ export async function getSecurityScanSummary(): Promise<SecurityScanSummary> {
     
     const totalIssues = recentResults?.length || 0;
     
-    const issuesBySeverity = recentResults?.reduce((acc, result) => {
+    const issuesBySeverity = recentResults?.reduce((acc: any, result: any) => {
       acc[result.severity] = (acc[result.severity] || 0) + 1;
       return acc;
     }, {} as Record<string, number>) || {};
     
-    const issuesByType = recentResults?.reduce((acc, result) => {
+    const issuesByType = recentResults?.reduce((acc: any, result: any) => {
       acc[result.scan_type] = (acc[result.scan_type] || 0) + 1;
       return acc;
     }, {} as Record<string, number>) || {};
     
-    const criticalIssues = recentResults?.filter(r => r.severity === 'critical') || [];
+    const criticalIssues = recentResults?.filter((r: any) => r.severity === 'critical') || [];
     
     // Get recent scans
     const { data: recentScans } = await supabase

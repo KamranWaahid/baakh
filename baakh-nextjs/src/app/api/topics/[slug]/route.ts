@@ -65,7 +65,7 @@ export async function GET(
     let description = `Explore all content related to ${tag.label}`;
     
     if (translations && translations.length > 0) {
-      const translation = translations.find(t => t.lang_code === lang);
+      const translation = translations.find((t: any) => t.lang_code === lang);
       if (translation) {
         // Use fallback if existing title is just the slug or label
         if (translation.title && translation.title !== tag.slug && translation.title !== tag.label) {
@@ -279,8 +279,8 @@ export async function GET(
       translations: translations || [],
       englishTitle: lang === 'en' ? title : (fallbackTranslations[tag.slug]?.en || tag.label),
       sindhiTitle: lang === 'sd' ? title : (fallbackTranslations[tag.slug]?.sd || tag.label),
-      englishDetail: lang === 'en' ? description : (translations?.find(t => t.lang_code === 'en')?.detail || `Explore all content related to ${fallbackTranslations[tag.slug]?.en || tag.label}`),
-      sindhiDetail: lang === 'sd' ? description : (translations?.find(t => t.lang_code === 'sd')?.detail || `هي موضوع بابت خوبصورت شعر ۽ شاعري ڏسو`)
+      englishDetail: lang === 'en' ? description : (translations?.find((t: any) => t.lang_code === 'en')?.detail || `Explore all content related to ${fallbackTranslations[tag.slug]?.en || tag.label}`),
+      sindhiDetail: lang === 'sd' ? description : (translations?.find((t: any) => t.lang_code === 'sd')?.detail || `هي موضوع بابت خوبصورت شعر ۽ شاعري ڏسو`)
     };
 
     console.log('Returning topic data:', {

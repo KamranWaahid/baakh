@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
 
     // Add individual poet pages
     if (poets) {
-      poets.forEach(poet => {
+      poets.forEach((poet: any) => {
         const lastmod = poet.updated_at || poet.created_at || new Date().toISOString()
         const priority = poet.is_featured ? '0.9' : '0.8'
         

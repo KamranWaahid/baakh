@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
 
     // Add individual category pages
     if (categories) {
-      categories.forEach(category => {
+      categories.forEach((category: any) => {
         const lastmod = category.updated_at || category.created_at || new Date().toISOString()
         const priority = '0.7'
         const details = (category as any).category_details || []

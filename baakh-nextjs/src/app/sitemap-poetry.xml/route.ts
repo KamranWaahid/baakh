@@ -51,7 +51,7 @@ export async function GET() {
 
     // Add individual poetry pages
     if (poetry) {
-      poetry.forEach(poem => {
+      poetry.forEach((poem: any) => {
         const lastmod = poem.updated_at || poem.created_at || new Date().toISOString()
         const priority = poem.is_featured ? '0.9' : '0.7'
         const poetSlug = (poem as { poets?: { poet_slug?: string } }).poets?.poet_slug

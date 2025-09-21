@@ -286,18 +286,18 @@ export async function getAlertSummary(): Promise<AlertSummary> {
     
     const totalAlerts = alerts?.length || 0;
     
-    const alertsBySeverity = alerts?.reduce((acc, alert) => {
+    const alertsBySeverity = alerts?.reduce((acc: any, alert: any) => {
       acc[alert.severity] = (acc[alert.severity] || 0) + 1;
       return acc;
     }, {} as Record<string, number>) || {};
     
-    const alertsByType = alerts?.reduce((acc, alert) => {
+    const alertsByType = alerts?.reduce((acc: any, alert: any) => {
       acc[alert.alert_type] = (acc[alert.alert_type] || 0) + 1;
       return acc;
     }, {} as Record<string, number>) || {};
     
-    const unreadAlerts = alerts?.filter(alert => alert.status === 'new').length || 0;
-    const criticalAlerts = alerts?.filter(alert => alert.severity === 'critical') || [];
+    const unreadAlerts = alerts?.filter((alert: any) => alert.status === 'new').length || 0;
+    const criticalAlerts = alerts?.filter((alert: any) => alert.severity === 'critical') || [];
     const recentAlerts = alerts?.slice(0, 10) || [];
     
     return {
