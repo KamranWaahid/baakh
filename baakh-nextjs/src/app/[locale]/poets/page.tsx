@@ -238,9 +238,10 @@ export default function PoetsPage() {
         const data = await response.json();
         const statsMap: {[key: string]: {views: number, poetryCount: number}} = {};
         data.stats?.forEach((stat: Record<string, unknown>) => {
-          statsMap[stat.poet_id] = {
-            views: stat.total_views || 0,
-            poetryCount: stat.poetry_count || 0
+          const poetId = String(stat.poet_id || '');
+          statsMap[poetId] = {
+            views: Number(stat.total_views || 0),
+            poetryCount: Number(stat.poetry_count || 0)
           };
         });
         setPoetStats(statsMap);
@@ -261,21 +262,23 @@ export default function PoetsPage() {
         
         // Create a comprehensive mapping from various tag formats to the translated title
         data.tags?.forEach((tag: Record<string, unknown>) => {
-          const title = tag.title;
+          const title = String(tag.title || '');
+          const slug = String(tag.slug || '');
+          const label = String(tag.label || '');
           
           // Map by slug
-          tagMap[tag.slug] = title;
+          tagMap[slug] = title;
           
           // Map by label
-          tagMap[tag.label] = title;
+          tagMap[label] = title;
           
           // Map by slug variations (hyphen to space, etc.)
           const slugVariations = [
-            tag.slug.replace(/-/g, ' '),
-            tag.slug.replace(/-/g, ' ').toLowerCase(),
-            tag.slug.replace(/-/g, ' ').toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase()),
-            tag.slug.replace(/-/g, ' ').toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase()).replace(/s$/, ''),
-            tag.slug.replace(/-/g, ' ').toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase()) + 's'
+            slug.replace(/-/g, ' '),
+            slug.replace(/-/g, ' ').toLowerCase(),
+            slug.replace(/-/g, ' ').toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase()),
+            slug.replace(/-/g, ' ').toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase()).replace(/s$/, ''),
+            slug.replace(/-/g, ' ').toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase()) + 's'
           ];
           
           slugVariations.forEach(variation => {
