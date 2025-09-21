@@ -402,7 +402,8 @@ export default function AdminCoupletEditPage() {
       const updatedTags = [...currentTags, newTagData.slug];
       handleInputChange('couplet_tags', formatTags(updatedTags));
     } catch (error: unknown) {
-      toast.error(error.message || 'Failed to create tag');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to create tag';
+      toast.error(errorMessage);
     }
   };
 

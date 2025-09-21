@@ -247,11 +247,7 @@ export default function NavigationDemoPage() {
                 {/* Content Demo */}
                 <div className="space-y-3">
                   <h3 className="font-semibold text-gray-900 dark:text-white">Content Display</h3>
-                  <div className={`grid gap-4 ${
-                    viewMode === 'grid' 
-                      ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' 
-                      : 'grid-cols-1'
-                  }`}>
+                  <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
                     {mockItems.map((item) => (
                       <Card key={item.id} className="hover:shadow-md transition-shadow">
                         <CardHeader className="pb-3">

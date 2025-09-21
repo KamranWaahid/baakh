@@ -482,9 +482,9 @@ export default function AdminCoupletsListPage() {
                             <td className="px-3 py-2">
                               <div className="text-xs text-[#6B6B6B]">
                                 {item.id}
-                                {(item as Record<string, unknown>)._coupletIds?.length > 1 && (
+                                {Array.isArray((item as any)._coupletIds) && (item as any)._coupletIds.length > 1 && (
                                   <div className="text-[10px] text-gray-400">
-                                    +{(item as Record<string, unknown>)._coupletIds.length - 1} more
+                                    +{(item as any)._coupletIds.length - 1} more
                                   </div>
                                 )}
                               </div>

@@ -81,7 +81,7 @@ export default function AdminPoetryEditPage() {
           <Badge variant="secondary" className="rounded-full px-3 py-1 text-xs mb-1">Edit</Badge>
           <h1 className="text-3xl font-extrabold tracking-tight">Edit Poetry</h1>
           <p className="text-muted-foreground">
-            Update poetry entry: {poetry.poetry_slug}
+            Update poetry entry: {String(poetry.poetry_slug || '')}
           </p>
         </motion.div>
 

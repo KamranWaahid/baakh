@@ -309,7 +309,7 @@ export default function AdminSettingsPage() {
     setErrors({});
 
     try {
-      if (!validateForm('password', passwordData as Record<string, unknown>)) {
+      if (!validateForm('password', passwordData as unknown as Record<string, unknown>)) {
         setIsSaving(false);
         return;
       }

@@ -1618,12 +1618,12 @@ export default function SecurityDashboard() {
         <DialogContent className="max-w-3xl bg-white border border-[#E5E5E5] rounded-xl shadow-2xl">
           <DialogHeader className="pb-4 border-b border-[#E5E5E5]">
             <div className="flex items-center space-x-3">
-              <div className={`p-2 rounded-lg border ${getSeverityColor(selectedThreat?.severity || 'medium')}`}>
-                {selectedThreat ? getSeverityIcon(selectedThreat.severity) : <AlertTriangle className="h-5 w-5" />}
+              <div className={`p-2 rounded-lg border ${getSeverityColor(String(selectedThreat?.severity || 'medium'))}`}>
+                {selectedThreat ? getSeverityIcon(String(selectedThreat.severity || 'medium')) : <AlertTriangle className="h-5 w-5" />}
               </div>
               <div>
                 <DialogTitle className="text-xl font-semibold text-[#1F1F1F]">
-                  {selectedThreat ? getThreatTypeDisplay(selectedThreat.event_type) : 'Threat Details'}
+                  {selectedThreat ? getThreatTypeDisplay(String(selectedThreat.event_type || '')) : 'Threat Details'}
                 </DialogTitle>
                 <DialogDescription className="text-[#6B6B6B] mt-1">
                   Detailed information about this security threat
@@ -1644,7 +1644,7 @@ export default function SecurityDashboard() {
                   <div className="space-y-3">
                     <div className="flex justify-between">
                       <span className="text-sm font-medium text-[#6B6B6B]">Type:</span>
-                      <span className="text-sm font-semibold text-[#1F1F1F]">{getThreatTypeDisplay(selectedThreat.event_type)}</span>
+                      <span className="text-sm font-semibold text-[#1F1F1F]">{getThreatTypeDisplay(String(selectedThreat.event_type || ''))}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm font-medium text-[#6B6B6B]">Severity:</span>
@@ -1654,18 +1654,18 @@ export default function SecurityDashboard() {
                         selectedThreat.severity === 'medium' ? 'bg-yellow-50 border border-yellow-200 text-yellow-600' :
                         'bg-gray-50 border border-gray-200 text-gray-600'
                       }`}>
-                        {selectedThreat.severity}
+                        {String(selectedThreat.severity || '')}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm font-medium text-[#6B6B6B]">Status:</span>
-                      <span className={`px-2 py-1 rounded text-xs font-semibold ${getStatusColor(selectedThreat.status)}`}>
-                        {selectedThreat.status}
+                      <span className={`px-2 py-1 rounded text-xs font-semibold ${getStatusColor(String(selectedThreat.status || ''))}`}>
+                        {String(selectedThreat.status || '')}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm font-medium text-[#6B6B6B]">Detected:</span>
-                      <span className="text-sm font-semibold text-[#1F1F1F]">{getTimeAgo(selectedThreat.detected_at)}</span>
+                      <span className="text-sm font-semibold text-[#1F1F1F]">{getTimeAgo(String(selectedThreat.detected_at || ''))}</span>
                     </div>
                   </div>
                 </div>
@@ -1678,11 +1678,11 @@ export default function SecurityDashboard() {
                   <div className="space-y-3">
                     <div className="flex justify-between">
                       <span className="text-sm font-medium text-[#6B6B6B]">IP Address:</span>
-                      <span className="text-sm font-mono font-semibold text-[#1F1F1F]">{selectedThreat.ip_address}</span>
+                      <span className="text-sm font-mono font-semibold text-[#1F1F1F]">{String(selectedThreat.ip_address || '')}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm font-medium text-[#6B6B6B]">Full Timestamp:</span>
-                      <span className="text-sm font-semibold text-[#1F1F1F]">{new Date(selectedThreat.detected_at).toLocaleString()}</span>
+                      <span className="text-sm font-semibold text-[#1F1F1F]">{new Date(String(selectedThreat.detected_at || '')).toLocaleString()}</span>
                     </div>
                   </div>
                 </div>
@@ -1760,7 +1760,7 @@ export default function SecurityDashboard() {
                   <>
                     <Button 
                       onClick={() => {
-                        updateThreatStatus(selectedThreat.id, 'acknowledged');
+                        updateThreatStatus(Number(selectedThreat.id || 0), 'acknowledged');
                         closeThreatDetails();
                       }}
                       disabled={threatLoading || selectedThreat.status === 'acknowledged'}
@@ -1771,7 +1771,7 @@ export default function SecurityDashboard() {
                     </Button>
                     <Button 
                       onClick={() => {
-                        updateThreatStatus(selectedThreat.id, 'resolved');
+                        updateThreatStatus(Number(selectedThreat.id || 0), 'resolved');
                         closeThreatDetails();
                       }}
                       disabled={threatLoading || selectedThreat.status === 'resolved'}

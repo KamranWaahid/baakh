@@ -513,14 +513,14 @@ export default function AdminDashboard() {
                     <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-[#E5E5E5] rounded-lg shadow-lg z-10">
                       {searchResults.map((result) => (
                         <div
-                          key={result.id}
+                          key={String(result.id)}
                           className="px-4 py-3 hover:bg-[#F4F4F5] cursor-pointer border-b border-[#E5E5E5] last:border-b-0"
                         >
                           <div className="flex items-center space-x-3">
                             <div className="w-2 h-2 rounded-full bg-[#1F1F1F]"></div>
                             <div>
-                              <p className="font-medium text-[#1F1F1F]">{result.title}</p>
-                              <p className="text-sm text-[#6B6B6B] capitalize">{result.type}</p>
+                              <p className="font-medium text-[#1F1F1F]">{String(result.title)}</p>
+                              <p className="text-sm text-[#6B6B6B] capitalize">{String(result.type)}</p>
                             </div>
                           </div>
                         </div>

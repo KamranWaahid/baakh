@@ -21,7 +21,7 @@ export function toError(x: unknown): Error {
     }
     
     const messageFromX = typeof anyX.message === 'string' ? anyX.message : undefined;
-    const messageFromReason = typeof reason?.message === 'string' ? reason.message : undefined;
+    const messageFromReason = typeof (reason as any)?.message === 'string' ? (reason as any).message : undefined;
     
     // Try to get a meaningful message before falling back to stringify
     let message = messageFromX || messageFromReason;

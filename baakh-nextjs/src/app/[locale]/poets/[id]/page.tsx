@@ -264,7 +264,8 @@ export default function PoetPage() {
         try {
           response = await withTimeout(url);
         } catch (fetchError: unknown) {
-          console.warn('⚠️ Fetch failed for', url, fetchError?.message || fetchError);
+          const errorMessage = fetchError instanceof Error ? fetchError.message : String(fetchError);
+          console.warn('⚠️ Fetch failed for', url, errorMessage);
           continue;
         }
 
@@ -303,12 +304,12 @@ export default function PoetPage() {
             if (fallbackRes.ok) {
               const fallbackJson = await fallbackRes.json();
               const mapped = (fallbackJson.couplets || []).map((c: Record<string, unknown>) => ({
-                id: c.id,
+                id: String(c.id || ''),
                 lines: Array.isArray(c.lines) ? c.lines.slice(0, 2) : String(c.couplet_text || '').split('\n').slice(0, 2),
                 translatedTags: [],
-                likes: c.likes || 0,
-                views: c.views || 0,
-                poetry_id: c.poetry?.id || c.poetry_id || null,
+                likes: Number(c.likes) || 0,
+                views: Number(c.views) || 0,
+                poetry_id: (c.poetry as Record<string, unknown>)?.id || c.poetry_id || null,
                 poetry: c.poetry || null
               }));
               setPoetCouplets(mapped);
@@ -768,7 +769,7 @@ export default function PoetPage() {
                   
                   {/* Laqab (honorific title) - neutral color, no blue */}
                   {poet.sindhi_laqab || poet.english_laqab ? (
-                    <p className={`text-xl text-gray-700 mb-1 ${getSmartFontClass(isSindhi ? poet.sindhi_laqab : poet.english_laqab)}`} dir={isSindhi ? 'rtl' : 'ltr'}>
+                    <p className={`text-xl text-gray-700 mb-1 ${getSmartFontClass(isSindhi ? poet.sindhi_laqab || '' : poet.english_laqab || '')}`} dir={isSindhi ? 'rtl' : 'ltr'}>
                       {isSindhi ? poet.sindhi_laqab : poet.english_laqab}
                     </p>
                   ) : null}
@@ -800,7 +801,7 @@ export default function PoetPage() {
                       )}
                     </span>
                     <span className="opacity-60">•</span>
-                    <span className={`inline-flex items-center gap-2 ${getSmartFontClass(isSindhi ? poet.birth_place_sd || poet.birth_place : poet.birth_place_en || poet.birth_place)}`}>
+                    <span className={`inline-flex items-center gap-2 ${getSmartFontClass(isSindhi ? poet.birth_place_sd || poet.birth_place || '' : poet.birth_place_en || poet.birth_place || '')}`}>
                       <MapPin className="w-4 h-4" /> 
                       {isSindhi ? poet.birth_place_sd || poet.birth_place : poet.birth_place_en || poet.birth_place}
                     </span>

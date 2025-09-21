@@ -3,10 +3,7 @@ import { createServerClient } from '@supabase/ssr';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/database';
 
-type SchemaName = 'public';
-type Schema = Database['public'];
-
-export async function supabaseServer(): Promise<SupabaseClient<Database, SchemaName, Schema>> {
+export async function supabaseServer() {
   const cookieStore = await cookies();
   
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -59,7 +56,7 @@ export async function supabaseServer(): Promise<SupabaseClient<Database, SchemaN
   );
 }
 
-export async function createClient(): Promise<SupabaseClient<Database, SchemaName, Schema>> {
+export async function createClient() {
   return supabaseServer();
 }
 
