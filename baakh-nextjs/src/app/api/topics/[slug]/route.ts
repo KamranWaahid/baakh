@@ -3,14 +3,14 @@ import { createAdminClient } from '@/lib/supabase/admin';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
     const { searchParams } = new URL(request.url);
     const lang = searchParams.get('lang') || 'en';
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '24');
-    const { slug } = params;
+    const { slug } = await params;
 
     console.log('Topics API called with params:', { slug, lang, page, limit });
 
