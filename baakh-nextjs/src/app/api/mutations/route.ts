@@ -2,10 +2,17 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { revalidateAfterMutation, getCoupletCacheTags } from '@/lib/cache-revalidation';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+// Create Supabase client function to avoid build-time errors
+function createSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+  if (!supabaseUrl || !supabaseServiceKey) {
+    throw new Error('Supabase not configured');
+  }
+
+  return createClient(supabaseUrl, supabaseServiceKey);
+}
 
 interface Mutation {
   id: string;
@@ -28,6 +35,7 @@ interface ProcessedResult {
 
 export async function POST(request: NextRequest) {
   try {
+    const supabase = createSupabaseClient();
     const body: BatchRequest = await request.json();
     const { ops } = body;
 
@@ -52,7 +60,7 @@ export async function POST(request: NextRequest) {
     // Process each mutation
     for (const mutation of ops) {
       try {
-        const result = await processMutation(mutation);
+        const result = await processMutation(supabase, mutation);
         results.push({ id: mutation.id, success: result.success });
         
         if (result.success) {
@@ -115,7 +123,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function processMutation(mutation: Mutation): Promise<{ success: boolean; error?: string }> {
+async function processMutation(supabase: any, mutation: Mutation): Promise<{ success: boolean; error?: string }> {
   const { id, op, entityId, entityType } = mutation;
 
   // Validate mutation
@@ -136,13 +144,13 @@ async function processMutation(mutation: Mutation): Promise<{ success: boolean; 
   try {
     switch (op) {
       case 'like':
-        return await handleLike(coupletId, userId, id);
+        return await handleLike(supabase, coupletId, userId, id);
       case 'unlike':
-        return await handleUnlike(coupletId, userId, id);
+        return await handleUnlike(supabase, coupletId, userId, id);
       case 'bookmark':
-        return await handleBookmark(coupletId, userId, id);
+        return await handleBookmark(supabase, coupletId, userId, id);
       case 'unbookmark':
-        return await handleUnbookmark(coupletId, userId, id);
+        return await handleUnbookmark(supabase, coupletId, userId, id);
       default:
         return { success: false, error: 'Unknown operation' };
     }
@@ -155,7 +163,7 @@ async function processMutation(mutation: Mutation): Promise<{ success: boolean; 
   }
 }
 
-async function handleLike(coupletId: string, userId: string, mutationId: string): Promise<{ success: boolean; error?: string }> {
+async function handleLike(supabase: any, coupletId: string, userId: string, mutationId: string): Promise<{ success: boolean; error?: string }> {
   try {
     // Check if like already exists (idempotency)
     const { data: existingLike } = await supabase
@@ -204,7 +212,7 @@ async function handleLike(coupletId: string, userId: string, mutationId: string)
   }
 }
 
-async function handleUnlike(coupletId: string, userId: string, mutationId: string): Promise<{ success: boolean; error?: string }> {
+async function handleUnlike(supabase: any, coupletId: string, userId: string, mutationId: string): Promise<{ success: boolean; error?: string }> {
   try {
     // Check if like exists
     const { data: existingLike } = await supabase
@@ -241,7 +249,7 @@ async function handleUnlike(coupletId: string, userId: string, mutationId: strin
   }
 }
 
-async function handleBookmark(coupletId: string, userId: string, mutationId: string): Promise<{ success: boolean; error?: string }> {
+async function handleBookmark(supabase: any, coupletId: string, userId: string, mutationId: string): Promise<{ success: boolean; error?: string }> {
   try {
     // Check if bookmark already exists (idempotency)
     const { data: existingBookmark } = await supabase
@@ -290,7 +298,7 @@ async function handleBookmark(coupletId: string, userId: string, mutationId: str
   }
 }
 
-async function handleUnbookmark(coupletId: string, userId: string, mutationId: string): Promise<{ success: boolean; error?: string }> {
+async function handleUnbookmark(supabase: any, coupletId: string, userId: string, mutationId: string): Promise<{ success: boolean; error?: string }> {
   try {
     // Check if bookmark exists
     const { data: existingBookmark } = await supabase
