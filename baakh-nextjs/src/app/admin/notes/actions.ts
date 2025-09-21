@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 import { z } from 'zod';
-import type { StickyNoteInsert, TagInsert, NoteTagInsert } from '@/types/database';
+import type { StickyNoteInsert, TagInsert, NoteTagInsert, Tag } from '@/types/database';
 
 const NoteSchema = z.object({
   title: z.string().max(200).optional(),
@@ -47,7 +47,7 @@ export async function createNote(form: unknown) {
   if (parsed.tags.length) {
     const { data: tagRows } = await sb.from('tags').select('id,slug').in('slug', parsed.tags);
     if (tagRows?.length) {
-      const noteTagData: NoteTagInsert[] = tagRows.map((t: any) => ({ note_id: note.id, tag_id: t.id }));
+      const noteTagData: NoteTagInsert[] = tagRows.map((t: Tag) => ({ note_id: note.id, tag_id: t.id }));
       await sb.from('note_tags').insert(noteTagData);
     }
   }
@@ -75,7 +75,7 @@ export async function updateNote(id: string, patch: Partial<z.infer<typeof NoteS
       const { data: tagRows } = await sb.from('tags').select('id,slug').in('slug', tags);
       await sb.from('note_tags').delete().eq('note_id', id);
       if (tagRows?.length) {
-        const noteTagData: NoteTagInsert[] = tagRows.map((t: any) => ({ note_id: id, tag_id: t.id }));
+        const noteTagData: NoteTagInsert[] = tagRows.map((t: Tag) => ({ note_id: id, tag_id: t.id }));
         await sb.from('note_tags').insert(noteTagData);
       }
     } else {
