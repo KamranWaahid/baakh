@@ -94,14 +94,14 @@ class RedisRateLimiter {
         throw new Error('Redis pipeline execution failed');
       }
 
-      const totalHits = results[1] as number;
+      const totalHits = Number(results[1]);
       const remaining = Math.max(0, this.config.maxRequests - totalHits - 1);
       const allowed = totalHits < this.config.maxRequests;
 
       // Calculate reset time
-      const oldestRequest = await this.client.zRange(key, 0, 0, { REV: true, WITHSCORES: true });
+      const oldestRequest = await this.client.zRange(key, 0, 0, { REV: true, withScores: true });
       const resetTime = oldestRequest.length > 0 
-        ? (oldestRequest[1] as number) + this.config.windowMs
+        ? Number(oldestRequest[1]) + this.config.windowMs
         : now + this.config.windowMs;
 
       return {
@@ -153,9 +153,9 @@ class RedisRateLimiter {
       const allowed = totalHits < this.config.maxRequests;
 
       // Calculate reset time
-      const oldestRequest = await this.client.zRange(key, 0, 0, { REV: true, WITHSCORES: true });
+      const oldestRequest = await this.client.zRange(key, 0, 0, { REV: true, withScores: true });
       const resetTime = oldestRequest.length > 0 
-        ? (oldestRequest[1] as number) + this.config.windowMs
+        ? Number(oldestRequest[1]) + this.config.windowMs
         : now + this.config.windowMs;
 
       return {

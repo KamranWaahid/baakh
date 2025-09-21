@@ -234,28 +234,28 @@ export default function AdminAnalyticsPage() {
         value: metrics.totalViews.toLocaleString(), 
         change: formatChange(metrics.viewsChange), 
         icon: Eye, 
-        trend: metrics.viewsChange >= 0 ? "up" : "down" as const
+        trend: (metrics.viewsChange >= 0 ? "up" : "down") as "up" | "down"
       },
       { 
         title: "Total Users", 
         value: metrics.totalUsers.toLocaleString(), 
         change: formatChange(metrics.usersChange), 
         icon: Users, 
-        trend: metrics.usersChange >= 0 ? "up" : "down" as const
+        trend: (metrics.usersChange >= 0 ? "up" : "down") as "up" | "down"
       },
       { 
         title: "Total Content", 
         value: metrics.totalContent.toLocaleString(), 
         change: formatChange(metrics.contentChange), 
         icon: BookOpen, 
-        trend: metrics.contentChange >= 0 ? "up" : "down" as const
+        trend: (metrics.contentChange >= 0 ? "up" : "down") as "up" | "down"
       },
       { 
         title: "Avg. Session", 
         value: metrics.avgSession, 
         change: formatChange(metrics.sessionChange), 
         icon: Clock, 
-        trend: metrics.sessionChange >= 0 ? "up" : "down" as const
+        trend: (metrics.sessionChange >= 0 ? "up" : "down") as "up" | "down"
       }
     ];
   }, [metrics]);

@@ -260,8 +260,6 @@ export default function NavigationDemoPage() {
                     currentPage={mockData.currentPage}
                     totalPages={mockData.totalPages}
                     onPageChange={setCurrentPage}
-                    viewMode={viewMode}
-                    onViewModeChange={setViewMode}
                     sortOptions={sortOptions}
                     currentSort="newest"
                     onSortChange={(sort: string) => console.log('Sort changed:', sort)}

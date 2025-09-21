@@ -994,7 +994,6 @@ export default function PoetryPage() {
                       <MixedContentWithNumbers 
                         text={couplet.text} 
                         className={`${getSmartFontClass(couplet.text, { baseClass: isSindhi ? 'sindhi-text-2xl' : 'text-2xl' })}`}
-                        style={{ fontSize: isSindhi ? '1.875rem' : '1.5rem' }}
                       />
                     </p>
                   </motion.div>

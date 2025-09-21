@@ -2,7 +2,10 @@ import { cookies, headers } from 'next/headers';
 import { createServerClient } from '@supabase/ssr';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
-export async function supabaseServer(): Promise<SupabaseClient> {
+type Database = any;
+type SchemaName = 'public';
+
+export async function supabaseServer(): Promise<SupabaseClient<Database, SchemaName>> {
   const cookieStore = await cookies();
   const headersList = await headers();
   
@@ -56,7 +59,7 @@ export async function supabaseServer(): Promise<SupabaseClient> {
   );
 }
 
-export async function createClient(): Promise<SupabaseClient> {
+export async function createClient(): Promise<SupabaseClient<Database, SchemaName>> {
   return supabaseServer();
 }
 

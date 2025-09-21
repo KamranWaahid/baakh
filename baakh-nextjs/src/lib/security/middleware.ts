@@ -129,7 +129,7 @@ export function withInputSanitization(handler: (req: NextRequest) => Promise<Nex
     const sanitizedUrl = new URL(url.pathname + '?' + sanitizedParams.toString(), url.origin);
     
     // Create new request with sanitized URL
-    const sanitizedReq = new Request(sanitizedUrl, {
+    const sanitizedReq = new NextRequest(sanitizedUrl, {
       method: req.method,
       headers: req.headers,
       body: req.body
