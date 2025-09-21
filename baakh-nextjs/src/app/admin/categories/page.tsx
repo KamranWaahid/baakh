@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -15,13 +15,10 @@ import {
   Edit, 
   Trash2,
   Eye,
-  BookOpen,
-  Users,
-  Calendar,
-  Tag,
   Layers,
   Copy
 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 
 type Alignment = "start" | "center" | "justified";
@@ -35,28 +32,12 @@ type CategoryRow = {
   slug?: string;
 };
 
-type CategoryDetail = {
-  id: string;
-  slug: string;
-  contentStyle: string;
-  gender: string;
-  isFeatured: boolean;
-  english: {
-    name: string;
-    plural: string;
-    details: string;
-  };
-  sindhi: {
-    name: string;
-    plural: string;
-    details: string;
-  };
-  error?: string;
-};
+// Removed unused CategoryDetail type
 
 export default function CategoriesPage() {
   const router = useRouter();
   const [categories, setCategories] = useState<CategoryRow[]>([]);
+  // Removed unused filteredCategories state
 
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -78,7 +59,7 @@ export default function CategoriesPage() {
   };
 
   // Mock data for demonstration
-  const mockCategories = [
+  const mockCategories = useMemo(() => [
     {
       id: "1",
       name: "Ghazal",
@@ -100,10 +81,10 @@ export default function CategoriesPage() {
       detailAlign: "start" as Alignment,
       languages: ["Sindhi"] as Language[]
     }
-  ];
+  ], []);
 
   // Fetch real categories data
-  const fetchCategories = async () => {
+  const fetchCategories = useCallback(async () => {
     try {
       console.log('Fetching categories from API...');
       setLoading(true);
@@ -143,21 +124,19 @@ export default function CategoriesPage() {
       }) || [];
       
       setCategories(transformedCategories);
-      setFilteredCategories(transformedCategories);
     } catch (err) {
       console.error('Error fetching categories:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch categories');
       // Fallback to mock data if API fails
       setCategories(mockCategories);
-      setFilteredCategories(mockCategories);
     } finally {
       setLoading(false);
     }
-  };
+  }, [mockCategories]);
 
   useEffect(() => {
     fetchCategories();
-  }, []);
+  }, [fetchCategories]);
 
   // Handle category actions
   const handleEdit = (category: CategoryRow) => {
@@ -184,7 +163,6 @@ export default function CategoriesPage() {
         // Remove from local state
         const updatedCategories = categories.filter(c => c.id !== categoryToDelete.id);
         setCategories(updatedCategories);
-        setFilteredCategories(updatedCategories);
         showToast('success', `Category "${categoryToDelete.name}" deleted successfully`);
       } else {
         const errorData = await response.json();
@@ -250,7 +228,7 @@ export default function CategoriesPage() {
       });
       
       if (response.ok) {
-        const newCategory = await response.json();
+        await response.json();
         showToast('success', `Category "${category.name}" duplicated successfully`);
         // Refresh the categories list without full page reload
         fetchCategories();
@@ -272,7 +250,7 @@ export default function CategoriesPage() {
     const filtered = categories.filter(category => {
       const matchesSearch = category.name.toLowerCase().includes(q.toLowerCase()) ||
                            category.information.toLowerCase().includes(q.toLowerCase());
-      const matchesLang = langFilter === 'All' || category.languages.includes(langFilter);
+      const matchesLang = langFilter === 'All' || category.languages.includes(langFilter as Language);
       const matchesAlign = alignFilter === 'All' || category.detailAlign === alignFilter;
       
       return matchesSearch && matchesLang && matchesAlign;
@@ -497,7 +475,7 @@ export default function CategoriesPage() {
                   </Card>
                   </div>
               ) : (
-                  pageCategories.map((category, idx) => (
+                  pageCategories.map((category) => (
                   <div key={category.id}>
                     <Card className="bg-white border-[#E5E5E5] rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer group">
                       <CardHeader className="pb-4">

@@ -293,7 +293,7 @@ export default function SettingsPage() {
 
                   <div className="flex justify-end mt-6">
                     <Button
-                      onClick={() => handleSave('profile')}
+                      onClick={() => handleSave()}
                       disabled={isSaving}
                       className="bg-gray-900 hover:bg-gray-800 text-white px-6 py-2 rounded-lg transition-colors duration-200"
                     >
@@ -355,7 +355,7 @@ export default function SettingsPage() {
 
                   <div className="flex justify-end mt-6">
                     <Button
-                      onClick={() => handleSave('preferences')}
+                      onClick={() => handleSave()}
                       disabled={isSaving}
                       className="bg-gray-900 hover:bg-gray-800 text-white px-6 py-2 rounded-lg transition-colors duration-200"
                     >

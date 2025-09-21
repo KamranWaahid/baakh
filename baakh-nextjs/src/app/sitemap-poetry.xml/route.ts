@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://baakh.com'
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const supabase = createAdminClient()
     
@@ -54,11 +54,11 @@ export async function GET(request: NextRequest) {
       poetry.forEach(poem => {
         const lastmod = poem.updated_at || poem.created_at || new Date().toISOString()
         const priority = poem.is_featured ? '0.9' : '0.7'
-        const poetSlug = (poem as any).poets?.poet_slug
-        const categorySlug = (poem as any).categories?.slug
-        const translations = (poem as any).poetry_translations || []
-        const sindhiTitle = translations.find((t: any) => t.lang === 'sd')?.title
-        const englishTitle = translations.find((t: any) => t.lang === 'en')?.title
+        const poetSlug = (poem as { poets?: { poet_slug?: string } }).poets?.poet_slug
+        const categorySlug = (poem as { categories?: { slug?: string } }).categories?.slug
+        const translations = (poem as { poetry_translations?: Array<{ lang: string; title: string }> }).poetry_translations || []
+        const sindhiTitle = translations.find((t: { lang: string; title: string }) => t.lang === 'sd')?.title
+        const englishTitle = translations.find((t: { lang: string; title: string }) => t.lang === 'en')?.title
         
         if (poetSlug && categorySlug) {
           sitemap += `
@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
     <image:image>
       <image:loc>${baseUrl}/api/poetry/${poem.poetry_slug}/image</image:loc>
       <image:title>${sindhiTitle || englishTitle || 'Poetry'}</image:title>
-      <image:caption>${sindhiTitle || ''} by ${(poem as any).poets?.sindhi_name || (poem as any).poets?.english_name || ''}</image:caption>
+      <image:caption>${sindhiTitle || ''} by ${(poem as { poets?: { sindhi_name?: string; english_name?: string } }).poets?.sindhi_name || (poem as { poets?: { sindhi_name?: string; english_name?: string } }).poets?.english_name || ''}</image:caption>
     </image:image>
   </url>
   <url>
@@ -81,7 +81,7 @@ export async function GET(request: NextRequest) {
     <image:image>
       <image:loc>${baseUrl}/api/poetry/${poem.poetry_slug}/image</image:loc>
       <image:title>${englishTitle || sindhiTitle || 'Poetry'}</image:title>
-      <image:caption>${englishTitle || ''} by ${(poem as any).poets?.english_name || (poem as any).poets?.sindhi_name || ''}</image:caption>
+      <image:caption>${englishTitle || ''} by ${(poem as { poets?: { sindhi_name?: string; english_name?: string } }).poets?.english_name || (poem as { poets?: { sindhi_name?: string; english_name?: string } }).poets?.sindhi_name || ''}</image:caption>
     </image:image>
   </url>`
         }

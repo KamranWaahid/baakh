@@ -92,7 +92,7 @@ async function getPoetryHandler(request: NextRequest) {
           try {
             const { data: category } = await supabase
               .from('categories')
-              .select('id, slug')
+              .select('id, slug, name')
               .eq('id', poem.category_id)
               .single();
             categoryData = category;
@@ -105,7 +105,7 @@ async function getPoetryHandler(request: NextRequest) {
         try {
           const { data: translations } = await supabase
             .from('poetry_translations')
-            .select('id, title, lang')
+            .select('id, title, lang, info, source')
             .eq('poetry_id', poem.id);
           translationsData = translations || [];
         } catch (error: unknown) {
@@ -116,7 +116,7 @@ async function getPoetryHandler(request: NextRequest) {
         try {
           const { data: couplets } = await supabase
             .from('poetry_couplets')
-            .select('id, couplet_text, couplet_slug')
+            .select('id, couplet_text, couplet_slug, couplet_tags, lang')
             .eq('poetry_id', poem.id);
           coupletsData = couplets || [];
         } catch (error: unknown) {

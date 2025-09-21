@@ -30,7 +30,9 @@ import {
   Tag,
   Share2,
   BookmarkPlus,
-  Heart as HeartIcon
+  Heart as HeartIcon,
+  Search,
+  Filter
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { usePathname, useRouter, useParams } from "next/navigation";
