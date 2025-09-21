@@ -7,14 +7,12 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 
 interface FeaturedPoetsProps {
   isSindhi: boolean;
 }
 
 export default function FeaturedPoets({ isSindhi }: FeaturedPoetsProps) {
-  const pathname = usePathname();
   const [featuredPoets, setFeaturedPoets] = useState<Array<{
     id: string;
     poet_slug: string;

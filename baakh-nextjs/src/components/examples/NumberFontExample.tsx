@@ -83,7 +83,7 @@ export default function NumberFontExample() {
             <h3 className="text-lg font-semibold">Sindhi + Numbers</h3>
             {sampleTexts.slice(0, 3).map((text, index) => (
               <div key={index} className="p-4 border rounded-lg">
-                <div className="text-sm text-gray-500 mb-2">Text: "{text}"</div>
+                <div className="text-sm text-gray-500 mb-2">Text: &quot;{text}&quot;</div>
                 <div className="space-y-2">
                   <div>
                     <span className="text-sm text-gray-600">MixedContentWithNumbers: </span>
@@ -102,7 +102,7 @@ export default function NumberFontExample() {
             <h3 className="text-lg font-semibold">English + Numbers</h3>
             {sampleTexts.slice(3, 6).map((text, index) => (
               <div key={index} className="p-4 border rounded-lg">
-                <div className="text-sm text-gray-500 mb-2">Text: "{text}"</div>
+                <div className="text-sm text-gray-500 mb-2">Text: &quot;{text}&quot;</div>
                 <div className="space-y-2">
                   <div>
                     <span className="text-sm text-gray-600">MixedContentWithNumbers: </span>

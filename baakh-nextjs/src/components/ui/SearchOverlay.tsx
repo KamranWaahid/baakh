@@ -309,7 +309,7 @@ export default function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
                   <div className="text-center py-8">
                     <Search className="w-12 h-12 text-gray-400 mx-auto mb-3" />
                     <p className="text-gray-500 dark:text-gray-400">
-                      No results found for "{query}"
+                      No results found for &quot;{query}&quot;
                     </p>
                     <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
                       Try different keywords or check your spelling

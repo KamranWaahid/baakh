@@ -4,10 +4,8 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { ArrowRight, BookOpen } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 import SmartPagination from '@/components/ui/SmartPagination';
 
 interface CategoriesSectionProps {
@@ -29,7 +27,6 @@ interface CategoriesSectionProps {
 }
 
 export default function CategoriesSection({ isSindhi, categories: categoriesProp }: CategoriesSectionProps) {
-  const pathname = usePathname();
   const [categories, setCategories] = useState<Array<{
     id: string;
     slug: string;

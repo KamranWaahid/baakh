@@ -14,7 +14,6 @@ import {
   Settings, 
   Shield, 
   LogOut,
-  Camera,
   ChevronRight,
   ChevronLeft
 } from 'lucide-react'

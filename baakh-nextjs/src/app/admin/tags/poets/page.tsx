@@ -495,7 +495,7 @@ export default function PoetTagsPage() {
         {showDelete && selected && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
-              <div className="p-6 border-b border-[#E5E5E5]"><h2 className="text-xl font-semibold text-red-600">Delete Poet Tag</h2><p className="text-[#6B6B6B] mt-2">Are you sure you want to delete the poet tag "{selected.english.title || selected.slug}"? This action cannot be undone.</p></div>
+              <div className="p-6 border-b border-[#E5E5E5]"><h2 className="text-xl font-semibold text-red-600">Delete Poet Tag</h2><p className="text-[#6B6B6B] mt-2">Are you sure you want to delete the poet tag &quot;{selected.english.title || selected.slug}&quot;? This action cannot be undone.</p></div>
               <div className="p-6 flex items-center justify-end gap-2">
                 <Button variant="outline" onClick={() => { setShowDelete(false); setSelected(null); }} className="border-[#E5E5E5] text-[#6B6B6B] hover:bg-[#F4F4F5] transition-colors">Cancel</Button>
                 <Button variant="destructive" onClick={handleDelete} className="bg-red-600 hover:bg-red-700 text-white transition-colors"><Trash2 className="w-4 h-4 mr-2" /> Delete</Button>

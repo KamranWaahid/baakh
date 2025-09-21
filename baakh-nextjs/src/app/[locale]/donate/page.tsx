@@ -8,10 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Logo } from "@/components/ui/logo";
-import { ThemeToggle } from "@/components/theme-toggle";
 import {
-  ArrowLeft,
   Heart,
   Shield,
   BookOpen,
@@ -37,7 +34,6 @@ export default function DonatePage() {
 
   const handleDonate = () => {
     // Placeholder: integrate payment here
-    // eslint-disable-next-line no-console
     console.log("Donate:", { amount, frequency });
     alert("Thanks for your support! (UI only)");
   };

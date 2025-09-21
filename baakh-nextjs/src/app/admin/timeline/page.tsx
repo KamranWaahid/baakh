@@ -1620,7 +1620,7 @@ export default function TimelineAdminPage() {
             <DialogHeader>
               <DialogTitle className="text-xl font-bold text-[#1F1F1F]">Delete {deleteItem?.type === 'period' ? 'Period' : 'Event'}</DialogTitle>
               <DialogDescription className="text-[#6B6B6B]">
-                Are you sure you want to delete "{deleteItem?.name}"? This action cannot be undone.
+                Are you sure you want to delete &quot;{deleteItem?.name}&quot;? This action cannot be undone.
               </DialogDescription>
             </DialogHeader>
             <div className="flex justify-end space-x-2">

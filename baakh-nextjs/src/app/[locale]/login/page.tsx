@@ -3,6 +3,7 @@
 import { usePathname, useRouter } from "next/navigation";
 import { LoginForm } from "@/components/login-form";
 import { motion } from "framer-motion";
+import Image from "next/image";
 
 export default function LoginPage() {
   const pathname = usePathname();
@@ -34,7 +35,7 @@ export default function LoginPage() {
               <path d="M15 18l-6-6 6-6" />
             </svg>
           </button>
-          <img src="/Baakh.svg" alt="Baakh" className="h-6 w-auto" />
+          <Image src="/Baakh.svg" alt="Baakh" width={24} height={24} className="h-6 w-auto" />
         </motion.div>
         <motion.div
           className="flex flex-1 items-center justify-center"
@@ -56,10 +57,11 @@ export default function LoginPage() {
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.45, ease: "easeOut" }}
       >
-        <img
+        <Image
           src="/placeholder.svg"
           alt={isSindhi ? 'پليس هولڊر' : 'Placeholder'}
-          className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale select-none pointer-events-none"
+          fill
+          className="object-cover dark:brightness-[0.2] dark:grayscale select-none pointer-events-none"
           draggable={false}
           onDragStart={(e) => e.preventDefault()}
           onContextMenu={(e) => e.preventDefault()}

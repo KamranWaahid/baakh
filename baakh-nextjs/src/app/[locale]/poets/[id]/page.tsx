@@ -104,6 +104,36 @@ interface Category {
   }>;
 }
 
+// API Response interfaces
+interface ApiPoet {
+  id: string | number;
+  name?: string;
+  englishName?: string;
+  sindhiName?: string;
+  poet_name?: string;
+  primary_name?: string;
+  title?: string;
+  display_name?: string;
+  sindhi_laqab?: string;
+  english_laqab?: string;
+  tagline?: string;
+  description?: string;
+  avatar?: string;
+  photo?: string;
+  image?: string;
+  period?: string;
+  years?: string;
+  active_years?: string;
+  slug?: string;
+  poet_id?: string;
+  identifier?: string;
+}
+
+interface ApiResponse {
+  poets?: ApiPoet[];
+  data?: ApiPoet[];
+}
+
 export default function PoetPage() {
   const params = useParams();
   const pathname = usePathname();
@@ -421,10 +451,10 @@ export default function PoetPage() {
           setMorePoets([]);
           return;
         }
-        const json = await res.json();
-        const list: any[] = Array.isArray(json.poets) ? json.poets : (Array.isArray(json) ? json : (Array.isArray(json.data) ? json.data : []));
+        const json: ApiResponse = await res.json();
+        const list: ApiPoet[] = Array.isArray(json.poets) ? json.poets : (Array.isArray(json) ? json : (Array.isArray(json.data) ? json.data : []));
         const normalized = list
-          .map((p: any) => {
+          .map((p: ApiPoet) => {
             const nameCandidate = (
               p.name || p.englishName || p.sindhiName || p.poet_name || p.primary_name || p.title || p.display_name || ''
             );
@@ -442,7 +472,7 @@ export default function PoetPage() {
               tagline: taglineCandidate ? String(taglineCandidate) : ''
             };
           })
-          .filter((p: any) => p.id && p.id !== String(poetId));
+          .filter((p: { id: string; name: string; avatar: string; period: string; tagline: string }) => p.id && p.id !== String(poetId));
         setMorePoets(normalized.slice(0, 7));
       } catch (e) {
         setMorePoets([]);

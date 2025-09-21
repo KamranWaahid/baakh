@@ -442,7 +442,7 @@ export default function DocumentationPage() {
                     <div className="flex-1">
                       <h3 className="text-lg font-semibold text-gray-900 mb-2">Need More Help?</h3>
                       <p className="text-gray-600 mb-4">
-                        If you can't find what you're looking for, here are some additional resources:
+                        If you can&apos;t find what you&apos;re looking for, here are some additional resources:
                       </p>
                       <div className="flex flex-wrap gap-3">
                         <Button 

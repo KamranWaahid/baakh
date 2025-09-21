@@ -14,7 +14,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 // Import components directly
 import CategoriesSection from './components/CategoriesSection';
@@ -36,12 +36,7 @@ export default function HomePage() {
   const isRTL = isSindhi;
   
   // Modern font system - Clean & Minimal
-  const fontClass = isSindhi ? 'font-sindhi' : 'font-inter';
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(100);
   const [showScrollTop, setShowScrollTop] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const [coupletsPage, setCoupletsPage] = useState(1);
   const coupletsPerPage = 3;
   const [poetsPage, setPoetsPage] = useState(1);
@@ -122,15 +117,6 @@ export default function HomePage() {
     });
   };
 
-  const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start'
-      });
-    }
-  };
 
   const handlePoetClick = (poet: HomePoet) => {
     try {
@@ -145,25 +131,6 @@ export default function HomePage() {
     }
   };
 
-  function getTagColorClasses(slug: string): string {
-    const palettes = [
-      'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-400/20',
-      'bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-500/15 dark:text-indigo-300 dark:border-indigo-400/20',
-      'bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-500/15 dark:text-amber-300 dark:border-amber-400/20',
-      'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-500/15 dark:text-rose-300 dark:border-rose-400/20',
-      'bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-500/15 dark:text-violet-300 dark:border-violet-400/20',
-      'bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-500/15 dark:text-sky-300 dark:border-sky-400/20',
-      'bg-lime-50 text-lime-700 border-lime-200 dark:bg-lime-500/15 dark:text-lime-300 dark:border-lime-400/20',
-      'bg-fuchsia-50 text-fuchsia-700 border-fuchsia-200 dark:bg-fuchsia-500/15 dark:text-fuchsia-300 dark:border-fuchsia-400/20',
-      'bg-teal-50 text-teal-700 border-teal-200 dark:bg-teal-500/15 dark:text-teal-300 dark:border-teal-400/20',
-      'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-500/15 dark:text-orange-300 dark:border-orange-400/20'
-    ];
-    let hash = 0;
-    for (let i = 0; i < slug.length; i++) {
-      hash = (hash * 31 + slug.charCodeAt(i)) >>> 0;
-    }
-    return palettes[hash % palettes.length];
-  }
   
   // Content based on language
   const content = {
@@ -519,14 +486,6 @@ export default function HomePage() {
 
 
 
-  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const time = (parseFloat(e.target.value) / 100) * duration;
-    setCurrentTime(time);
-  };
-
-  const togglePlay = () => {
-    setIsPlaying(!isPlaying);
-  };
 
   return (
     <div className="min-h-screen bg-white">

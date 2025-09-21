@@ -124,7 +124,7 @@ export default function SearchDemoPage() {
               <CardContent className="text-center">
                 <p className="text-muted-foreground">
                   Results are automatically grouped by type - poems, poets, themes, and timelines - 
-                  making it easy to find exactly what you're looking for.
+                  making it easy to find exactly what you&apos;re looking for.
                 </p>
               </CardContent>
             </Card>
@@ -192,7 +192,7 @@ export default function SearchDemoPage() {
               </CardHeader>
               <CardContent className="text-center">
                 <p className="text-muted-foreground">
-                  Use voice search for hands-free discovery or let our "Surprise Me" feature 
+                  Use voice search for hands-free discovery or let our &quot;Surprise Me&quot; feature 
                   introduce you to unexpected poetry gems.
                 </p>
               </CardContent>
@@ -340,7 +340,7 @@ export default function SearchDemoPage() {
             Ready to Discover Poetry?
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Start your journey through centuries of Sindhi poetry. Whether you're a researcher, 
+            Start your journey through centuries of Sindhi poetry. Whether you&apos;re a researcher, 
             poetry lover, or just curious, our search will guide you to amazing discoveries.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">

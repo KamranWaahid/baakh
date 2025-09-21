@@ -150,14 +150,14 @@ export default function SupportPage() {
                     <Send className="w-5 h-5" />
                     Submit a Support Ticket
                   </CardTitle>
-                  <p className="text-gray-600">Describe your issue and we'll get back to you as soon as possible.</p>
+                  <p className="text-gray-600">Describe your issue and we&apos;ll get back to you as soon as possible.</p>
                 </CardHeader>
                 <CardContent>
                   {isSubmitted ? (
                     <div className="text-center py-8">
                       <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
                       <h3 className="text-lg font-semibold text-gray-900 mb-2">Ticket Submitted Successfully!</h3>
-                      <p className="text-gray-600">We've received your support request and will respond within 24 hours.</p>
+                      <p className="text-gray-600">We&apos;ve received your support request and will respond within 24 hours.</p>
                     </div>
                   ) : (
                     <form onSubmit={handleSubmit} className="space-y-6">

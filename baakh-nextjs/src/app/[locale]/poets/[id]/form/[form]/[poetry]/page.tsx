@@ -61,6 +61,27 @@ interface PoetryData {
   }>;
 }
 
+// API Response interfaces
+interface CategoryPoetry {
+  id: string;
+  poetry_slug: string;
+  poetry_tags?: string;
+  lang: string;
+  content_style?: string;
+  form?: string;
+  created_at: string;
+}
+
+interface CategoryData {
+  slug: string;
+  poetry: CategoryPoetry[];
+}
+
+interface ApiResponse {
+  success: boolean;
+  categories: CategoryData[];
+}
+
 // Skeleton Loading Components
 const PoetrySkeleton = () => (
   <div className="min-h-screen bg-gray-50">
@@ -324,17 +345,17 @@ export default function PoetryPage() {
       const response = await fetch(`/api/poets/${poetId}?lang=${currentLang}`);
       if (!response.ok) throw new Error('Failed to fetch other poetry');
       
-      const data = await response.json();
+      const data: ApiResponse = await response.json();
       
       // Get all poetry from the same form first, then other forms
-      const currentFormPoetry = data.categories.find((cat: any) => cat.slug === formSlug)?.poetry || [];
+      const currentFormPoetry = data.categories.find((cat: CategoryData) => cat.slug === formSlug)?.poetry || [];
       const otherFormsPoetry = data.categories
-        .filter((cat: any) => cat.slug !== formSlug)
-        .flatMap((cat: any) => cat.poetry || []);
+        .filter((cat: CategoryData) => cat.slug !== formSlug)
+        .flatMap((cat: CategoryData) => cat.poetry || []);
       
       // Combine and filter out current poetry
       const allOtherPoetry = [...currentFormPoetry, ...otherFormsPoetry]
-        .filter((poem: any) => poem.poetry_slug !== poetrySlug)
+        .filter((poem: CategoryPoetry) => poem.poetry_slug !== poetrySlug)
         .slice(0, 6); // Limit to 6 items for pagination
       
       setOtherPoetry(allOtherPoetry);
