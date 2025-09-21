@@ -3,14 +3,21 @@ import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 import { AdminReportView, ReportFilters, UpdateReportStatusData } from '@/types/reports';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+function getSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  
+  if (!supabaseUrl || !supabaseServiceKey) {
+    throw new Error('Missing Supabase environment variables');
+  }
+  
+  return createClient(supabaseUrl, supabaseServiceKey);
+}
 
 // GET - Fetch reports for admin dashboard
 export async function GET(request: NextRequest) {
   try {
+    const supabase = getSupabaseClient();
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status') as any;
     const reason = searchParams.get('reason') as any;
@@ -148,6 +155,7 @@ export async function GET(request: NextRequest) {
 // PUT - Update report status
 export async function PUT(request: NextRequest) {
   try {
+    const supabase = getSupabaseClient();
     const body: UpdateReportStatusData = await request.json();
     const { report_id, status, admin_notes } = body;
 
