@@ -1,9 +1,7 @@
 'use client';
 
 import { 
-  Search, Users, BookOpen, Heart, Clock, Tag, Calendar, ArrowRight, Star, 
-  TrendingUp, Eye, Sparkles, Globe, Quote, BookOpenCheck, Zap, ChevronDown,
-  Play, Pause, Volume2, Bookmark, Share2, MoreHorizontal, Filter,
+  Users, BookOpen, ChevronDown,
   Award, Target, Lightbulb, Compass, Layers, Cpu, Brain, Palette, FileText
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';

@@ -2,7 +2,6 @@
 import { getSmartFontClass } from "@/lib/font-detection-utils";
 
 import { motion } from "framer-motion";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -11,10 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { 
   Mail,
   MessageSquare,
-  Phone,
-  MapPin,
   Send,
-  Heart,
   Users,
   Globe,
   Clock,
@@ -169,7 +165,7 @@ export default function ContactPage() {
   };
 
   // Apply Sindhi font only if text contains Arabic/Sindhi characters
-  const sd = (text?: string | null) => (text && /[\u0600-\u06FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(text) ? 'auto-sindhi-font' : '');
+  // const sd = (text?: string | null) => (text && /[\u0600-\u06FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(text) ? 'auto-sindhi-font' : '');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
