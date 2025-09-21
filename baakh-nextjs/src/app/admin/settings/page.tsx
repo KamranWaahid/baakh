@@ -204,23 +204,31 @@ export default function AdminSettingsPage() {
     const newErrors: Record<string, string> = {};
 
     if (section === 'profile') {
-      if (!data.firstName.trim()) newErrors.firstName = 'First name is required';
-      if (!data.lastName.trim()) newErrors.lastName = 'Last name is required';
-      if (!data.email.trim()) newErrors.email = 'Email is required';
-      else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
+      const firstName = String(data.firstName || '');
+      const lastName = String(data.lastName || '');
+      const email = String(data.email || '');
+      
+      if (!firstName.trim()) newErrors.firstName = 'First name is required';
+      if (!lastName.trim()) newErrors.lastName = 'Last name is required';
+      if (!email.trim()) newErrors.email = 'Email is required';
+      else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         newErrors.email = 'Please enter a valid email address';
       }
     }
 
     if (section === 'password') {
-      if (!data.currentPassword) newErrors.currentPassword = 'Current password is required';
-      if (!data.newPassword) newErrors.newPassword = 'New password is required';
-      else if (data.newPassword.length < 8) {
+      const currentPassword = String(data.currentPassword || '');
+      const newPassword = String(data.newPassword || '');
+      const confirmPassword = String(data.confirmPassword || '');
+      
+      if (!currentPassword) newErrors.currentPassword = 'Current password is required';
+      if (!newPassword) newErrors.newPassword = 'New password is required';
+      else if (newPassword.length < 8) {
         newErrors.newPassword = 'Password must be at least 8 characters long';
-      } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>])/.test(data.newPassword)) {
+      } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>])/.test(newPassword)) {
         newErrors.newPassword = 'Password must contain uppercase, lowercase, number, and special character';
       }
-      if (data.newPassword !== data.confirmPassword) {
+      if (newPassword !== confirmPassword) {
         newErrors.confirmPassword = 'Passwords do not match';
       }
     }
@@ -301,7 +309,7 @@ export default function AdminSettingsPage() {
     setErrors({});
 
     try {
-      if (!validateForm('password', passwordData)) {
+      if (!validateForm('password', passwordData as Record<string, unknown>)) {
         setIsSaving(false);
         return;
       }
