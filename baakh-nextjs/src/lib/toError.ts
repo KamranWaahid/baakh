@@ -9,7 +9,7 @@ export function toError(x: unknown): Error {
   }
   
   if (x && typeof x === 'object') {
-    const anyX = x as any;
+    const anyX = x as Record<string, unknown>;
     const reason = anyX.reason ?? anyX.error;
     if (reason instanceof Error) {
       return reason;

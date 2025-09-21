@@ -2,13 +2,12 @@ import { cookies, headers } from 'next/headers';
 import { createServerClient } from '@supabase/ssr';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
-type Database = any;
+type Database = Record<string, never>;
 type SchemaName = 'public';
-type Schema = any;
+type Schema = Record<string, never>;
 
 export async function supabaseServer(): Promise<SupabaseClient<Database, SchemaName, Schema>> {
   const cookieStore = await cookies();
-  const headersList = await headers();
   
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -30,7 +29,7 @@ export async function supabaseServer(): Promise<SupabaseClient<Database, SchemaN
       {
         cookies: {
           getAll: () => cookieStore.getAll(),
-          setAll: (cookiesToSet: Array<{ name: string; value: string; options?: any }>) => {
+          setAll: (cookiesToSet: Array<{ name: string; value: string; options?: Record<string, unknown> }>) => {
             try {
               cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options));
             } catch {
@@ -48,7 +47,7 @@ export async function supabaseServer(): Promise<SupabaseClient<Database, SchemaN
     {
       cookies: {
         getAll: () => cookieStore.getAll(),
-        setAll: (cookiesToSet: Array<{ name: string; value: string; options?: any }>) => {
+        setAll: (cookiesToSet: Array<{ name: string; value: string; options?: Record<string, unknown> }>) => {
           try {
             cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options));
           } catch {
