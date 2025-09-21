@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     const token = authHeader.substring(7);
     
     // Create Supabase client with user JWT
-    const getSupabaseClient() = createClient(
+    const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
@@ -108,7 +108,7 @@ export async function DELETE(request: NextRequest) {
     const token = authHeader.substring(7);
     
     // Create Supabase client with user JWT
-    const getSupabaseClient() = createClient(
+    const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
@@ -164,7 +164,7 @@ export async function GET(request: NextRequest) {
     const token = authHeader.substring(7);
     
     // Create Supabase client with user JWT
-    const getSupabaseClient() = createClient(
+    const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {

@@ -7,7 +7,7 @@ export async function GET(req: Request) {
   if (!url || !serviceKey) {
     return NextResponse.json({ error: 'Supabase not configured' }, { status: 500 });
   }
-  const getSupabaseClient() = createClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
+  const supabase = createClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
   
   try {
     const { searchParams } = new URL(req.url);

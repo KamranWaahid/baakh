@@ -55,7 +55,7 @@ export async function GET() {
   try {
     // If local cookie exists but no supabase cookie, resolve minimal user from users table
     if (!sessionCookie && localTokenCookie) {
-      const getSupabaseClient() = createClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
+      const supabase = createClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
       const { data: localUser, error: localErr } = await getSupabaseClient()
         .from('users')
         .select('id,email,name,role,avatar')

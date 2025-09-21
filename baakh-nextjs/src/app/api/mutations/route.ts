@@ -5,7 +5,7 @@ import { revalidateAfterMutation, getCoupletCacheTags } from '@/lib/cache-revali
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
-const getSupabaseClient() = createClient(supabaseUrl, supabaseServiceKey);
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 interface Mutation {
   id: string;

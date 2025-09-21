@@ -8,7 +8,7 @@ export async function GET() {
     return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
   }
   
-  const getSupabaseClient() = createClient(url, serviceKey, { 
+  const supabase = createClient(url, serviceKey, { 
     auth: { autoRefreshToken: false, persistSession: false } 
   });
   
@@ -110,7 +110,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
   }
   
-  const getSupabaseClient() = createClient(url, serviceKey, { 
+  const supabase = createClient(url, serviceKey, { 
     auth: { autoRefreshToken: false, persistSession: false } 
   });
   
@@ -222,7 +222,7 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
   }
   
-  const getSupabaseClient() = createClient(url, serviceKey, { 
+  const supabase = createClient(url, serviceKey, { 
     auth: { autoRefreshToken: false, persistSession: false } 
   });
   

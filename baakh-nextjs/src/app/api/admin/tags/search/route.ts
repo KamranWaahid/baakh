@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Supabase not configured" }, { status: 500 });
   }
   
-  const getSupabaseClient() = createClient(url, serviceKey, { 
+  const supabase = createClient(url, serviceKey, { 
     auth: { autoRefreshToken: false, persistSession: false } 
   });
   

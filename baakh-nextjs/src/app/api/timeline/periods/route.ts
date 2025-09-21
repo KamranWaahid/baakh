@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
       );
     }
     
-    const getSupabaseClient() = createClient(supabaseUrl, supabaseServiceKey);
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get('limit') || '100');
     const offset = parseInt(searchParams.get('offset') || '0');
@@ -115,7 +115,7 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    const getSupabaseClient() = createClient(supabaseUrl, supabaseServiceKey);
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
     const body = await request.json();
     
     const {

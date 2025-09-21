@@ -25,7 +25,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'supabase-not-configured' }, { status: 500 });
     }
 
-    const getSupabaseClient() = createClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
+    const supabase = createClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
 
     // Check if user exists
     const { data: existing, error: existingError } = await getSupabaseClient()

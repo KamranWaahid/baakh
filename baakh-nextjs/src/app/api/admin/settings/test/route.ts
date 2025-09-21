@@ -8,7 +8,7 @@ if (!url || !serviceKey) {
   throw new Error('Missing required environment variables');
 }
 
-const getSupabaseClient() = createClient(url, serviceKey, {
+const supabase = createClient(url, serviceKey, {
   auth: { autoRefreshToken: false, persistSession: false },
   db: { schema: 'public' }
 });

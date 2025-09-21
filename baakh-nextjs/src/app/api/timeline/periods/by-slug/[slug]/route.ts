@@ -22,7 +22,7 @@ export async function GET(
       );
     }
     
-    const getSupabaseClient() = createClient(supabaseUrl, supabaseServiceKey);
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Get the timeline period by slug
     const { data: period, error: periodError } = await getSupabaseClient()
