@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase/client';
 import { updateNote, softDeleteNote } from './actions';
 import NoteCard from './NoteCard';
 
-type Note = any;
+type Note = Record<string, unknown>;
 
 const columns = ['inbox','review','approved','archived'] as const;
 
@@ -17,14 +17,14 @@ export default function NoteBoard({ initialNotes }: { initialNotes: Note[] }) {
       .channel('notes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'sticky_notes' }, payload => {
         if (payload.eventType === 'INSERT') setNotes(prev => [payload.new as Note, ...prev]);
-        if (payload.eventType === 'UPDATE') setNotes(prev => prev.map(n => n.id === (payload.new as any).id ? payload.new as Note : n));
-        if (payload.eventType === 'DELETE') setNotes(prev => prev.filter(n => n.id !== (payload.old as any).id));
+        if (payload.eventType === 'UPDATE') setNotes(prev => prev.map(n => n.id === (payload.new as Record<string, unknown>).id ? payload.new as Note : n));
+        if (payload.eventType === 'DELETE') setNotes(prev => prev.filter(n => n.id !== (payload.old as Record<string, unknown>).id));
       }).subscribe();
     return () => { supabase.removeChannel(channel); };
   }, []);
 
   async function onDrop(note: Note, status: string) {
-    await updateNote(note.id, { status: status as any });
+    await updateNote(note.id, { status: status as string });
   }
 
   async function bump(note: Note) {

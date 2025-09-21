@@ -1,7 +1,7 @@
 'use client';
 
 export default function NoteCard({ note, onPromote, onMove, onDelete }:{
-  note:any; onPromote:()=>void; onMove:(status:string)=>void; onDelete:()=>void;
+  note:Record<string, unknown>; onPromote:()=>void; onMove:(status:string)=>void; onDelete:()=>void;
 }) {
   return (
     <div className="border bg-white rounded p-3 shadow-sm">

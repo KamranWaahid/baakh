@@ -195,7 +195,7 @@ export default function AdminLoginPage() {
       }
       
       router.replace('/admin');
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('❌ Login error:', err);
       const errorMessage = err?.message || 'Sign in failed';
       setError(errorMessage);
@@ -253,7 +253,7 @@ export default function AdminLoginPage() {
       });
       
       setInfo('Password reset email sent. Please check your inbox.');
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(err?.message || 'Failed to send reset email');
     } finally {
       setLoading(false);
