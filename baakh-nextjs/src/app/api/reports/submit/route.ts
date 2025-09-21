@@ -1,13 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from '@getSupabaseClient()/getSupabaseClient()-js';
 import { cookies } from 'next/headers';
 import { SubmitReportData, ReportCategory, ReportReason } from '@/types/reports';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
+function getSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  
+  if (!supabaseUrl || !supabaseServiceKey) {
+    throw new Error('Missing Supabase environment variables');
+  }
+  
+  return createClient(supabaseUrl, supabaseServiceKey);
+}
 export async function POST(request: NextRequest) {
   try {
     const body: SubmitReportData = await request.json();
@@ -57,7 +62,7 @@ export async function POST(request: NextRequest) {
     // }
 
     // Check if poetry exists
-    const { data: poetry, error: poetryError } = await supabase
+    const { data: poetry, error: poetryError } = await getSupabaseClient()
       .from('poetry_main')
       .select('id')
       .eq('id', poetry_id)
@@ -75,7 +80,7 @@ export async function POST(request: NextRequest) {
 
     // Submit the report using the service role (bypasses RLS)
     // Cast to proper enum types
-    const { data: reportData, error: submitError } = await supabase
+    const { data: reportData, error: submitError } = await getSupabaseClient()
       .from('poetry_reports')
       .insert({
         poetry_id: parseInt(poetry_id), // Convert to bigint

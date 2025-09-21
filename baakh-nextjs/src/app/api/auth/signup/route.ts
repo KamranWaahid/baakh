@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from '@getSupabaseClient()/getSupabaseClient()-js';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
+function getSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  
+  if (!supabaseUrl || !supabaseServiceKey) {
+    throw new Error('Missing Supabase environment variables');
+  }
+  
+  return createClient(supabaseUrl, supabaseServiceKey);
+}
 export async function POST(request: NextRequest) {
   try {
     console.log('📝 Signup API called at:', new Date().toISOString());
@@ -37,7 +42,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if username already exists
-    const { data: existingUser } = await supabase
+    const { data: existingUser } = await getSupabaseClient()
       .from('e2ee_users')
       .select('user_id')
       .eq('username', username)
@@ -63,7 +68,7 @@ export async function POST(request: NextRequest) {
     };
 
     // Store the encrypted user data
-    const { data: user, error } = await supabase
+    const { data: user, error } = await getSupabaseClient()
       .from('e2ee_users')
       .insert({
         username,

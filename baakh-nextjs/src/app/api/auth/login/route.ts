@@ -1,14 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from '@getSupabaseClient()/getSupabaseClient()-js';
 import jwt from 'jsonwebtoken';
 import { withErrorHandling, ValidationError, AuthenticationError, SecurityError } from '@/lib/security/error-handler';
 import { withAuthRateLimit } from '@/lib/security/rate-limiter';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
+function getSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  
+  if (!supabaseUrl || !supabaseServiceKey) {
+    throw new Error('Missing Supabase environment variables');
+  }
+  
+  return createClient(supabaseUrl, supabaseServiceKey);
+}
 async function loginHandler(request: NextRequest) {
   if (process.env.NODE_ENV !== 'production') {
     console.log('🔐 Login API called at:', new Date().toISOString());
@@ -41,7 +46,7 @@ async function loginHandler(request: NextRequest) {
     console.log('🔐 Attempting login for username:', username);
 
     // Get user data for verification
-    const { data: user, error } = await supabase
+    const { data: user, error } = await getSupabaseClient()
       .from('e2ee_users')
       .select('*')
       .eq('username', username)
