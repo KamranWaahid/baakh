@@ -1,6 +1,6 @@
 "use client";
 import { getSmartFontClass } from "@/lib/font-detection-utils";
-import { NumberFont, MixedContentWithNumbers } from "@/components/ui/NumberFont";
+import { NumberFont } from "@/components/ui/NumberFont";
 
 import { useState, useEffect, useCallback } from "react";
 import { usePathname } from "next/navigation";
@@ -16,8 +16,6 @@ import {
   ChevronRight,
   Search,
   ChevronDown,
-  Calendar,
-  Users,
   BookOpenCheck
 } from "lucide-react";
 
@@ -90,7 +88,7 @@ export default function CategoriesPage() {
   };
 
   // Apply Sindhi font only if text contains Arabic/Sindhi characters
-  const sd = (text?: string | null) => (text && /[\u0600-\u06FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(text) ? 'auto-sindhi-font' : '');
+  // const sd = (text?: string | null) => (text && /[\u0600-\u06FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(text) ? 'auto-sindhi-font' : '');
 
   const fetchCategories = useCallback(async () => {
     try {
@@ -158,7 +156,7 @@ export default function CategoriesPage() {
 
   useEffect(() => {
     fetchCategories();
-  }, [page, debouncedSearchQuery, sortBy, sortOrder, isSindhi]);
+  }, [fetchCategories, page, debouncedSearchQuery, sortBy, sortOrder, isSindhi]);
 
   const uniqueStylesCount = new Set(categories.map(c => c.contentStyle)).size;
   const startIdx = (page - 1) * perPage + 1;

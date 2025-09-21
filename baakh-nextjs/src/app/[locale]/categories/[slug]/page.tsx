@@ -1,17 +1,16 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { useParams } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Logo } from '@/components/ui/logo';
-import { ArrowLeft, BookOpen, Languages, Sparkles, Hash, Filter, ChevronDown, Bookmark, Share2, Heart, User, Calendar, Eye, Clock, Star, Search } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { BookOpen, Hash, Filter, ChevronDown, Bookmark, Share2, Heart, Eye, Clock, Star } from 'lucide-react';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { getLanguageConfig } from '@/lib/language';
 
 type Cat = { id:string; slug:string; englishName:string; sindhiName:string; englishPlural?:string; sindhiPlural?:string; englishDetails:string; sindhiDetails:string; languages:string[]; contentStyle:string };
@@ -45,8 +44,6 @@ export default function CategoryDetailPage() {
   const [q, setQ] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [poems, setPoems] = useState<Poem[]>([]);
-  const searchParams = useSearchParams();
-  const router = useRouter();
   const pathname = usePathname();
   
   // Enhanced locale detection
@@ -58,7 +55,6 @@ export default function CategoryDetailPage() {
   }, [params?.locale, pathname]);
   
   const isSD = currentLocale === 'sd';
-  const isEN = currentLocale === 'en';
   
   // Get language configuration
   const langConfig = getLanguageConfig(currentLocale);
@@ -66,7 +62,6 @@ export default function CategoryDetailPage() {
   
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
-  const [loadingMore, setLoadingMore] = useState(false);
   const perPage = 12;
 
   useEffect(() => {
