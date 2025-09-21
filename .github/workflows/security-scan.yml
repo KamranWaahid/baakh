@@ -179,8 +179,6 @@ jobs:
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: 'trivy-results-frontend.sarif'
-        permissions:
-          security-events: write
         continue-on-error: true
 
       - name: Upload Trivy scan results to GitHub Security tab (Backend)
@@ -188,8 +186,6 @@ jobs:
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: 'trivy-results-backend.sarif'
-        permissions:
-          security-events: write
         continue-on-error: true
 
       - name: Container scan summary
