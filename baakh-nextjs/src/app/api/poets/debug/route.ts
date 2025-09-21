@@ -1,13 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+function createSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+  if (!supabaseUrl || !supabaseServiceKey) {
+    console.error('Missing Supabase environment variables');
+    return null;
+  }
+
+  return createClient(supabaseUrl, supabaseServiceKey);
+}
 
 export async function GET(request: NextRequest) {
   try {
+    const supabase = createSupabaseClient();
+    
+    if (!supabase) {
+      return NextResponse.json({
+        success: false,
+        error: 'Database not configured',
+        message: 'Missing Supabase environment variables'
+      });
+    }
+
     console.log('Debug API - Checking poets in database');
     
     // Get all poets to see what exists

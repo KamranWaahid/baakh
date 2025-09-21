@@ -1,16 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+function createSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+  if (!supabaseUrl || !supabaseServiceKey) {
+    console.error('Missing Supabase environment variables');
+    return null;
+  }
+
+  return createClient(supabaseUrl, supabaseServiceKey);
+}
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const supabase = createSupabaseClient();
+    
+    if (!supabase) {
+      return NextResponse.json({
+        success: false,
+        error: 'Database not configured',
+        message: 'Missing Supabase environment variables'
+      });
+    }
+
     const { id: poetSlug } = await params;
     const { searchParams } = new URL(request.url);
     const lang = searchParams.get('lang') || 'en';
