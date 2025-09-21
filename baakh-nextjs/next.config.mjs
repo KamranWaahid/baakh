@@ -1,5 +1,9 @@
+import path from 'path';
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Fix multiple lockfiles warning
+  outputFileTracingRoot: path.join(__dirname, '../../'),
   // Security headers
   async headers() {
     return [

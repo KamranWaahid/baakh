@@ -3,10 +3,10 @@
 import React from 'react';
 import { useE2EEAuth } from '@/hooks/useE2EEAuth-new';
 import { motion } from 'framer-motion';
-import { Heart, ArrowLeft, BookOpen, User, Quote, Loader2 } from 'lucide-react';
+import { Heart, ArrowLeft, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import CoupletCard from '@/components/CoupletCard';
@@ -17,8 +17,8 @@ export default function LikesPage() {
   const { language, isRTL } = useLanguage();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [likes, setLikes] = useState<unknown[]>([]);
-  const [content, setContent] = useState<unknown[]>([]);
+  const [, setLikes] = useState<Record<string, unknown>[]>([]);
+  const [content, setContent] = useState<Record<string, unknown>[]>([]);
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -29,9 +29,9 @@ export default function LikesPage() {
     if (isAuthenticated && user?.userId) {
       fetchLikes();
     }
-  }, [authLoading, isAuthenticated, user, language, router]);
+  }, [authLoading, isAuthenticated, user, language, router, fetchLikes]);
 
-  const fetchLikes = async () => {
+  const fetchLikes = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
@@ -51,7 +51,7 @@ export default function LikesPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user?.userId]);
 
   const getBackLink = () => `/${language}/dashboard`;
 

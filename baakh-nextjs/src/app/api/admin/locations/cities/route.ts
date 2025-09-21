@@ -83,8 +83,8 @@ export async function GET(request: NextRequest) {
     
     // Get province and country names for each city
     const provinceIds = [...new Set(cities?.map(c => c.province_id) || [])];
-    let provinceNames: Record<number, string> = {};
-    let countryNames: Record<number, string> = {};
+    const provinceNames: Record<number, string> = {};
+    const countryNames: Record<number, string> = {};
     
     if (provinceIds.length > 0) {
       // Get province names and country IDs

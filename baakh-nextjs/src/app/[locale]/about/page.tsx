@@ -18,7 +18,6 @@ import {
   Award,
   ArrowRight,
   Calendar,
-  MapPin,
   Star
 } from "lucide-react";
 import { usePathname } from "next/navigation";
@@ -30,7 +29,7 @@ export default function AboutPage() {
   const locale = isSindhi ? 'sd' : 'en';
   
   // Modern font system - Clean & Minimal
-  const fontClass = isSindhi ? 'font-sindhi' : 'font-inter';
+  // const fontClass = isSindhi ? 'font-sindhi' : 'font-inter';
 
   // Multi-lingual content
   const content = {
@@ -200,7 +199,7 @@ export default function AboutPage() {
   };
 
   // Apply Sindhi font only if text contains Arabic/Sindhi characters
-  const sd = (text?: string | null) => (text && /[\u0600-\u06FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(text) ? 'auto-sindhi-font' : '');
+  // const sd = (text?: string | null) => (text && /[\u0600-\u06FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(text) ? 'auto-sindhi-font' : '');
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50" dir={isRTL ? 'rtl' : 'ltr'}>

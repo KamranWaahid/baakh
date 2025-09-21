@@ -44,7 +44,7 @@ export function useViewTracking({
   delay = 1000 
 }: ViewTrackingOptions) {
   const hasTracked = useRef(false);
-  const timeoutRef = useRef<NodeJS.Timeout | undefined>();
+  const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   useEffect(() => {
     if (!enabled || hasTracked.current || !contentId) return;

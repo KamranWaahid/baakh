@@ -44,7 +44,7 @@ export function generateAvatarColor(poetName: string): AvatarColor {
 }
 
 // Remove background from image using AI
-async function removeBackground(imageFile: File): Promise<File> {
+async function removeImageBackground(imageFile: File): Promise<File> {
   try {
     // Use @xenova/transformers for background removal
     const { pipeline } = await import('@xenova/transformers');
@@ -57,7 +57,8 @@ async function removeBackground(imageFile: File): Promise<File> {
     const uint8Array = new Uint8Array(arrayBuffer);
     
     // Process image to get segmentation mask
-    const result = await segmenter(uint8Array);
+    // The segmenter expects an array of images, and Uint8Array should work
+    const result = await segmenter([uint8Array] as any);
     
     // Find the person/object mask (usually the largest connected component)
     const mask = result[0]?.mask || result[0];
@@ -128,7 +129,7 @@ export async function processPoetImage(
   // Step 1: Remove background if requested
   if (removeBackground) {
     try {
-      processedFile = await removeBackground(file);
+      processedFile = await removeImageBackground(file);
     } catch (error) {
       console.warn('Background removal failed, continuing with compression:', error);
     }

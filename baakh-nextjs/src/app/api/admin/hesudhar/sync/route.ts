@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
     console.log(`📥 Found ${newEntries.length} new entries`);
     
     // Read existing file content
-    let existingEntries = new Map();
+    const existingEntries = new Map();
     
     if (fs.existsSync(HESUDHAR_FILE_PATH)) {
       const existingContent = fs.readFileSync(HESUDHAR_FILE_PATH, 'utf8');

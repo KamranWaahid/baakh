@@ -7,7 +7,7 @@ export default function LocaleNotFound() {
         <div className="text-gray-500 text-6xl mb-6">🔍</div>
         <h1 className="text-3xl font-bold text-gray-900 mb-4">Page Not Found</h1>
         <p className="text-gray-600 mb-8 text-lg">
-          The page you're looking for doesn't exist.
+          The page you&apos;re looking for doesn&apos;t exist.
         </p>
         <Link
           href="/en"

@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ArrowRight, BookOpen, Feather, ScrollText, Star, Calendar } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
 
 interface TimelinePeriod {
   id: string;
@@ -32,9 +33,9 @@ export default function TimelineSection({ isSindhi }: TimelineSectionProps) {
 
   useEffect(() => {
     fetchTimelineData();
-  }, [isSindhi]);
+  }, [fetchTimelineData]);
 
-  const fetchTimelineData = async () => {
+  const fetchTimelineData = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch(`/api/timeline/periods?lang=${isSindhi ? 'sd' : 'en'}&featured=true&limit=3`);
@@ -48,7 +49,7 @@ export default function TimelineSection({ isSindhi }: TimelineSectionProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [isSindhi]);
 
   // Fallback data if API fails
   const fallbackPeriods = [
@@ -233,12 +234,12 @@ export default function TimelineSection({ isSindhi }: TimelineSectionProps) {
         {/* View Full Timeline Button */}
         <div className="text-center mt-12">
           <Button variant="outline" className="border border-gray-300 text-gray-700 hover:border-black hover:text-black rounded-full font-medium text-sm bg-white" asChild>
-            <a href="/admin/timeline">
+            <Link href="/admin/timeline">
               <span className={isSindhi ? 'auto-sindhi-font button-text' : ''}>
                 {isSindhi ? 'مکمل تاريخ ڏسو' : 'View Full Timeline'}
               </span>
               <ArrowRight className="h-4 w-4 ml-2" />
-            </a>
+            </Link>
           </Button>
         </div>
       </div>

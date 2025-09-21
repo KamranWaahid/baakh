@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 import { Bookmark, ArrowLeft, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import CoupletCard from '@/components/CoupletCard';
@@ -17,8 +17,8 @@ export default function BookmarksPage() {
   const { language, isRTL } = useLanguage();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [bookmarks, setBookmarks] = useState<unknown[]>([]);
-  const [content, setContent] = useState<unknown[]>([]);
+  const [, setBookmarks] = useState<Record<string, unknown>[]>([]);
+  const [content, setContent] = useState<Record<string, unknown>[]>([]);
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -29,9 +29,9 @@ export default function BookmarksPage() {
     if (isAuthenticated && user?.userId) {
       fetchBookmarks();
     }
-  }, [authLoading, isAuthenticated, user, language, router]);
+  }, [authLoading, isAuthenticated, user, language, router, fetchBookmarks]);
 
-  const fetchBookmarks = async () => {
+  const fetchBookmarks = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
@@ -51,7 +51,7 @@ export default function BookmarksPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user?.userId]);
 
   const getBackLink = () => `/${language}/dashboard`;
 

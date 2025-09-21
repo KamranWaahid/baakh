@@ -59,12 +59,12 @@ export class CryptoUtils {
     const encrypted = await crypto.subtle.encrypt(
       {
         name: 'AES-GCM',
-        iv: nonce,
+        iv: nonce.buffer as unknown as ArrayBuffer,
         additionalData: aad,
         tagLength: 128
       },
       key,
-      plaintext.buffer
+      plaintext.buffer as unknown as ArrayBuffer
     );
     
     return {
@@ -106,12 +106,12 @@ export class CryptoUtils {
       const decrypted = await crypto.subtle.decrypt(
         {
           name: 'AES-GCM',
-          iv: nonce,
+          iv: nonce.buffer as unknown as ArrayBuffer,
           additionalData: aad,
           tagLength: 128
         },
         key,
-        cipher.buffer
+        cipher.buffer as unknown as ArrayBuffer
       );
       
       return new TextDecoder().decode(decrypted);
@@ -173,7 +173,7 @@ export class CryptoUtils {
       const derivedKey = await crypto.subtle.deriveKey(
         {
           name: 'PBKDF2',
-          salt: salt.buffer,
+          salt: salt.buffer as unknown as ArrayBuffer,
           iterations: iterations,
           hash: 'SHA-256'
         },
@@ -200,7 +200,7 @@ export class CryptoUtils {
   // Convert Uint8Array to base64
   static toBase64(bytes: Uint8Array): string {
     try {
-      return btoa(String.fromCharCode(...bytes));
+      return btoa(String.fromCharCode.apply(null, Array.from(bytes)));
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       console.error('Error encoding to base64:', error);
@@ -345,12 +345,12 @@ export class CryptoUtils {
       const decrypted = await crypto.subtle.decrypt(
         {
           name: 'AES-GCM',
-          iv: nonce,
+          iv: nonce.buffer as unknown as ArrayBuffer,
           additionalData: aad,
           tagLength: 128
         },
         key,
-        cipher.buffer
+        cipher.buffer as unknown as ArrayBuffer
       );
 
       return new Uint8Array(decrypted);

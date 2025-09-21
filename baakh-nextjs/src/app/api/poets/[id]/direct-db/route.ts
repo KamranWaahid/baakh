@@ -277,7 +277,7 @@ export async function GET(
       created_at: couplet.created_at,
       poetry_id: couplet.poetry_id,
       poet_id: couplet.poet_id,
-      lines: couplet.couplet_text ? couplet.couplet_text.split('\n').filter(line => line.trim()) : [],
+      lines: couplet.couplet_text ? couplet.couplet_text.split('\n').filter((line: string) => line.trim()) : [],
       poet: couplet.poets || null
     }));
 
