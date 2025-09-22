@@ -1,19 +1,11 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "baakh-nextjs/package.json",
-      "use": "@vercel/next"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "baakh-nextjs/$1"
-    }
-  ],
-  "installCommand": "cd baakh-nextjs && pnpm install",
-  "buildCommand": "cd baakh-nextjs && pnpm run build",
   "framework": "nextjs",
-  "outputDirectory": "baakh-nextjs/.next"
+  "projectSettings": {
+    "framework": "nextjs",
+    "buildCommand": "cd baakh-nextjs && npm run build",
+    "installCommand": "cd baakh-nextjs && npm ci",
+    "outputDirectory": "baakh-nextjs/.next",
+    "rootDirectory": "baakh-nextjs"
+  }
 }
