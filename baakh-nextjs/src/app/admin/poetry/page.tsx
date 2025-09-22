@@ -31,6 +31,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import AdminLayout from "@/components/layouts/AdminLayout";
 import AdminPageHeader from "@/components/ui/AdminPageHeader";
+import { supabase } from "@/lib/supabase/client";
 
 interface PoetryItem {
   id: string;
@@ -114,7 +115,14 @@ export default function AdminPoetryListPage() {
         sortOrder: sortAsc ? 'asc' : 'desc'
       });
 
-      const response = await fetch(`/api/admin/poetry?${params}`, { cache: 'no-store' });
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token;
+
+      const response = await fetch(`/api/admin/poetry?${params}`, { 
+        cache: 'no-store',
+        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+        credentials: 'include'
+      });
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to fetch poetry');
@@ -173,10 +181,14 @@ export default function AdminPoetryListPage() {
       const poetry = items.find(p => p.id === poetryId);
       if (!poetry) return;
 
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token;
+
       const response = await fetch(`/api/admin/poetry/${poetryId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
         },
         body: JSON.stringify({
           is_featured: !poetry.is_featured,
@@ -212,10 +224,14 @@ export default function AdminPoetryListPage() {
       const poetry = items.find(p => p.id === poetryId);
       if (!poetry) return;
 
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token;
+
       const response = await fetch(`/api/admin/poetry/${poetryId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
         },
         body: JSON.stringify({
           visibility: !poetry.visibility,
@@ -252,8 +268,12 @@ export default function AdminPoetryListPage() {
     try {
       setDeletingItems(prev => new Set(prev).add(poetryId));
       
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token;
+
       const response = await fetch(`/api/admin/poetry/${poetryId}`, {
         method: 'DELETE',
+        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
       });
 
       if (response.ok) {
