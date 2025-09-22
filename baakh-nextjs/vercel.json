@@ -1,10 +1,10 @@
 {
   "version": 2,
   "functions": {
-    "api/**/*.js": { "runtime": "nodejs20.x" },
-    "api/**/*.ts": { "runtime": "nodejs20.x" },
-    "app/**/route.js": { "runtime": "nodejs20.x" },
-    "app/**/route.ts": { "runtime": "nodejs20.x" }
+    "api/**/*.js": { "runtime": "@vercel/node@3" },
+    "api/**/*.ts": { "runtime": "@vercel/node@3" },
+    "app/**/route.js": { "runtime": "@vercel/node@3" },
+    "app/**/route.ts": { "runtime": "@vercel/node@3" }
   }
 }
 
