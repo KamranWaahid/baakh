@@ -5,20 +5,39 @@ export async function GET(request: NextRequest) {
   try {
     const supabase = createAdminClient();
     
-    // Get count of poetry_main (public poetry only)
-    const { count, error } = await supabase
-      .from('poetry_main')
-      .select('*', { count: 'exact', head: true })
-      .eq('visibility', true);
+    // Get counts for all categories
+    const [poetryResult, poetsResult, categoriesResult, topicsResult] = await Promise.all([
+      supabase
+        .from('poetry_main')
+        .select('*', { count: 'exact', head: true })
+        .eq('visibility', true),
+      supabase
+        .from('poets')
+        .select('*', { count: 'exact', head: true })
+        .eq('visibility', true),
+      supabase
+        .from('categories')
+        .select('*', { count: 'exact', head: true })
+        .eq('visibility', true),
+      supabase
+        .from('topics')
+        .select('*', { count: 'exact', head: true })
+        .eq('visibility', true)
+    ]);
 
-    if (error) {
-      console.error('Error getting poetry count:', error);
-      return NextResponse.json({ total: 0 });
-    }
-
-    return NextResponse.json({ total: count || 0 });
+    return NextResponse.json({
+      totalPoetry: poetryResult.count || 0,
+      totalPoets: poetsResult.count || 0,
+      totalCategories: categoriesResult.count || 0,
+      totalTopics: topicsResult.count || 0
+    });
   } catch (error) {
     console.error('Poetry count API error:', error);
-    return NextResponse.json({ total: 0 });
+    return NextResponse.json({
+      totalPoetry: 0,
+      totalPoets: 0,
+      totalCategories: 0,
+      totalTopics: 0
+    });
   }
 }

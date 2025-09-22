@@ -1,12 +1,12 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useE2EEAuth } from '@/hooks/useE2EEAuth-new'
 import { ArrowRight } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
-export default function SignupNamePage() {
+function SignupNameContent() {
   const [sindhiName, setSindhiName] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
@@ -178,5 +178,20 @@ export default function SignupNamePage() {
         </AnimatePresence>
       </motion.div>
     </motion.div>
+  )
+}
+
+export default function SignupNamePage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-white p-4">
+        <div className="flex items-center gap-3">
+          <div className="w-5 h-5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+          <span className="text-base text-gray-600">Loading...</span>
+        </div>
+      </div>
+    }>
+      <SignupNameContent />
+    </Suspense>
   )
 }
