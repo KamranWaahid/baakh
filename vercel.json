@@ -1,11 +1,7 @@
 {
   "version": 2,
   "framework": "nextjs",
-  "projectSettings": {
-    "framework": "nextjs",
-    "buildCommand": "cd baakh-nextjs && npm run build",
-    "installCommand": "cd baakh-nextjs && npm ci",
-    "outputDirectory": "baakh-nextjs/.next",
-    "rootDirectory": "baakh-nextjs"
-  }
+  "installCommand": "cd baakh-nextjs && npm ci",
+  "buildCommand": "cd baakh-nextjs && npm run build",
+  "outputDirectory": "baakh-nextjs/.next"
 }
