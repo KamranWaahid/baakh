@@ -35,6 +35,34 @@ interface AlertRule {
   actions: string[]; // webhook, email, slack, etc.
 }
 
+// Create a safe no-op Supabase mock to avoid crashes when env vars are missing
+function createSupabaseMock() {
+  const noData = { data: null, error: null } as any;
+  const emptyList = { data: [], error: null } as any;
+  const countZero = { count: 0, error: null } as any;
+
+  const chain = () => ({
+    select: () => ({ gte: () => ({ order: () => ({ limit: () => emptyList }) }), eq: () => ({ single: () => noData }) }),
+    eq: () => chain(),
+    gte: () => chain(),
+    order: () => chain(),
+    limit: () => emptyList,
+    insert: () => ({ error: null }),
+  });
+
+  return {
+    from: () => ({
+      select: (_cols?: any, opts?: any) => (opts && opts.count ? countZero : emptyList),
+      eq: () => chain(),
+      gte: () => chain(),
+      order: () => chain(),
+      limit: () => emptyList,
+      insert: (_rows: any) => ({ error: null }),
+    }),
+    rpc: () => ({ error: null }),
+  } as any;
+}
+
 class SecurityMonitor {
   private supabase: any;
   private alertRules: Map<string, AlertRule> = new Map();
@@ -43,10 +71,15 @@ class SecurityMonitor {
   private flushInterval = 30000; // 30 seconds
 
   constructor() {
-    this.supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!url || !serviceKey) {
+      console.warn('⚠️ SecurityMonitor: Supabase not configured. Using no-op client.');
+      this.supabase = createSupabaseMock();
+    } else {
+      this.supabase = createClient(url, serviceKey);
+    }
 
     this.initializeAlertRules();
     this.startEventBufferFlush();
