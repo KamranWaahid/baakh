@@ -1,0 +1,14 @@
+{
+  "version": 2,
+  "builds": [
+    { "src": "baakh-nextjs/next.config.mjs", "use": "@vercel/next" }
+  ],
+  "routes": [
+    { "src": "/(.*)", "dest": "baakh-nextjs/$1" }
+  ],
+  "functions": {
+    "nodejs": { "runtime": "nodejs20.x" }
+  }
+}
+
+
