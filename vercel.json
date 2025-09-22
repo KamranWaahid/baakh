@@ -1,0 +1,14 @@
+{
+  "version": 2,
+  "buildCommand": "cd baakh-nextjs && npm run build",
+  "installCommand": "cd baakh-nextjs && npm ci",
+  "outputDirectory": "baakh-nextjs/.next",
+  "functions": {
+    "baakh-nextjs/src/app/**/route.js": { "runtime": "@vercel/node@3" },
+    "baakh-nextjs/src/app/**/route.ts": { "runtime": "@vercel/node@3" },
+    "baakh-nextjs/api/**/*.js": { "runtime": "@vercel/node@3" },
+    "baakh-nextjs/api/**/*.ts": { "runtime": "@vercel/node@3" }
+  }
+}
+
+
