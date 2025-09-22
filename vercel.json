@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "installCommand": "cd baakh-nextjs && npm ci",
-  "buildCommand": "cd baakh-nextjs && npm run build",
-  "outputDirectory": "baakh-nextjs/.next"
+  "installCommand": "npm ci",
+  "buildCommand": "npm run build",
+  "outputDirectory": ".next"
 }
 
 
