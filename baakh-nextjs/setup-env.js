@@ -19,9 +19,9 @@ const csrfSecret = crypto.randomBytes(32).toString('hex');
 // Create .env.local template
 const envTemplate = `# Supabase Configuration
 # Get these from: https://app.supabase.com/project/YOUR_PROJECT/settings/api
-NEXT_PUBLIC_SUPABASE_URL=https://uhbqcaxwfossrjwusclc.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoYnFjYXh3Zm9zc3Jqd3VzY2xjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ1OTE4NjIsImV4cCI6MjA3MDE2Nzg2Mn0.elCwJyS0PM_OFK4UpuQ24zLdnPZr78A_46aGDlgJYw4
-SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoYnFjYXh3Zm9zc3Jqd3VzY2xjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NDU5MTg2MiwiZXhwIjoyMDcwMTY3ODYyfQ.krWIEF9IcNPP-do2ULZmlEzvIdGdSzczgrK-NJM8GSw
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url_here
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key_here
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key_here
 
 # Security Configuration
 CSRF_SECRET=${csrfSecret}

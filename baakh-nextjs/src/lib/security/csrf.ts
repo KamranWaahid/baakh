@@ -1,9 +1,11 @@
 import { randomBytes, createHmac } from 'crypto';
 
-const CSRF_SECRET = process.env.CSRF_SECRET;
-
-if (!CSRF_SECRET) {
-  throw new Error('CSRF_SECRET environment variable is required for security. Please set it in your .env.local file.');
+function getCsrfSecret(): string {
+  const secret = process.env.CSRF_SECRET;
+  if (!secret) {
+    throw new Error('CSRF_SECRET environment variable is required for security. Please set it in your .env.local (local) and Project Environment Variables (Vercel).');
+  }
+  return secret;
 }
 const CSRF_TOKEN_LENGTH = 32;
 const CSRF_TOKEN_EXPIRY = 60 * 60 * 1000; // 1 hour
@@ -43,7 +45,7 @@ export function verifyCSRFToken(token: string, storedToken: string, storedExpire
  * Create a signed CSRF token for additional security
  */
 export function createSignedCSRFToken(token: string): string {
-  const hmac = createHmac('sha256', CSRF_SECRET!);
+  const hmac = createHmac('sha256', getCsrfSecret());
   hmac.update(token);
   const signature = hmac.digest('hex');
   return `${token}.${signature}`;
@@ -61,7 +63,7 @@ export function verifySignedCSRFToken(signedToken: string): string | null {
   const [token, signature] = parts;
   
   // Verify signature
-  const hmac = createHmac('sha256', CSRF_SECRET!);
+  const hmac = createHmac('sha256', getCsrfSecret());
   hmac.update(token);
   const expectedSignature = hmac.digest('hex');
   

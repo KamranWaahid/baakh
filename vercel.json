@@ -1,7 +1,0 @@
-{
-  "version": 2,
-  "framework": "nextjs",
-  "installCommand": "cd baakh-nextjs && npm ci",
-  "buildCommand": "cd baakh-nextjs && npm run build",
-  "outputDirectory": "baakh-nextjs/.next"
-}

@@ -14,39 +14,55 @@ export function createAdminClient() {
   
   if (!isConfigured) {
     console.warn('⚠️ Admin client: Supabase not properly configured, using fallback');
-    // Return a mock client that won't crash during build
-    return {
+    // Return a mock client that mimics the subset of Supabase API used by admin routes
+    // so API routes respond quickly with safe placeholders instead of hanging the UI.
+    const makeChain = () => {
+      const chain = {
+        eq: () => chain,
+        in: () => chain,
+        gte: () => chain,
+        lt: () => chain,
+        or: () => chain,
+        order: () => chain,
+        limit: () => Promise.resolve({ data: [], error: null }),
+        range: () => Promise.resolve({ data: [], error: null })
+      };
+      return chain;
+    };
+
+    const mockClient = {
       from: () => ({
-        select: () => ({
+        // If select is used with head/count (for counts), return a resolved promise with count
+        select: (_cols?: any, opts?: { head?: boolean; count?: 'exact' | 'planned' | 'estimated' }) => {
+          if (opts?.head) {
+            return Promise.resolve({ data: null, count: 0, error: null });
+          }
+          // Otherwise, return a chainable builder; terminal ops resolve to empty arrays
+          return makeChain();
+        },
+        insert: () => ({
+          select: () => ({
+            single: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } })
+          })
+        }),
+        update: () => ({
           eq: () => ({
-            single: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
-            range: () => Promise.resolve({ data: [], error: null }),
-            order: () => ({
-              or: () => ({
-                range: () => Promise.resolve({ data: [], error: null })
-              }),
-              range: () => Promise.resolve({ data: [], error: null })
-            })
-          }),
-          insert: () => ({
             select: () => ({
               single: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } })
             })
-          }),
-          update: () => ({
-            eq: () => ({
-              select: () => ({
-                single: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } })
-              })
-            })
-          }),
-          delete: () => ({
-            eq: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } })
           })
         }),
-        count: () => Promise.resolve({ count: 0, error: null })
-      })
+        delete: () => ({
+          eq: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } })
+        })
+      }),
+      // Provide minimal storage API used by system-status route
+      storage: {
+        listBuckets: () => Promise.resolve({ data: [], error: null })
+      }
     } as any;
+
+    return mockClient;
   }
   
   return createClient(supabaseUrl!, supabaseServiceKey!, {
