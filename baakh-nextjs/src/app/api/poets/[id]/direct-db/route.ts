@@ -8,8 +8,8 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 // Check if environment variables are properly configured (not placeholder values)
 const isSupabaseConfigured = supabaseUrl && 
   supabaseServiceKey && 
-  supabaseUrl !== 'your_supabase_project_url_here' &&
-  supabaseServiceKey !== 'your_supabase_service_role_key_here' &&
+  supabaseUrl !== 'https://uhbqcaxwfossrjwusclc.supabase.co' &&
+  supabaseServiceKey !== 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoYnFjYXh3Zm9zc3Jqd3VzY2xjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NDU5MTg2MiwiZXhwIjoyMDcwMTY3ODYyfQ.krWIEF9IcNPP-do2ULZmlEzvIdGdSzczgrK-NJM8GSw' &&
   supabaseUrl.startsWith('https://') &&
   supabaseUrl.includes('.supabase.co');
 
