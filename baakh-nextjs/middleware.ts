@@ -1,4 +1,45 @@
 import { NextRequest, NextResponse } from 'next/server';
+
+// Adjust this to your actual default locale
+const DEFAULT_LOCALE = 'en';
+
+// If you have a known set of locales, list them here to avoid redirect loops
+// Example: ['en', 'sd', 'ur']
+const SUPPORTED_LOCALES = new Set<string>([DEFAULT_LOCALE]);
+
+export function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // Ignore Next.js internals and static assets
+  if (
+    pathname.startsWith('/_next') ||
+    pathname.startsWith('/_vercel') ||
+    pathname.startsWith('/api') ||
+    pathname.startsWith('/assets') ||
+    pathname.includes('.')
+  ) {
+    return NextResponse.next();
+  }
+
+  // Path already has a leading locale segment
+  const segments = pathname.split('/').filter(Boolean);
+  const leading = segments[0];
+  if (leading && SUPPORTED_LOCALES.has(leading)) {
+    return NextResponse.next();
+  }
+
+  // Redirect to default locale
+  const url = request.nextUrl.clone();
+  const target = `/${DEFAULT_LOCALE}${pathname === '/' ? '' : pathname}`;
+  url.pathname = target;
+  return NextResponse.redirect(url);
+}
+
+export const config = {
+  matcher: ['/((?!.*\.).*)'],
+};
+
+import { NextRequest, NextResponse } from 'next/server';
 import { generateNonce, createCSPHeader } from './src/lib/security/nonce';
 
 export function middleware(request: NextRequest) {
