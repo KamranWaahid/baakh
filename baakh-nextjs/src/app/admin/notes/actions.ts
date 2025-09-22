@@ -45,9 +45,9 @@ export async function createNote(form: unknown) {
   if (error) throw error;
 
   if (parsed.tags.length) {
-    const { data: tagRows } = await sb.from('tags').select('id,slug').in('slug', parsed.tags);
+    const { data: tagRows }: { data: Pick<Tag,'id'|'slug'>[] | null } = await sb.from('tags').select('id,slug').in('slug', parsed.tags);
     if (tagRows?.length) {
-      const noteTagData: NoteTagInsert[] = tagRows.map((t: Tag) => ({ note_id: note.id, tag_id: t.id }));
+      const noteTagData: NoteTagInsert[] = tagRows.map(t => ({ note_id: note.id, tag_id: t.id }));
       await sb.from('note_tags').insert(noteTagData);
     }
   }
@@ -72,10 +72,10 @@ export async function updateNote(id: string, patch: Partial<z.infer<typeof NoteS
     if (tags.length) {
       const tagData: TagInsert[] = tags.map((slug: string) => ({ slug, label: slug }));
       await sb.from('tags').upsert(tagData, { onConflict: 'slug' });
-      const { data: tagRows } = await sb.from('tags').select('id,slug').in('slug', tags);
+      const { data: tagRows }: { data: Pick<Tag,'id'|'slug'>[] | null } = await sb.from('tags').select('id,slug').in('slug', tags);
       await sb.from('note_tags').delete().eq('note_id', id);
       if (tagRows?.length) {
-        const noteTagData: NoteTagInsert[] = tagRows.map((t: Tag) => ({ note_id: id, tag_id: t.id }));
+        const noteTagData: NoteTagInsert[] = tagRows.map(t => ({ note_id: id, tag_id: t.id }));
         await sb.from('note_tags').insert(noteTagData);
       }
     } else {
