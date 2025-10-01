@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
       .order('start_year', { ascending: true });
 
     if (search) {
-      query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%`);
+      query = query.or(`english_name.ilike.%${search}%,sindhi_name.ilike.%${search}%,english_description.ilike.%${search}%,sindhi_description.ilike.%${search}%,period_slug.ilike.%${search}%`);
     }
 
     if (limit) {

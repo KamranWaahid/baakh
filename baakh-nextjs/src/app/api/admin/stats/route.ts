@@ -3,7 +3,33 @@ import { createAdminClient } from '@/lib/supabase/admin';
 
 export async function GET(request: NextRequest) {
   try {
+    console.log('Admin stats API: Starting request');
     const supabase = createAdminClient();
+    
+    // Check if Supabase is properly configured
+    if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      console.warn('Admin stats API: Supabase not configured, returning mock data');
+      return NextResponse.json({
+        totalPoets: 0,
+        totalPoetry: 0,
+        totalTags: 0,
+        totalCategories: 0,
+        totalCouplets: 0,
+        weeklyChanges: {
+          poets: '0%',
+          poetry: '0%',
+          tags: '0%',
+          views: '0%'
+        },
+        recentActivity: {
+          poets: [],
+          poetry: [],
+          tags: [],
+          categories: []
+        }
+      });
+    }
+    
     const now = Date.now();
     const last7Start = new Date(now - 7 * 24 * 60 * 60 * 1000).toISOString();
     const prev7Start = new Date(now - 14 * 24 * 60 * 60 * 1000).toISOString();

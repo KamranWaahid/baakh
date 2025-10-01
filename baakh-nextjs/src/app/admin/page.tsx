@@ -67,6 +67,12 @@ interface AdminStats {
       slug: string;
       created_at: string;
     }>;
+    categories: Array<{
+      id: string;
+      name: string;
+      slug: string;
+      created_at: string;
+    }>;
   };
 }
 
@@ -162,15 +168,45 @@ export default function AdminDashboard() {
       });
       
       if (!response.ok) {
-        throw new Error('Failed to fetch statistics');
+        const errorText = await response.text();
+        console.error('AdminDashboard: API error response:', response.status, errorText);
+        throw new Error(`Failed to fetch statistics: ${response.status} ${errorText}`);
       }
       
       const data = await response.json();
       console.log('AdminDashboard: Stats fetched successfully:', data);
-      setStats(data);
+      
+      // Ensure we have valid stats data
+      if (data && typeof data === 'object') {
+        setStats(data);
+      } else {
+        console.warn('AdminDashboard: Invalid stats data received:', data);
+        setError('Invalid statistics data received');
+      }
     } catch (err) {
       console.error('Error fetching admin stats:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch statistics');
+      
+      // Set fallback stats to prevent infinite loading
+      setStats({
+        totalPoets: 0,
+        totalPoetry: 0,
+        totalTags: 0,
+        totalCategories: 0,
+        totalCouplets: 0,
+        weeklyChanges: {
+          poets: '0%',
+          poetry: '0%',
+          tags: '0%',
+          views: '0%'
+        },
+        recentActivity: {
+          poets: [],
+          poetry: [],
+          tags: [],
+          categories: []
+        }
+      });
     } finally {
       setLoading(false);
     }

@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 interface LogoProps {
   size?: "sm" | "md" | "lg" | "xl" | "2xl" | "3xl";
@@ -28,10 +29,13 @@ export function Logo({ size = "md", className, showText = false }: LogoProps) {
   return (
     <div className={cn("flex items-center gap-2", className)}>
       <div className={cn("flex items-center justify-center", sizeClasses[size])}>
-        <img 
+        <Image 
           src="/Baakh.svg" 
           alt="Baakh Logo"
+          width={64}
+          height={64}
           className={cn("w-full h-full object-contain")}
+          priority
         />
       </div>
       {showText && (

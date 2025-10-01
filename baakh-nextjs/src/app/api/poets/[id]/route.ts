@@ -3,10 +3,10 @@ import { apiRequest, BACKEND_CONFIG } from '@/lib/config';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> }
 ) {
   console.log('=== POET BY ID API ROUTE STARTED ===');
-  const { id } = await params;
+  const { id } = await context.params;
   console.log('Poet ID:', id);
   console.log('Request URL:', request.url);
   
@@ -58,10 +58,10 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> }
 ) {
   console.log('=== POET UPDATE API ROUTE STARTED ===');
-  const { id } = await params;
+  const { id } = await context.params;
   console.log('Poet ID:', id);
   
   try {
@@ -104,10 +104,10 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> }
 ) {
   console.log('=== POET DELETE API ROUTE STARTED ===');
-  const { id } = await params;
+  const { id } = await context.params;
   console.log('Poet ID:', id);
   
   try {

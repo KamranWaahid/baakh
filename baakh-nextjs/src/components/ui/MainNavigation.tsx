@@ -11,6 +11,7 @@ import { usePathname } from "next/navigation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Logo } from "@/components/ui/logo";
 import { useE2EEAuth } from "@/hooks/useE2EEAuth";
+import Image from "next/image";
 
 const navigationItems = [
   {
@@ -110,7 +111,14 @@ export default function MainNavigation() {
           <div className="flex items-center gap-8">
             {/* Logo */}
             <Link href={isRTL ? "/sd" : "/en"} className="flex-shrink-0">
-              <img src="/Baakh.svg" alt="Baakh" className="h-8 w-auto dark:brightness-0 dark:invert" />
+              <Image 
+                src="/Baakh.svg" 
+                alt="Baakh" 
+                width={32}
+                height={32}
+                className="h-8 w-auto dark:brightness-0 dark:invert" 
+                priority
+              />
             </Link>
             
           </div>

@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useRouter, usePathname } from "next/navigation";
+import Link from "next/link";
 
 interface SearchResult {
   id: string;
@@ -153,8 +154,17 @@ export default function SearchInterface() {
       
       console.log('Search response:', json);
       
-      const apiResults = (json?.results || []) as SearchResult[];
-      const apiPills = (json?.pills || []) as string[];
+      // Dedupe results by composite key (type-id-url) to avoid repeated entries
+      const rawResults = (json?.results || []) as SearchResult[];
+      const seenKeys = new Set<string>();
+      const apiResults = rawResults.filter((r) => {
+        const key = `${r.type}-${r.id}-${r.url}`;
+        if (seenKeys.has(key)) return false;
+        seenKeys.add(key);
+        return true;
+      });
+      // Dedupe pills
+      const apiPills = Array.from(new Set((json?.pills || []) as string[]));
       const apiDym = json?.dym as string | undefined;
       setSearchResults(apiResults);
       setPills(apiPills);
@@ -162,12 +172,17 @@ export default function SearchInterface() {
       
       const ents: Array<{ type: string; label: string }> = [];
       const perTypeCap: Record<string, number> = { poet: 0, tag: 0, category: 0 };
+      const labelSeen = new Set<string>();
       for (const r of apiResults) {
         if (r.type === 'poet' || r.type === 'tag' || r.type === 'category') {
           const cap = r.type === 'poet' ? 3 : 2;
           if ((perTypeCap[r.type] ?? 0) < cap) {
-            ents.push({ type: r.type, label: r.title });
-            perTypeCap[r.type] = (perTypeCap[r.type] ?? 0) + 1;
+            const key = `${r.type}:${r.title}`.toLowerCase();
+            if (!labelSeen.has(key)) {
+              ents.push({ type: r.type, label: r.title });
+              labelSeen.add(key);
+              perTypeCap[r.type] = (perTypeCap[r.type] ?? 0) + 1;
+            }
           }
         }
         if (ents.length >= 7) break;
@@ -400,7 +415,7 @@ export default function SearchInterface() {
             className="absolute top-full left-0 right-0 mt-2 z-50"
             dir={isRTL ? 'rtl' : 'ltr'}
           >
-            <div className="w-full bg-white/98 backdrop-blur-md border border-gray-200/60 shadow-2xl rounded-xl overflow-hidden">
+            <div className="w-full bg-white border border-gray-200 shadow-xl rounded-xl overflow-hidden">
               <div className="p-3">
                 {pills.length > 0 && (
                   <div className="flex flex-wrap gap-2 mb-3">
@@ -481,7 +496,7 @@ export default function SearchInterface() {
                           // Remove duplicates and group by type with priority order
                           const seen = new Set<string>();
                           const uniqueResults = searchResults.filter(result => {
-                            const key = `${result.type}-${result.id}`;
+                            const key = `${result.type}-${result.id}-${result.url}`;
                             if (seen.has(key)) return false;
                             seen.add(key);
                             return true;
@@ -513,23 +528,23 @@ export default function SearchInterface() {
                                 delay: index * 0.02,
                                 ease: "easeOut"
                               }}
-                              className="group cursor-pointer"
-                              onClick={() => handleResultClick(result)}
                             >
-                              <div className="px-4 py-3 hover:bg-gray-50 transition-colors duration-150">
-                                <div className="flex items-center justify-between">
-                                  <div className="flex-1 min-w-0">
-                                    <h4 className={`${isSindhi ? 'auto-sindhi-font' : ''} text-sm text-gray-900 group-hover:text-gray-700 transition-colors group-hover:underline`}>
-                                      {result.title}
-                                    </h4>
-                                    {result.metadata?.poet && result.type !== 'poet' && (
-                                      <p className={`${isSindhi ? 'auto-sindhi-font' : ''} text-xs text-gray-500 mt-0.5`}>
-                                        {isSindhi ? 'شاعر:' : 'by'} {result.metadata.poet}
-                                      </p>
-                                    )}
+                              <Link href={result.url} className="block">
+                                <div className="px-4 py-3 hover:bg-gray-50 transition-colors duration-150">
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex-1 min-w-0">
+                                      <h4 className={`${isSindhi ? 'auto-sindhi-font' : ''} text-sm text-gray-900 hover:text-gray-700 transition-colors underline-offset-2 hover:underline`}>
+                                        {result.title}
+                                      </h4>
+                                      {result.metadata?.poet && result.type !== 'poet' && (
+                                        <p className={`${isSindhi ? 'auto-sindhi-font' : ''} text-xs text-gray-500 mt-0.5`}>
+                                          {isSindhi ? 'شاعر:' : 'by'} {result.metadata.poet}
+                                        </p>
+                                      )}
+                                    </div>
                                   </div>
                                 </div>
-                              </div>
+                              </Link>
                             </motion.div>
                           ));
                         })()}

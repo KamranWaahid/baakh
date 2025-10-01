@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect } from 'react';
+import { AlertTriangle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export default function LocaleError({
   error,
@@ -17,17 +19,16 @@ export default function LocaleError({
   return (
     <div className="min-h-screen bg-white flex items-center justify-center">
       <div className="text-center max-w-md mx-auto px-6">
-        <div className="text-red-500 text-6xl mb-6">⚠️</div>
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">Something went wrong!</h1>
-        <p className="text-gray-600 mb-8 text-lg">
-          {error.message || 'An unexpected error occurred'}
+        <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-full border border-gray-200 bg-white shadow-sm">
+          <AlertTriangle className="h-5 w-5 text-red-500" />
+        </div>
+        <h1 className="text-2xl font-semibold text-gray-900 mb-2">Something went wrong</h1>
+        <p className="text-gray-600 mb-6 text-base leading-relaxed">
+          {error.message || 'An unexpected error occurred.'}
         </p>
-        <button
-          onClick={reset}
-          className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-        >
+        <Button onClick={reset} className="px-6">
           Try again
-        </button>
+        </Button>
       </div>
     </div>
   );

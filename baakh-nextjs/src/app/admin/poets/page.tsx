@@ -36,6 +36,7 @@ interface Poet {
   english_details?: string;
   created_at: string;
   updated_at: string;
+  works_count?: number;
 }
 
 export default function PoetsPage() {
@@ -337,7 +338,8 @@ export default function PoetsPage() {
                        <tr className="border-b border-[#E5E5E5]">
                          <th className="text-left font-semibold px-4 py-3">Poet</th>
                          <th className="text-left font-semibold px-4 py-3">Status</th>
-                         <th className="text-left font-semibold px-4 py-3">Languages</th>
+                        <th className="text-left font-semibold px-4 py-3">Languages</th>
+                        <th className="text-left font-semibold px-4 py-3">Works</th>
                          <th className="text-left font-semibold px-4 py-3">Created</th>
                          <th className="text-right font-semibold px-4 py-3">Actions</th>
                        </tr>
@@ -349,12 +351,34 @@ export default function PoetsPage() {
                              key={poet.id} 
                              className="border-b border-[#E5E5E5] hover:bg-[#F4F4F5] transition-colors duration-200"
                            >
-                             <td className="px-4 py-3">
-                               <div className="flex items-center gap-3">
-                                 <div className="p-2 rounded-full bg-green-100 text-green-800 border border-green-200">
-                                   <Users className="w-4 h-4" />
-                                 </div>
-                                 <div>
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-3">
+                                {typeof poet.file_url === 'string' && poet.file_url.trim() !== '' ? (
+                                  <>
+                                    <img
+                                      src={poet.file_url}
+                                      alt={poet.english_name || poet.sindhi_name || poet.poet_slug}
+                                      className="w-9 h-9 rounded-full object-cover border border-[#E5E5E5] bg-[#F4F4F5]"
+                                      loading="lazy"
+                                      decoding="async"
+                                      referrerPolicy="no-referrer"
+                                      onError={(e) => {
+                                        const img = e.currentTarget;
+                                        img.style.display = 'none';
+                                        const fallback = img.nextElementSibling as HTMLElement | null;
+                                        if (fallback) fallback.style.display = 'flex';
+                                      }}
+                                    />
+                                    <div style={{ display: 'none' }} className="p-2 rounded-full bg-green-100 text-green-800 border border-green-200">
+                                      <Users className="w-4 h-4" />
+                                    </div>
+                                  </>
+                                ) : (
+                                  <div className="p-2 rounded-full bg-green-100 text-green-800 border border-green-200">
+                                    <Users className="w-4 h-4" />
+                                  </div>
+                                )}
+                                <div>
                                    <div className="font-medium text-[#1F1F1F]">
                                      {poet.english_laqab || poet.sindhi_laqab || poet.english_name || poet.sindhi_name}
                                    </div>
@@ -423,6 +447,12 @@ export default function PoetsPage() {
                                  )}
                                </div>
                              </td>
+                            <td className="px-4 py-3">
+                              <div className="text-[#1F1F1F] font-medium">
+                                {typeof poet.works_count === 'number' ? poet.works_count : '—'}
+                              </div>
+                              <div className="text-xs text-[#6B6B6B]">couplets</div>
+                            </td>
                              <td className="px-4 py-3 text-[#6B6B6B]">
                                {new Date(poet.created_at).toLocaleDateString()}
                              </td>

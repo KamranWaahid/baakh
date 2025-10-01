@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import GlobalErrorHandler from '@/components/GlobalErrorHandler'
+import FontPreloader from '@/components/FontPreloader'
 
 // Modern Font System - Helvetica Now Text Regular (system font)
 
@@ -40,8 +41,14 @@ export default function RootLayout({
         <link rel="manifest" href="/manifest.json" />
         
         {/* Modern Font System - Helvetica Now Text Regular (system font) */}
+        {/* External font stylesheet for MB Lateefi SK 2.0 (requested) */}
+        <link
+          href="https://db.onlinewebfonts.com/c/b2570ec402764ecff4b56583fd2370a4?family=MB+Lateefi+SK+2.0"
+          rel="stylesheet"
+        />
       </head>
       <body>
+        <FontPreloader />
         <GlobalErrorHandler />
         {children}
       </body>

@@ -50,17 +50,37 @@ CREATE OR REPLACE FUNCTION track_content_view(
     p_session_id VARCHAR(255) DEFAULT NULL,
     p_user_ip VARCHAR(45) DEFAULT NULL,
     p_user_agent TEXT DEFAULT NULL
-) RETURNS BOOLEAN AS $$
+) RETURNS JSON AS $$
+DECLARE
+    result JSON;
+    inserted_count INTEGER;
 BEGIN
     -- Insert view record (will fail silently if duplicate due to unique constraint)
     INSERT INTO public.content_views (content_id, content_type, session_id, user_ip, user_agent)
     VALUES (p_content_id, p_content_type, COALESCE(p_session_id, gen_random_uuid()::text), p_user_ip, p_user_agent)
     ON CONFLICT (content_id, content_type, session_id) DO NOTHING;
     
-    RETURN TRUE;
+    -- Get the number of rows affected
+    GET DIAGNOSTICS inserted_count = ROW_COUNT;
+    
+    -- Return JSON with success status and whether a new view was inserted
+    result := json_build_object(
+        'success', true,
+        'new_view', inserted_count > 0,
+        'message', CASE 
+            WHEN inserted_count > 0 THEN 'New view tracked'
+            ELSE 'View already exists for this device+IP+browser+location combination'
+        END
+    );
+    
+    RETURN result;
 EXCEPTION
     WHEN OTHERS THEN
-        RETURN FALSE;
+        RETURN json_build_object(
+            'success', false,
+            'new_view', false,
+            'message', 'Error tracking view: ' || SQLERRM
+        );
 END;
 $$ LANGUAGE plpgsql;
 

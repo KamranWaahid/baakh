@@ -43,6 +43,9 @@ export default function LanguageDropdown() {
                 language === lang.code ? 'bg-accent/50 text-accent-foreground' : ''
               }`}
               onClick={() => setLanguage(lang.code as 'en' | 'sd')}
+              style={{ outline: 'none' }}
+              onMouseDown={(e) => e.preventDefault()}
+              onFocus={(e) => e.currentTarget.blur()}
             >
               <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${
                 language === lang.code 
@@ -51,7 +54,7 @@ export default function LanguageDropdown() {
               }`}>
                 {lang.symbol}
               </span>
-              <span className={lang.code === 'sd' ? 'auto-sindhi-font nav-text' : ''}>{lang.name}</span>
+              <span className={lang.code === 'sd' ? 'auto-sindhi-font nav-text' : 'font-english'}>{lang.name}</span>
               {language === lang.code && (
                 <span className="ml-auto text-xs text-primary">✓</span>
               )}

@@ -167,14 +167,28 @@ export default function ContactPage() {
   // Apply Sindhi font only if text contains Arabic/Sindhi characters
   // const sd = (text?: string | null) => (text && /[\u0600-\u06FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(text) ? 'auto-sindhi-font' : '');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission
-    console.log("Form submitted:", formData);
-    // Reset form
-    setFormData({ name: "", email: "", subject: "", message: "" });
-    setSubmitted(true);
-    setTimeout(() => setSubmitted(false), 3000);
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          subject: formData.subject,
+          message: formData.message
+        })
+      });
+      if (!res.ok) {
+        return;
+      }
+      setFormData({ name: "", email: "", subject: "", message: "" });
+      setSubmitted(true);
+      setTimeout(() => setSubmitted(false), 3000);
+    } catch (err) {
+      // silent fail
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -224,14 +238,14 @@ export default function ContactPage() {
               transition={{ duration: 0.8 }}
               viewport={{ once: true }}
             >
-              <Card className="rounded-2xl border border-gray-200 bg-white/80 backdrop-blur-sm">
-                <CardHeader className="pb-6">
+              <Card className="rounded-2xl border border-gray-200 bg-white shadow-sm">
+                <CardHeader className="px-8 pt-8 pb-4">
                   <CardTitle className={`flex items-center gap-3 text-xl font-semibold ${getSmartFontClass(content.sendMessage[locale])} ${!isRTL ? 'font-bold tracking-tight' : ''}`}>
                     <MessageSquare className="w-6 h-6 text-gray-700" />
                     <span>{content.sendMessage[locale]}</span>
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-6">
+                <CardContent className="space-y-6 px-8 pb-8">
                   {submitted && (
                     <div className="mb-6 p-4 rounded-xl bg-green-50 border border-green-200 text-green-700">
                       <p className={`text-sm font-medium ${getSmartFontClass(content.thanksMessage[locale])}`}>
@@ -257,7 +271,7 @@ export default function ContactPage() {
                             value={formData.name}
                             onChange={handleChange}
                             placeholder={content.namePlaceholder[locale]}
-                            className="h-12 pl-10 rounded-xl border-2 border-gray-200 bg-white focus:border-gray-400 focus:ring-2 focus:ring-gray-100 transition-all duration-200"
+                            className="h-12 pl-10 rounded-xl border border-gray-200 bg-white focus:border-gray-300 focus:ring-2 focus:ring-gray-100 transition-all duration-200"
                             required
                           />
                         </div>
@@ -277,7 +291,7 @@ export default function ContactPage() {
                             value={formData.email}
                             onChange={handleChange}
                             placeholder={content.emailPlaceholder[locale]}
-                            className="h-12 pl-10 rounded-xl border-2 border-gray-200 bg-white focus:border-gray-400 focus:ring-2 focus:ring-gray-100 transition-all duration-200"
+                            className="h-12 pl-10 rounded-xl border border-gray-200 bg-white focus:border-gray-300 focus:ring-2 focus:ring-gray-100 transition-all duration-200"
                             required
                           />
                         </div>
@@ -299,7 +313,7 @@ export default function ContactPage() {
                           value={formData.subject}
                           onChange={handleChange}
                           placeholder={content.subjectPlaceholder[locale]}
-                          className="h-12 pl-10 rounded-xl border-2 border-gray-200 bg-white focus:border-gray-400 focus:ring-2 focus:ring-gray-100 transition-all duration-200"
+                          className="h-12 pl-10 rounded-xl border border-gray-200 bg-white focus:border-gray-300 focus:ring-2 focus:ring-gray-100 transition-all duration-200"
                           required
                         />
                       </div>
@@ -317,7 +331,7 @@ export default function ContactPage() {
                           onChange={handleChange}
                           placeholder={content.messagePlaceholder[locale]}
                           rows={6}
-                          className="rounded-xl border-2 border-gray-200 bg-white focus:border-gray-400 focus:ring-2 focus:ring-gray-100 transition-all duration-200 resize-none"
+                          className="rounded-xl border border-gray-200 bg-white focus:border-gray-300 focus:ring-2 focus:ring-gray-100 transition-all duration-200 resize-none"
                           required
                         />
                       </div>
@@ -354,8 +368,8 @@ export default function ContactPage() {
               </div>
 
               <div className="space-y-6">
-                <Card className="rounded-2xl border border-gray-200 bg-white/80 backdrop-blur-sm">
-                  <CardContent className="p-6">
+                <Card className="rounded-2xl border border-gray-200 bg-white shadow-sm">
+                  <CardContent className="px-6 py-6">
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center">
                         <Mail className="w-6 h-6 text-gray-700" />
@@ -370,8 +384,8 @@ export default function ContactPage() {
                   </CardContent>
                 </Card>
 
-                <Card className="rounded-2xl border border-gray-200 bg-white/80 backdrop-blur-sm">
-                  <CardContent className="p-6">
+                <Card className="rounded-2xl border border-gray-200 bg-white shadow-sm">
+                  <CardContent className="px-6 py-6">
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center">
                         <Globe className="w-6 h-6 text-gray-700" />
@@ -386,8 +400,8 @@ export default function ContactPage() {
                   </CardContent>
                 </Card>
 
-                <Card className="rounded-2xl border border-gray-200 bg-white/80 backdrop-blur-sm">
-                  <CardContent className="p-6">
+                <Card className="rounded-2xl border border-gray-200 bg-white shadow-sm">
+                  <CardContent className="px-6 py-6">
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center">
                         <Clock className="w-6 h-6 text-gray-700" />
@@ -404,18 +418,18 @@ export default function ContactPage() {
               </div>
 
               {/* FAQ Section */}
-              <Card className="rounded-2xl border border-gray-200 bg-white/80 backdrop-blur-sm">
-                <CardHeader className="pb-6">
+              <Card className="rounded-2xl border border-gray-200 bg-white shadow-sm mb-16">
+                <CardHeader className="px-6 pt-8 pb-4">
                   <CardTitle className={`text-xl font-semibold ${getSmartFontClass(content.faqTitle[locale])} ${!isRTL ? 'font-bold tracking-tight' : ''}`}>
                     {content.faqTitle[locale]}
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-6">
+                <CardContent className="space-y-8 pb-6 md:pb-8">
                   <div>
                     <h4 className={`font-semibold text-gray-900 mb-3 ${getSmartFontClass(content.contributeContent.question[locale])} ${!isRTL ? 'font-bold' : ''}`}>
                       {content.contributeContent.question[locale]}
                     </h4>
-                    <p className={`text-gray-600 leading-relaxed ${getSmartFontClass(content.contributeContent.answer[locale])} ${!isRTL ? 'font-medium' : ''}`}>
+                    <p className={`text-gray-600 leading-relaxed ${getSmartFontClass(content.contributeContent.answer[locale])} ${!isRTL ? 'font-normal' : ''}`}>
                       {content.contributeContent.answer[locale]}
                     </p>
                   </div>
@@ -423,7 +437,7 @@ export default function ContactPage() {
                     <h4 className={`font-semibold text-gray-900 mb-3 ${getSmartFontClass(content.useForResearch.question[locale])} ${!isRTL ? 'font-bold' : ''}`}>
                       {content.useForResearch.question[locale]}
                     </h4>
-                    <p className={`text-gray-600 leading-relaxed ${getSmartFontClass(content.useForResearch.answer[locale])} ${!isRTL ? 'font-medium' : ''}`}>
+                    <p className={`text-gray-600 leading-relaxed ${getSmartFontClass(content.useForResearch.answer[locale])} ${!isRTL ? 'font-normal' : ''}`}>
                       {content.useForResearch.answer[locale]}
                     </p>
                   </div>
@@ -431,7 +445,7 @@ export default function ContactPage() {
                     <h4 className={`font-semibold text-gray-900 mb-3 ${getSmartFontClass(content.translationAccuracy.question[locale])} ${!isRTL ? 'font-bold' : ''}`}>
                       {content.translationAccuracy.question[locale]}
                     </h4>
-                    <p className={`text-gray-600 leading-relaxed ${getSmartFontClass(content.translationAccuracy.answer[locale])} ${!isRTL ? 'font-medium' : ''}`}>
+                    <p className={`text-gray-600 leading-relaxed ${getSmartFontClass(content.translationAccuracy.answer[locale])} ${!isRTL ? 'font-normal' : ''}`}>
                       {content.translationAccuracy.answer[locale]}
                     </p>
                   </div>

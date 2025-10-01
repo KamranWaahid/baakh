@@ -1,11 +1,24 @@
+function isLikelyEvent(value: unknown): value is { type?: string; constructor?: { name?: string } } {
+  if (!value || typeof value !== 'object') return false;
+  const tag = Object.prototype.toString.call(value);
+  if (tag === '[object Event]' || tag === '[object ErrorEvent]' || tag === '[object PromiseRejectionEvent]') return true;
+  const maybe: any = value as any;
+  if (typeof maybe.type === 'string' && typeof maybe.isTrusted === 'boolean') return true;
+  const ctorName = String((maybe?.constructor && maybe.constructor.name) || '');
+  return /Event$/i.test(ctorName) || /ErrorEvent$/i.test(ctorName) || /PromiseRejectionEvent$/i.test(ctorName);
+}
+
 export function toError(x: unknown): Error {
   if (x instanceof Error) {
     return x;
   }
   
   // Handle Event objects specially
-  if (x && typeof x === 'object' && x instanceof Event) {
-    return new Error(`Event: ${x.type} (${x.constructor.name})`);
+  if (isLikelyEvent(x)) {
+    const anyX: any = x as any;
+    const type = typeof anyX?.type === 'string' ? anyX.type : 'Event';
+    const ctor = String(anyX?.constructor?.name || 'Event');
+    return new Error(`Event: ${type} (${ctor})`);
   }
   
   if (x && typeof x === 'object') {
@@ -16,8 +29,11 @@ export function toError(x: unknown): Error {
     }
     
     // Handle Event objects in nested properties
-    if (reason && typeof reason === 'object' && reason instanceof Event) {
-      return new Error(`Event: ${reason.type} (${reason.constructor.name})`);
+    if (isLikelyEvent(reason)) {
+      const r: any = reason as any;
+      const type = typeof r?.type === 'string' ? r.type : 'Event';
+      const ctor = String(r?.constructor?.name || 'Event');
+      return new Error(`Event: ${type} (${ctor})`);
     }
     
     const messageFromX = typeof anyX.message === 'string' ? anyX.message : undefined;

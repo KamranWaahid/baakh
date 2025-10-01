@@ -21,7 +21,8 @@ export default function SmartPagination({
 }: SmartPaginationProps) {
   // Calculate which page numbers to show
   const getVisiblePages = () => {
-    const maxVisible = 5; // Maximum pages to show on mobile
+    // More conservative approach for mobile - show fewer pages
+    const maxVisible = 3; // Maximum pages to show on mobile
     const pages: (number | string)[] = [];
     
     if (totalPages <= maxVisible) {
@@ -30,23 +31,23 @@ export default function SmartPagination({
         pages.push(i);
       }
     } else {
-      // Smart pagination logic
-      if (currentPage <= 3) {
-        // Show first 4 pages + last page
-        for (let i = 1; i <= 4; i++) {
+      // Smart pagination logic - more mobile-friendly
+      if (currentPage <= 2) {
+        // Show first 3 pages + last page
+        for (let i = 1; i <= 3; i++) {
           pages.push(i);
         }
-        if (totalPages > 4) {
+        if (totalPages > 3) {
           pages.push('...');
           pages.push(totalPages);
         }
-      } else if (currentPage >= totalPages - 2) {
-        // Show first page + last 4 pages
+      } else if (currentPage >= totalPages - 1) {
+        // Show first page + last 3 pages
         pages.push(1);
-        if (totalPages > 4) {
+        if (totalPages > 3) {
           pages.push('...');
         }
-        for (let i = totalPages - 3; i <= totalPages; i++) {
+        for (let i = totalPages - 2; i <= totalPages; i++) {
           pages.push(i);
         }
       } else {
@@ -67,15 +68,15 @@ export default function SmartPagination({
   const visiblePages = getVisiblePages();
 
   return (
-    <div className={`flex justify-center gap-1 sm:gap-2 ${className}`}>
+    <div className={`flex justify-center items-center gap-1 sm:gap-2 overflow-x-auto ${className}`}>
       <Button
         variant="outline"
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
-        className="h-9 border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-300 rounded-full px-3 disabled:opacity-50 flex-shrink-0"
+        className="h-8 sm:h-9 border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-300 rounded-full px-2 sm:px-3 disabled:opacity-50 flex-shrink-0"
       >
         <span className="font-medium font-inter">
-          {isRTL ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+          {isRTL ? <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4" /> : <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4" />}
         </span>
       </Button>
       
@@ -83,14 +84,14 @@ export default function SmartPagination({
         {visiblePages.map((page, index) => (
           <div key={index}>
             {page === '...' ? (
-              <span className="h-9 min-w-9 px-3 rounded-full flex items-center justify-center text-sm text-gray-500 font-inter">
+              <span className="h-8 sm:h-9 min-w-8 sm:min-w-9 px-2 sm:px-3 rounded-full flex items-center justify-center text-xs sm:text-sm text-gray-500 font-inter">
                 ...
               </span>
             ) : (
               <Button
                 variant={page === currentPage ? 'default' : 'outline'}
                 onClick={() => onPageChange(page as number)}
-                className={`h-9 min-w-9 px-3 rounded-full font-normal text-sm font-inter ${
+                className={`h-8 sm:h-9 min-w-8 sm:min-w-9 px-2 sm:px-3 rounded-full font-normal text-xs sm:text-sm font-inter ${
                   page === currentPage
                     ? 'bg-black hover:bg-gray-800 text-white'
                     : 'border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-300'
@@ -109,10 +110,10 @@ export default function SmartPagination({
         variant="outline"
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
-        className="h-9 border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-300 rounded-full px-3 disabled:opacity-50 flex-shrink-0"
+        className="h-8 sm:h-9 border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-300 rounded-full px-2 sm:px-3 disabled:opacity-50 flex-shrink-0"
       >
         <span className="font-medium font-inter">
-          {isRTL ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+          {isRTL ? <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4" /> : <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4" />}
         </span>
       </Button>
     </div>

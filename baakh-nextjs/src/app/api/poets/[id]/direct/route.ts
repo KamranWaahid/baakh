@@ -239,6 +239,21 @@ export async function GET(
     });
 
     // Build the response
+    // If tags are missing from direct DB, enrich from backend proxy if available
+    let enrichedTags: string[] = Array.isArray(poetData.tags) ? poetData.tags : [];
+    if (!enrichedTags.length) {
+      try {
+        const origin = new URL(request.url).origin;
+        const fallbackRes = await fetch(`${origin}/api/poets/${encodeURIComponent(poetSlug)}?lang=${lang}`, { cache: 'no-store' });
+        if (fallbackRes.ok) {
+          const fallbackJson = await fallbackRes.json();
+          if (Array.isArray(fallbackJson?.poet?.tags)) {
+            enrichedTags = fallbackJson.poet.tags as string[];
+          }
+        }
+      } catch {}
+    }
+
     const response = {
       success: true,
       poet: {
@@ -258,6 +273,7 @@ export async function GET(
         avatar: poetData.file_url || '/default-avatar.png',
         description: lang === 'sd' ? poetData.sindhi_details : poetData.english_details,
         longDescription: lang === 'sd' ? poetData.sindhi_details : poetData.english_details,
+        tags: enrichedTags,
         stats: {
           works: poetryData?.length || 0,
           couplets: coupletsData?.length || 0,

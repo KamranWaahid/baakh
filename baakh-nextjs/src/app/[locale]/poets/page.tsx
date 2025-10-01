@@ -18,11 +18,13 @@ import {
   ChevronDown
 } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
+import { AnimatePresence } from "framer-motion";
 // Removed unused Avatar and Image imports
 import { usePathname, useRouter } from "next/navigation";
 import { NumberFont, MixedContentWithNumbers } from "@/components/ui/NumberFont";
 import { getSmartFontClass } from "@/lib/font-detection-utils";
 import { getPrimaryPoetName, getSecondaryPoetName, getAvatarPoetName } from "@/lib/poet-name-utils";
+import SmartPagination from "@/components/ui/SmartPagination";
 
 interface Poet {
   id: string;
@@ -65,6 +67,7 @@ export default function PoetsPage() {
   const [poets, setPoets] = useState<Poet[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const [selectedPeriod, setSelectedPeriod] = useState("All Periods");
   const [error, setError] = useState<string | null>(null);
 
@@ -73,17 +76,97 @@ export default function PoetsPage() {
   const [perPage] = useState(12);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
-  const [databaseTags, setDatabaseTags] = useState<{[key: string]: string}>({});
-  const [tagsLoading, setTagsLoading] = useState(true);
+  
   const [poetStats, setPoetStats] = useState<{[key: string]: {views: number, poetryCount: number}}>({});
   const [copiedPoetId, setCopiedPoetId] = useState<string | null>(null);
+  const [detailsPoet, setDetailsPoet] = useState<Poet | null>(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+
+  // Animated counter component
+  const AnimatedCounter = ({ value, className }: { value: number; className?: string }) => {
+    const [displayValue, setDisplayValue] = useState(0);
+    
+    useEffect(() => {
+      const startValue = displayValue;
+      const endValue = value;
+      const duration = 500; // 500ms animation
+      const startTime = Date.now();
+      
+      const animate = () => {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        // Easing function for smooth animation
+        const easeOutCubic = 1 - Math.pow(1 - progress, 3);
+        const currentValue = Math.round(startValue + (endValue - startValue) * easeOutCubic);
+        
+        setDisplayValue(currentValue);
+        
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        }
+      };
+      
+      requestAnimationFrame(animate);
+    }, [value]);
+    
+    return (
+      <motion.span
+        key={value}
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.3, ease: "easeOut" }}
+        className={`number ${className || ''}`}
+        data-number="true"
+      >
+        {displayValue}
+      </motion.span>
+    );
+  };
+
+  // Normalize image src for next/image (supports absolute URLs and public assets)
+  const resolveImageSrc = (src: string | null | undefined): string | null => {
+    if (!src) return null;
+    const url = String(src).trim();
+    if (!url) return null;
+    if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:') || url.startsWith('blob:')) return url;
+    if (url.startsWith('/')) return url;
+    // Strip leading public/ if present and ensure leading slash
+    if (url.startsWith('public/')) return `/${url.slice(7)}`;
+    return `/${url}`;
+  };
+
+  // Local component to avoid DOM mutations on image error and prevent duplicate avatars
+  function PoetImage({ src, alt, isSindhi, fallbackInitial }: { src: string | null; alt: string; isSindhi: boolean; fallbackInitial: string }) {
+    const [failed, setFailed] = useState(false);
+    if (!src || failed) {
+      return (
+        <div className="w-full h-full flex items-center justify-center">
+          <div className="w-24 h-24 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
+            <span className={`text-2xl font-semibold text-gray-700 ${getSmartFontClass(fallbackInitial)}`}>
+              {fallbackInitial.charAt(0)}
+            </span>
+          </div>
+        </div>
+      );
+    }
+    return (
+      <Image
+        src={src}
+        alt={alt}
+        className="w-full h-full object-cover"
+        width={300}
+        height={300}
+        onError={() => setFailed(true)}
+      />
+    );
+  }
 
   // Multi-lingual content
   const content = {
     title: isSindhi ? 'سنڌي شاعر' : 'Sindhi Poets',
     subtitle: isSindhi 
-      ? 'سنڌي شاعريءَ جي عظيم شاعراڻي کي ڳولي، جنھن کي صدين جي ادبي روايت آھي'
-      : 'Discover the great poets of Sindhi poetry, bearers of centuries of literary tradition',
+    ? 'سنڌي شاعريءَ جي خوبصورت شاعرن کي ڳوليو، جيڪي صدين کان سنڌي شاعري جي واٽ کي برقرار ڪندا اچن پيا '      : 'Discover the great poets of Sindhi poetry, bearers of centuries of literary tradition',
     searchPlaceholder: isSindhi ? 'شاعر ڳوليو...' : 'Search poets...',
     allPeriods: isSindhi ? 'سڀ دور' : 'All Periods',
     seventeenthCentury: isSindhi ? '17ھين صدي' : '17th Century',
@@ -132,7 +215,14 @@ export default function PoetsPage() {
 
   // Removed unused sd function
   // Handlers for card actions
-  const handleViewClick = (poet: Poet) => {
+  const handleViewClick = async (poet: Poet) => {
+    // Track the view
+    try {
+      await fetch(`/api/poets/${poet.id}/view`, { method: 'POST' });
+    } catch (error) {
+      console.error('Failed to track view:', error);
+    }
+    
     const base = isSindhi ? '/sd' : '/en';
     router.push(`${base}/poets/${poet.poet_slug}`);
   };
@@ -164,69 +254,18 @@ export default function PoetsPage() {
         setCopiedPoetId(poet.id);
         setTimeout(() => setCopiedPoetId((cur) => (cur === poet.id ? null : cur)), 1500);
       }
-    } catch {
-      // ignore share errors
+    } catch (error: any) {
+      const message = String(error?.message || '').toLowerCase();
+      const name = String(error?.name || '').toLowerCase();
+      if (name.includes('abort') || message.includes('abort') || message.includes('canceled') || message.includes('cancelled')) {
+        return;
+      }
+      // ignore other share errors silently
     }
   };
 
 
-  // Helper function to get translated tag
-  const getTranslatedTag = (tag: string, poet: Poet, tagIndex: number): string => {
-    // First check if we have a translation from the API at the specific index
-    if (poet.translated_tags && poet.translated_tags[tagIndex]) {
-      const translatedTag = poet.translated_tags[tagIndex];
-      if (translatedTag && translatedTag !== tag) {
-        return translatedTag;
-      }
-    }
-    
-    // Try database tags
-    const normalizedTag = tag.trim();
-    const lowerTag = normalizedTag.toLowerCase();
-    
-    // Check database tags
-    if (databaseTags[normalizedTag]) {
-      return databaseTags[normalizedTag];
-    }
-    
-    if (databaseTags[lowerTag]) {
-      return databaseTags[lowerTag];
-    }
-    
-    // Try with common variations for database tags
-    const variations = [
-      lowerTag.replace(/\s+/g, ' '), // normalize spaces
-      lowerTag.replace(/-/g, ' '),   // replace hyphens with spaces
-      lowerTag.replace(/\s+/g, '-'), // replace spaces with hyphens
-      lowerTag.replace(/s$/, ''),    // remove trailing 's'
-      lowerTag + 's'                 // add trailing 's'
-    ];
-    
-    for (const variation of variations) {
-      if (databaseTags[variation]) {
-        return databaseTags[variation];
-      }
-    }
-    
-    // If no translation found, return original tag
-    return normalizedTag;
-  };
-
-  // Helper function to get unique tags (deduplicated)
-  const getUniqueTags = (tags: string[]): string[] => {
-    const seen = new Set<string>();
-    const uniqueTags: string[] = [];
-    
-    for (const tag of tags) {
-      const normalizedTag = tag.toLowerCase().trim();
-      if (!seen.has(normalizedTag)) {
-        seen.add(normalizedTag);
-        uniqueTags.push(tag);
-      }
-    }
-    
-    return uniqueTags;
-  };
+  
 
   // Fetch poet statistics (views and poetry count)
   const fetchPoetStats = useCallback(async (poetIds: string[]) => {
@@ -249,65 +288,7 @@ export default function PoetsPage() {
     }
   }, []);
 
-  // Fetch tags from database
-  const fetchDatabaseTags = useCallback(async () => {
-    try {
-      setTagsLoading(true);
-      const response = await fetch(`/api/tags?lang=${isSindhi ? 'sd' : 'en'}&type=Poet`);
-      if (response.ok) {
-        const data = await response.json();
-        const tagMap: {[key: string]: string} = {};
-        
-        // Create a comprehensive mapping from various tag formats to the translated title
-        data.tags?.forEach((tag: Record<string, unknown>) => {
-          const title = String(tag.title || '');
-          const slug = String(tag.slug || '');
-          const label = String(tag.label || '');
-          
-          // Map by slug
-          tagMap[slug] = title;
-          
-          // Map by label
-          tagMap[label] = title;
-          
-          // Map by slug variations (hyphen to space, etc.)
-          const slugVariations = [
-            slug.replace(/-/g, ' '),
-            slug.replace(/-/g, ' ').toLowerCase(),
-            slug.replace(/-/g, ' ').toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase()),
-            slug.replace(/-/g, ' ').toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase()).replace(/s$/, ''),
-            slug.replace(/-/g, ' ').toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase()) + 's'
-          ];
-          
-          slugVariations.forEach(variation => {
-            tagMap[variation] = title;
-          });
-          
-          // Map by title variations
-          const titleVariations = [
-            title.toLowerCase(),
-            title.toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase()),
-            title.toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase()).replace(/s$/, ''),
-            title.toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase()) + 's'
-          ];
-          
-          titleVariations.forEach(variation => {
-            tagMap[variation] = title;
-          });
-        });
-        
-        setDatabaseTags(tagMap);
-        console.log('Database tags loaded:', Object.keys(tagMap).length);
-        console.log('Sample mappings:', Object.entries(tagMap).slice(0, 5));
-      } else {
-        console.warn('Failed to fetch database tags');
-      }
-    } catch (error) {
-      console.error('Error fetching database tags:', error);
-    } finally {
-      setTagsLoading(false);
-    }
-  }, [isSindhi]);
+  
 
   // Pagination logic
   const totalPages = Math.max(1, Math.ceil(total / perPage));
@@ -320,7 +301,7 @@ export default function PoetsPage() {
       const params = new URLSearchParams({
         page: page.toString(),
         limit: perPage.toString(),
-        search: searchQuery,
+        search: debouncedSearchQuery,
         period: selectedPeriod,
         sortBy,
         sortOrder,
@@ -345,13 +326,25 @@ export default function PoetsPage() {
       
       if (response.ok) {
         const data: PoetsResponse = await response.json();
+        const fp: any = data.poets?.[0] || null;
         console.log('Frontend - Received poets data:', {
           total: data.total,
           poetsCount: data.poets?.length || 0,
-          firstPoet: data.poets?.[0] ? {
-            name: data.poets[0].english_name,
-            file_url: data.poets[0].file_url,
-            hasImage: !!data.poets[0].file_url
+          firstPoetSample: fp ? {
+            id: fp.id,
+            slug: fp.poet_slug || fp.slug,
+            english_name: fp.english_name,
+            sindhi_name: fp.sindhi_name,
+            english_laqab: fp.english_laqab,
+            sindhi_laqab: fp.sindhi_laqab,
+            sindhi_tagline: fp.sindhi_tagline,
+            english_tagline: fp.english_tagline,
+            sindhi_details: fp.sindhi_details?.slice?.(0, 60),
+            english_details: fp.english_details?.slice?.(0, 60),
+            birth_date: fp.birth_date,
+            death_date: fp.death_date,
+            file_url: fp.file_url,
+            photo: fp.photo,
           } : null
         });
         setPoets(data.poets || []);
@@ -399,7 +392,7 @@ export default function PoetsPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, perPage, searchQuery, selectedPeriod, sortBy, sortOrder, isSindhi, fetchPoetStats]);
+  }, [page, perPage, debouncedSearchQuery, selectedPeriod, sortBy, sortOrder, isSindhi, fetchPoetStats]);
 
   const retryFetch = () => {
     fetchPoets();
@@ -415,6 +408,15 @@ export default function PoetsPage() {
     setSearchQuery(query);
     setPage(1);
   };
+
+  // Debounce search query to avoid too many API calls
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300); // 300ms delay
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   const handlePeriodChange = (period: string) => {
     setSelectedPeriod(period);
@@ -439,10 +441,7 @@ export default function PoetsPage() {
     setPage(1);
   };
 
-  // Fetch database tags on component mount
-  useEffect(() => {
-    fetchDatabaseTags();
-  }, [fetchDatabaseTags]);
+  
 
   useEffect(() => {
     // Check network status before fetching
@@ -456,6 +455,7 @@ export default function PoetsPage() {
       page,
       perPage,
       searchQuery,
+      debouncedSearchQuery,
       selectedPeriod,
       sortBy,
       sortOrder,
@@ -464,7 +464,7 @@ export default function PoetsPage() {
     });
     
     fetchPoets();
-  }, [page, perPage, searchQuery, selectedPeriod, sortBy, sortOrder, fetchPoets, isSindhi]);
+  }, [page, perPage, debouncedSearchQuery, selectedPeriod, sortBy, sortOrder, fetchPoets, isSindhi]);
 
   // Add network status listeners
   useEffect(() => {
@@ -498,6 +498,11 @@ export default function PoetsPage() {
       return poet.display_tagline;
     }
     return isSindhi && poet.sindhi_tagline ? poet.sindhi_tagline : poet.english_tagline;
+  };
+
+  const getDisplayDetails = (poet: Poet) => {
+    const text = isSindhi ? (poet as any).sindhi_details : (poet as any).english_details;
+    return (text || '').toString().trim();
   };
 
   // Helper function to get century badge
@@ -650,10 +655,9 @@ export default function PoetsPage() {
                   placeholder={content.searchPlaceholder}
                   value={searchQuery}
                   onChange={(e) => handleSearch(e.target.value)}
-                  className={`h-10 text-base ${isRTL ? 'pr-12' : 'pl-12'} border-gray-200 bg-gray-50/50 focus:bg-white focus:border-gray-300 rounded-xl transition-all duration-200 ${getSmartFontClass(content.searchPlaceholder)} ${loading ? 'opacity-75' : ''}`}
-                  disabled={loading}
+                  className={`h-10 text-base ${isRTL ? 'pr-12' : 'pl-12'} border-gray-200 bg-gray-50/50 focus:bg-white focus:border-gray-300 rounded-xl transition-all duration-200 ${getSmartFontClass(content.searchPlaceholder)}`}
                 />
-                {loading && (
+                {loading && searchQuery !== debouncedSearchQuery && (
                   <div className={`absolute top-1/2 transform -translate-y-1/2 ${isRTL ? 'left-4' : 'right-4'}`}>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-400"></div>
                   </div>
@@ -838,56 +842,29 @@ export default function PoetsPage() {
                 return (
                   <motion.div
                     key={poet.id}
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: 0.1 * index }}
+                    initial={{ opacity: 0, y: 30, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    transition={{ 
+                      duration: 0.6, 
+                      delay: 0.1 * index,
+                      ease: "easeOut"
+                    }}
+                    whileHover={{ 
+                      y: -5,
+                      transition: { duration: 0.2 }
+                    }}
                     className="group"
                   >
                     <Card className="h-full border border-gray-200 bg-white overflow-hidden">
                       {/* Poet Image and Century Badge */}
                       <div className="relative">
                         <div className="aspect-square bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center overflow-hidden">
-                          {poet.file_url ? (
-                            <Image 
-                              src={poet.file_url.startsWith('http') ? poet.file_url : poet.file_url}
-                              alt={getPrimaryPoetName(poet, isSindhi)}
-                              className="w-full h-full object-cover"
-                              width={300}
-                              height={300}
-                              onLoad={() => console.log(`Image loaded successfully for ${getPrimaryPoetName(poet, isSindhi)}:`, poet.file_url)}
-                              onError={(e) => {
-                                console.log(`Image failed to load for ${getPrimaryPoetName(poet, isSindhi)}:`, poet.file_url);
-                                // Hide image on error and show avatar fallback
-                                const target = e.target as HTMLImageElement;
-                                target.style.display = 'none';
-                                const parent = target.parentElement;
-                                if (parent) {
-                                  // Create avatar element safely without innerHTML
-                                  const avatar = document.createElement('div');
-                                  avatar.className = 'w-full h-full flex items-center justify-center';
-                                  
-                                  const innerDiv = document.createElement('div');
-                                  innerDiv.className = 'w-24 h-24 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center';
-                                  
-                                  const span = document.createElement('span');
-                                  span.className = `text-2xl font-semibold text-gray-700 ${getSmartFontClass(getAvatarPoetName(poet, isSindhi))}`;
-                                  span.textContent = getAvatarPoetName(poet, isSindhi).charAt(0);
-                                  
-                                  innerDiv.appendChild(span);
-                                  avatar.appendChild(innerDiv);
-                                  parent.appendChild(avatar);
-                                }
-                              }}
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
-                                <span className={`text-2xl font-semibold text-gray-700 ${getSmartFontClass(getAvatarPoetName(poet, isSindhi))}`}>
-                                  {getAvatarPoetName(poet, isSindhi).charAt(0)}
-                                </span>
-                              </div>
-                            </div>
-                          )}
+                          <PoetImage
+                            src={resolveImageSrc(poet.file_url || (poet as any).photo || null)}
+                            alt={getPrimaryPoetName(poet, isSindhi)}
+                            isSindhi={!!isSindhi}
+                            fallbackInitial={getAvatarPoetName(poet, isSindhi)}
+                          />
                         </div>
                         
                         {/* Century Badge */}
@@ -916,10 +893,10 @@ export default function PoetsPage() {
                       </div>
 
                       {/* Poet Info */}
-                      <CardContent className="px-5 pt-0 pb-5">
+                      <CardContent className="px-5 pt-4 pb-5">
                         {/* Main title as Laqab, subtitle as Tagline */}
                         <div className="mb-0">
-                          <h3 className={`text-xl ${isSindhi ? 'font-bold' : 'font-semibold'} text-gray-900 ${getSmartFontClass(getDisplayName(poet))}`}>
+                          <h3 className={`text-xl ${isSindhi ? 'font-bold' : 'font-semibold'} text-gray-900 ${getSmartFontClass(getDisplayName(poet))} group-hover:underline underline-offset-2`}>
                             {getDisplayName(poet)}
                           </h3>
                           {/* Show secondary name if available */}
@@ -937,7 +914,39 @@ export default function PoetsPage() {
                           </p>
                         )}
 
-                        {/* Years Active */}
+                        {/* Birth/Death and Years Active */}
+                        <div className="space-y-1 mb-3">
+                          <div className="flex items-center gap-2 text-xs text-gray-600">
+                            <Calendar className="h-3.5 w-3.5 text-gray-500" />
+                            <span className={isSindhi ? 'auto-sindhi-font' : ''}>
+                              {isSindhi ? 'پيدائش' : 'Born'}: {poet.birth_date ? <span className="number">{parseInt(String(poet.birth_date))}</span> : (isSindhi ? 'نامعلوم' : 'Unknown')}
+                            </span>
+                          </div>
+                          {poet.death_date && (
+                            <div className="flex items-center gap-2 text-xs text-gray-600">
+                              <Calendar className="h-3.5 w-3.5 text-gray-500" />
+                              <span className={isSindhi ? 'auto-sindhi-font' : ''}>
+                                {isSindhi ? 'وفات' : 'Died'}: <span className="number">{parseInt(String(poet.death_date))}</span>
+                              </span>
+                            </div>
+                          )}
+                          {yearsActive && (
+                            <div className="flex items-center gap-2 text-xs text-gray-600">
+                              <Calendar className="h-3.5 w-3.5 text-gray-500" />
+                              <MixedContentWithNumbers 
+                                text={yearsActive || ''}
+                                className={isSindhi ? 'font-medium' : 'font-light'}
+                              />
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Short details/description */}
+                        {getDisplayDetails(poet) && (
+                          <p className={`text-[12px] text-gray-600 mb-3 leading-relaxed line-clamp-2 ${getSmartFontClass(getDisplayDetails(poet))}`}>
+                            {getDisplayDetails(poet)}
+                          </p>
+                        )}
                         {yearsActive && (
                           <div className="flex items-center gap-2 text-sm text-gray-600 mb-3">
                             <Calendar className="h-4 w-4 text-gray-500" />
@@ -948,34 +957,7 @@ export default function PoetsPage() {
                           </div>
                         )}
 
-                        {/* Tags */}
-                        {poet.tags && poet.tags.length > 0 && (() => {
-                          const uniqueTags = getUniqueTags(poet.tags);
-                          const displayTags = uniqueTags.slice(0, 2);
-                          
-                          return (
-                            <div className="flex flex-wrap gap-2 mb-4">
-                              {displayTags.map((tag, tagIndex) => {
-                                // Use the helper function to get translated tag
-                                const displayTag = getTranslatedTag(tag, poet, tagIndex);
-                                
-                                return (
-                                  <span 
-                                    key={`${poet.id}-tag-${tagIndex}-${tag}`}
-                                    className={`inline-block px-3 py-1.5 text-xs bg-gray-100 text-gray-700 rounded-full border border-gray-200 font-medium ${getSmartFontClass(displayTag)} ${tagsLoading ? 'opacity-50' : ''}`}
-                                  >
-                                    {tagsLoading ? '...' : displayTag}
-                                  </span>
-                                );
-                              })}
-                              {uniqueTags.length > 2 && (
-                                <span className={`inline-block px-3 py-1.5 text-xs bg-gray-100 text-gray-600 rounded-full border border-gray-200 font-medium ${tagsLoading ? 'opacity-50' : ''}`}>
-                                  +<NumberFont size="xs">{uniqueTags.length - 2}</NumberFont>
-                                </span>
-                              )}
-                            </div>
-                          );
-                        })()}
+                        {/* Tags removed as requested */}
 
                         {/* Action Buttons - Medium.com Style with Icons and Numbers */}
                         <div className="flex items-center justify-between mb-3">
@@ -985,20 +967,59 @@ export default function PoetsPage() {
                               aria-label={content.views}
                               className="flex items-center gap-1 hover:text-gray-600 transition-colors"
                             >
-                              <Eye className="h-3 w-3" />
-                              <NumberFont className="text-xs font-light">
-                                {poetStats[poet.id]?.views || 0}
-                              </NumberFont>
+                              <motion.div
+                                whileHover={{ scale: 1.1 }}
+                                transition={{ duration: 0.2 }}
+                              >
+                                <Eye className="h-3 w-3" />
+                              </motion.div>
+                              <motion.div
+                                key={`views-${poet.id}-${poetStats[poet.id]?.views || 0}`}
+                                initial={{ opacity: 0, scale: 0.8 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ 
+                                  duration: 0.3,
+                                  ease: "easeOut"
+                                }}
+                                className="flex items-center"
+                              >
+                                <NumberFont className="text-xs font-light">
+                                  <AnimatedCounter 
+                                    value={poetStats[poet.id]?.views || 0} 
+                                    className="text-xs font-light"
+                                  />
+                                </NumberFont>
+                              </motion.div>
                             </button>
                             <button
                               onClick={() => handleWorksClick(poet)}
                               aria-label={content.works}
                               className="flex items-center gap-1 hover:text-gray-600 transition-colors"
                             >
-                              <BookOpenCheck className="h-3 w-3" />
-                              <NumberFont className="text-xs font-light">
-                                {poetStats[poet.id]?.poetryCount || 0}
-                              </NumberFont>
+                              <motion.div
+                                whileHover={{ scale: 1.1 }}
+                                transition={{ duration: 0.2 }}
+                              >
+                                <BookOpenCheck className="h-3 w-3" />
+                              </motion.div>
+                              <motion.div
+                                key={`works-${poet.id}-${poetStats[poet.id]?.poetryCount || 0}`}
+                                initial={{ opacity: 0, scale: 0.8 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ 
+                                  duration: 0.3,
+                                  ease: "easeOut",
+                                  delay: 0.1
+                                }}
+                                className="flex items-center"
+                              >
+                                <NumberFont className="text-xs font-light">
+                                  <AnimatedCounter 
+                                    value={poetStats[poet.id]?.poetryCount || 0} 
+                                    className="text-xs font-light"
+                                  />
+                                </NumberFont>
+                              </motion.div>
                             </button>
                           </div>
                           <button
@@ -1006,14 +1027,32 @@ export default function PoetsPage() {
                             aria-label={content.share}
                             className="flex items-center gap-1 text-gray-400 hover:text-gray-600 transition-colors"
                           >
-                            <Share className={`h-3 w-3 ${copiedPoetId === poet.id ? 'text-green-600' : ''}`} />
-                            {copiedPoetId === poet.id && (
-                              <span className="text-[10px] text-green-600">{isSindhi ? 'ڪاپي ٿيو' : 'Copied'}</span>
-                            )}
+                            <motion.div
+                              whileHover={{ scale: 1.1 }}
+                              transition={{ duration: 0.2 }}
+                            >
+                              <Share className={`h-3 w-3 ${copiedPoetId === poet.id ? 'text-green-600' : ''}`} />
+                            </motion.div>
+                            <AnimatePresence>
+                              {copiedPoetId === poet.id && (
+                                <motion.span 
+                                  initial={{ opacity: 0, scale: 0.5, y: 5 }}
+                                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                                  exit={{ opacity: 0, scale: 0.5, y: 5 }}
+                                  transition={{ 
+                                    duration: 0.2,
+                                    ease: "easeOut"
+                                  }}
+                                  className="text-[10px] text-green-600"
+                                >
+                                  {isSindhi ? 'ڪاپي ٿيو' : 'Copied'}
+                                </motion.span>
+                              )}
+                            </AnimatePresence>
                           </button>
                         </div>
 
-                        {/* View Profile Button */}
+                        {/* View Profile and Details Buttons */}
                         <Button 
                           asChild 
                           className="w-full bg-gray-900 hover:bg-gray-800 text-white border border-gray-300 rounded-xl py-3 transition-all duration-200" 
@@ -1025,6 +1064,16 @@ export default function PoetsPage() {
                             </span>
                           </Link>
                         </Button>
+                        <div className="mt-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full border border-gray-300 text-gray-700 rounded-xl"
+                            onClick={() => { setDetailsPoet(poet); setIsDetailsOpen(true); }}
+                          >
+                            <span className={isSindhi ? 'auto-sindhi-font' : ''}>{isSindhi ? 'تفصيل ڏسو' : 'Quick details'}</span>
+                          </Button>
+                        </div>
                       </CardContent>
                     </Card>
                   </motion.div>
@@ -1034,66 +1083,101 @@ export default function PoetsPage() {
           )}
         </motion.section>
 
+        {/* Quick Details Modal */}
+        {isDetailsOpen && detailsPoet && (
+          <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4" role="dialog" aria-modal="true">
+            <div className="w-full max-w-lg bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+              <div className="p-5">
+                <div className="flex items-start gap-4">
+                  <div className="h-12 w-12 rounded-full bg-gray-100 overflow-hidden flex items-center justify-center">
+                    {/* Reuse avatar logic */}
+                    {/* fallback handled by span if no image */}
+                    {(detailsPoet.file_url || (detailsPoet as any).photo) ? (
+                      <img 
+                        src={resolveImageSrc(detailsPoet.file_url || (detailsPoet as any).photo) || ''}
+                        alt={getPrimaryPoetName(detailsPoet, isSindhi)}
+                        className="h-12 w-12 object-cover"
+                        onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+                      />
+                    ) : (
+                      <span className="text-sm text-gray-600">
+                        {getAvatarPoetName(detailsPoet, isSindhi).charAt(0)}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className={`text-lg text-gray-900 ${getSmartFontClass(getDisplayName(detailsPoet))}`}>{getDisplayName(detailsPoet)}</div>
+                    {getSecondaryPoetName(detailsPoet, isSindhi) && (
+                      <div className={`text-xs text-gray-500 ${getSmartFontClass(getSecondaryPoetName(detailsPoet, isSindhi)!)}`}>{getSecondaryPoetName(detailsPoet, isSindhi)}</div>
+                    )}
+                  </div>
+                </div>
+                {getDisplayTagline(detailsPoet) && (
+                  <p className={`mt-3 text-sm text-gray-600 ${getSmartFontClass(getDisplayTagline(detailsPoet) || '')}`}>{getDisplayTagline(detailsPoet)}</p>
+                )}
+                <div className="mt-3 space-y-1 text-sm text-gray-700">
+                  <div>
+                    {isSindhi ? 'پيدائش' : 'Born'}: {detailsPoet.birth_date ? <span className="number">{parseInt(String(detailsPoet.birth_date))}</span> : (isSindhi ? 'نامعلوم' : 'Unknown')}
+                  </div>
+                  {detailsPoet.death_date && (
+                    <div>
+                      {isSindhi ? 'وفات' : 'Died'}: <span className="number">{parseInt(String(detailsPoet.death_date))}</span>
+                    </div>
+                  )}
+                </div>
+                {getDisplayDetails(detailsPoet) && (
+                  <p className={`mt-3 text-[13px] text-gray-700 leading-relaxed ${getSmartFontClass(getDisplayDetails(detailsPoet))}`}>
+                    {getDisplayDetails(detailsPoet)}
+                  </p>
+                )}
+              </div>
+              <div className="px-5 pb-5 flex gap-2 justify-end">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border border-gray-300 text-gray-700 rounded-xl"
+                  onClick={() => setIsDetailsOpen(false)}
+                >
+                  {isSindhi ? 'بند ڪريو' : 'Close'}
+                </Button>
+                <Button
+                  asChild
+                  size="sm"
+                  className="bg-gray-900 hover:bg-gray-800 text-white rounded-xl"
+                >
+                  <Link href={isSindhi ? `/sd/poets/${detailsPoet.poet_slug}` : `/en/poets/${detailsPoet.poet_slug}`}>
+                    {isSindhi ? 'سڀ تفصيل' : 'Full profile'}
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Pagination */}
         {totalPages > 1 && (
           <motion.div 
-            className="flex justify-center"
+            className="flex justify-center px-4"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.5 }}
           >
             {loading ? (
-              <div className="flex gap-3">
+              <div className="flex gap-1 sm:gap-2">
                 {Array.from({ length: 5 }).map((_, index) => (
                   <div key={index} className="animate-pulse">
-                    <div className="h-12 bg-gray-200 rounded-xl w-16"></div>
+                    <div className="h-10 sm:h-12 bg-gray-200 rounded-lg sm:rounded-xl w-8 sm:w-12"></div>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="flex gap-3">
-                <Button
-                  variant="outline"
-                  onClick={() => handlePageChange(page - 1)}
-                  disabled={page === 1}
-                  size="lg"
-                  className="border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 rounded-xl px-6 py-3 disabled:opacity-50"
-                >
-                  <span className="font-medium font-inter">
-                    {isRTL ? '→' : '←'}
-                  </span>
-                </Button>
-                
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
-                  <Button
-                    key={pageNum}
-                    variant={pageNum === page ? "default" : "outline"}
-                    onClick={() => handlePageChange(pageNum)}
-                    size="lg"
-                    className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
-                      pageNum === page 
-                        ? "bg-gray-900 hover:bg-gray-800 text-white shadow-lg" 
-                        : "border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300"
-                    }`}
-                  >
-                    <NumberFont>
-                      {pageNum}
-                    </NumberFont>
-                  </Button>
-                ))}
-                
-                <Button
-                  variant="outline"
-                  onClick={() => handlePageChange(page + 1)}
-                  disabled={page === totalPages}
-                  size="lg"
-                  className="border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 rounded-xl px-6 py-3 disabled:opacity-50"
-                >
-                  <span className="font-medium font-inter">
-                    {isRTL ? '←' : '→'}
-                  </span>
-                </Button>
-              </div>
+              <SmartPagination
+                currentPage={page}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+                isRTL={isRTL}
+                className="w-full max-w-md"
+              />
             )}
           </motion.div>
         )}

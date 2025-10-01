@@ -12,7 +12,7 @@ import { Plus, Edit, Trash2, Filter, Tag as TagIcon, Eye, X, Save } from "lucide
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 
-type TagType = "Era / Tradition" | "Language" | "Identity / Group" | "Form / Style" | "Theme / Subject" | "Region / Locale" | "Stage / Career" | "Influence / Aesthetic" | "Genre / Output" | "Script / Metadata";
+type TagType = "Era / Tradition" | "Language" | "Identity / Group" | "Form / Style" | "Theme / Subject" | "Region / Locale" | "Stage / Career" | "Influence / Aesthetic" | "Genre / Output" | "Script / Metadata" | "Gender";
 
 type PoetTag = {
   id: string;
@@ -151,6 +151,8 @@ export default function PoetTagsPage() {
         return `${baseClasses} bg-teal-100 text-teal-800 border-teal-200`;
       case "Script / Metadata":
         return `${baseClasses} bg-gray-100 text-gray-800 border-gray-200`;
+      case "Gender":
+        return `${baseClasses} bg-rose-100 text-rose-800 border-rose-200`;
       default:
         return `${baseClasses} bg-[#F4F4F5] text-[#1F1F1F] border-[#E5E5E5]`;
     }
@@ -178,6 +180,8 @@ export default function PoetTagsPage() {
         return "bg-teal-500";
       case "Script / Metadata":
         return "bg-gray-500";
+      case "Gender":
+        return "bg-rose-500";
       default:
         return "bg-gray-400";
     }
@@ -367,7 +371,7 @@ export default function PoetTagsPage() {
                         <SelectValue placeholder="Select Type" />
                       </SelectTrigger>
                       <SelectContent className="bg-white border-[#E5E5E5] shadow-lg">
-                        {(["Era / Tradition", "Language", "Identity / Group", "Form / Style", "Theme / Subject", "Region / Locale", "Stage / Career", "Influence / Aesthetic", "Genre / Output", "Script / Metadata"] as TagType[]).map(t => (
+                        {(["Era / Tradition", "Language", "Identity / Group", "Form / Style", "Theme / Subject", "Region / Locale", "Stage / Career", "Influence / Aesthetic", "Genre / Output", "Script / Metadata", "Gender"] as TagType[]).map(t => (
                           <SelectItem key={t} value={t} className="hover:bg-[#F4F4F5] focus:bg-[#F4F4F5]">
                             <div className="flex items-center gap-2">
                               <div className={`w-3 h-3 rounded-full ${getTypeColor(t)}`}></div>
@@ -419,7 +423,7 @@ export default function PoetTagsPage() {
                         <SelectValue placeholder="Select Type" />
                       </SelectTrigger>
                       <SelectContent className="bg-white border-[#E5E5E5] shadow-lg">
-                        {(["Era / Tradition", "Language", "Identity / Group", "Form / Style", "Theme / Subject", "Region / Locale", "Stage / Career", "Influence / Aesthetic", "Genre / Output", "Script / Metadata"] as TagType[]).map(t => (
+                        {(["Era / Tradition", "Language", "Identity / Group", "Form / Style", "Theme / Subject", "Region / Locale", "Stage / Career", "Influence / Aesthetic", "Genre / Output", "Script / Metadata", "Gender"] as TagType[]).map(t => (
                           <SelectItem key={t} value={t} className="hover:bg-[#F4F4F5] focus:bg-[#F4F4F5]">
                             <div className="flex items-center gap-2">
                               <div className={`w-3 h-3 rounded-full ${getTypeColor(t)}`}></div>

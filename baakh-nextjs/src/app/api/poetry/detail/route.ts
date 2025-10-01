@@ -137,7 +137,12 @@ export async function GET(request: NextRequest) {
         id: category.id,
         slug: category.slug,
         content_style: category.content_style
-      }
+      },
+      // Process translations to handle "NULL" strings
+      poetry_translations: poetry.poetry_translations?.map((translation: any) => ({
+        ...translation,
+        info: translation.info && translation.info !== 'NULL' ? translation.info : null
+      })) || []
     };
 
     console.log('Returning transformed poetry data');

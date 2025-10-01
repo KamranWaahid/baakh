@@ -14,7 +14,9 @@ router.get('/', async (req, res) => {
       poet_id = '',
       poetry_id = '',
       standalone = '',
-      poetId = ''
+      poetId = '',
+      poet: poetParam = '',
+      poetSlug = ''
     } = req.query;
 
     const offset = (parseInt(page) - 1) * parseInt(limit);
@@ -44,29 +46,52 @@ router.get('/', async (req, res) => {
       query = query.ilike('couplet_text', `%${search}%`);
     }
 
-    // Apply language filter
-    if (lang) {
+    // Apply language filter (allow lang=all to disable filter)
+    if (lang && String(lang).toLowerCase() !== 'all') {
       query = query.eq('lang', lang);
     }
 
-    // Apply poet filter (support both poet_id and poetId for compatibility)
+    // Apply poet filter (support poet_id, poetId, poet as id, and poetSlug as slug)
+    let effectivePoetId = '';
     if (poet_id) {
-      // Check if poet_id is a UUID (for poets table) or numeric (for couplets table)
-      if (poet_id.includes('-')) {
-        // UUID - join with poets table to get couplets
-        query = query.eq('poets.id', poet_id);
-      } else {
-        // Numeric ID - direct filter on poet_id
-        query = query.eq('poet_id', poet_id);
-      }
+      effectivePoetId = String(poet_id);
     } else if (poetId) {
-      // Check if poetId is a UUID (for poets table) or numeric (for couplets table)
-      if (poetId.includes('-')) {
+      effectivePoetId = String(poetId);
+    } else if (poetParam) {
+      effectivePoetId = String(poetParam);
+    }
+
+    // Resolve slug to poet id if poetSlug is provided or poetParam looks like a slug (not a UUID)
+    const isUuid = (val) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(val||''));
+    let resolvedPoetId = effectivePoetId;
+    if (poetSlug || (effectivePoetId && !isUuid(effectivePoetId))) {
+      const slugToFind = poetSlug || effectivePoetId;
+      try {
+        const { data: poetsList } = await global.supabase
+          .from('poets')
+          .select('*');
+        if (Array.isArray(poetsList)) {
+          const match = poetsList.find(p => {
+            const gen = p?.english_name ? String(p.english_name).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'') : '';
+            return gen === slugToFind;
+          });
+          if (match && match.id) {
+            resolvedPoetId = String(match.id);
+          }
+        }
+      } catch (e) {
+        console.warn('Failed to resolve poet slug to id:', e?.message || e);
+      }
+    }
+
+    if (resolvedPoetId) {
+      // Check if poet_id is a UUID (for poets table) or numeric (for couplets table)
+      if (resolvedPoetId.includes('-')) {
         // UUID - join with poets table to get couplets
-        query = query.eq('poets.id', poetId);
+        query = query.eq('poets.id', resolvedPoetId);
       } else {
         // Numeric ID - direct filter on poet_id
-        query = query.eq('poet_id', poetId);
+        query = query.eq('poet_id', resolvedPoetId);
       }
     }
 
@@ -224,8 +249,8 @@ router.get('/by-poet/:poetId', async (req, res) => {
       `, { count: 'exact' })
       .eq('poet_id', poetId);
 
-    // Apply language filter
-    if (lang) {
+    // Apply language filter (allow lang=all to disable filter)
+    if (lang && String(lang).toLowerCase() !== 'all') {
       query = query.eq('lang', lang);
     }
 

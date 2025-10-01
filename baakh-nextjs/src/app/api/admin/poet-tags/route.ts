@@ -26,7 +26,7 @@ export async function GET(request: Request) {
     let query = admin
       .from("tags")
       .select("id, slug, tag_type, created_at, updated_at", { count: "exact" })
-      .in("tag_type", ["Era / Tradition", "Language", "Identity / Group", "Form / Style", "Theme / Subject", "Region / Locale", "Stage / Career", "Influence / Aesthetic", "Genre / Output", "Script / Metadata"])
+      .in("tag_type", ["Era / Tradition", "Language", "Identity / Group", "Form / Style", "Theme / Subject", "Region / Locale", "Stage / Career", "Influence / Aesthetic", "Genre / Output", "Script / Metadata", "Gender"])
       .order("created_at", { ascending: false });
 
     if (q) {
@@ -70,7 +70,7 @@ export async function GET(request: Request) {
     const { data: typesData } = await admin
       .from("tags")
       .select("tag_type")
-      .in("tag_type", ["Era / Tradition", "Language", "Identity / Group", "Form / Style", "Theme / Subject", "Region / Locale", "Stage / Career", "Influence / Aesthetic", "Genre / Output", "Script / Metadata"])
+      .in("tag_type", ["Era / Tradition", "Language", "Identity / Group", "Form / Style", "Theme / Subject", "Region / Locale", "Stage / Career", "Influence / Aesthetic", "Genre / Output", "Script / Metadata", "Gender"])
       .not("tag_type", "is", null)
       .neq("tag_type", "")
       .order("tag_type", { ascending: true });

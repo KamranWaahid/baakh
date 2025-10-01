@@ -201,8 +201,8 @@ export default function TermsPage() {
     
     // Content ownership description
     contentOwnershipDesc: {
-      en: "The classical poetry content on Baakh is in the public domain or used with proper permissions. Our platform design, code, and original content are protected by copyright.",
-      sd: "باک تي ڪلاسيڪل شاعريءَ جو مواد عوامي ميدان ۾ آهي يا مناسب اجازتن سان استعمال ڪيو ويو آهي. اسان جي پليٽ فارم جو ڊيزائن، ڪوڊ، ۽ اصل مواد ڪاپي رائيٽ سان محفوظ آهي"
+      en: "Baakh is a non‑profit, volunteer project. We claim no copyright over classical poetry. You may use and share it for public, academic, and cultural purposes with clear attribution.",
+      sd: "باک غير منافعي، رضاڪارانه منصوبو آهي. ڪلاسيڪي شاعريءَ تي اسان ڪو حقِ اشاعت نٿا رکون. صحيح حوالن سان علمي ۽ ثقافتي مقصدن لاءِ استعمال ۽ شيئر ڪريو"
     },
     
     // User contributions description
@@ -213,8 +213,24 @@ export default function TermsPage() {
     
     // Attribution description
     attributionDesc: {
-      en: "When using our content, you must provide proper attribution to the original poets and our platform. This helps preserve the cultural heritage and supports our mission.",
-      sd: "اسان جو مواد استعمال ڪرڻ وقت توهان کي اصل شاعرن ۽ اسان جي پليٽ فارم کي مناسب حوالو ڏيڻ گهرجي. هي ثقافتي ورثي کي محفوظ رکڻ ۽ اسان جي مشن کي سپورٽ ڪرڻ ۾ مدد ڪري ٿو"
+      en: "When using our content, you must provide clear attribution to the original poet and cite Baakh as the source. Do not alter verses, transliterations, or poet information in a way that misrepresents the original work.",
+      sd: "مواد استعمال ڪندي اصل شاعر جو صاف حوالو ڏيو ۽ باک کي ماخذ طور بيان ڪريو. شعر، ترجما يا شاعر جي معلومات کي اهڙي طرح نه بدلايو جو اصل معنيٰ يا نسبت بگڙي وڃي"
+    },
+    nonProfitUse: {
+      en: "Non‑Profit and Public Use",
+      sd: "غير منافع بخش ۽ عوامي استعمال"
+    },
+    nonProfitUseDesc: {
+      en: "You are free to use, share, and reference poetry from Baakh for non‑commercial purposes with attribution. Commercial use may require additional permissions depending on the source of the text.",
+      sd: "غير تجارتي مقصدن لاءِ باک جو مواد صحيح حوالن سان آزاديءَ سان استعمال ۽ شيئر ڪري سگهجي ٿو. تجارتي استعمال لاءِ متن جي ذريعيت مطابق اضافي اجازت گهرج ٿي سگهي ٿي"
+    },
+    integrityRules: {
+      en: "Integrity of Text and Poet Information",
+      sd: "متن ۽ شاعر جي معلومات جي سليمت"
+    },
+    integrityRulesDesc: {
+      en: "Do not alter, edit, or distort original verses, titles, or poet names. Corrections and scholarly notes are welcome, but must be clearly labeled and must not replace the original text.",
+      sd: "اصل شعر، عنوان يا شاعر جو نالو نه بدلايو. علمي نوٽس يا درستي الڳ نموني ڏيکاريو، اصل متن جي جاءِ تي نه رکو"
     },
     
     // Privacy and data
@@ -326,17 +342,17 @@ export default function TermsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50" dir={isRTL ? 'rtl' : 'ltr'}>
       {/* Main Content */}
-      <main className="py-12">
+      <main className="py-10">
         <div className="max-w-6xl mx-auto px-6 sm:px-8 lg:px-12">
           {/* Hero Section */}
-          <section className="text-center py-16">
+          <section className="text-center py-12">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
               className="space-y-6"
             >
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-full shadow-sm">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-full shadow-sm">
                 <FileText className="h-4 w-4 text-gray-600" />
                 <Badge variant="secondary" className="rounded-full px-3 py-1 text-xs font-medium">
                   {content.terms[locale]}
@@ -354,7 +370,7 @@ export default function TermsPage() {
           </section>
 
           {/* Last Updated */}
-          <section className="py-8">
+          <section className="py-6">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -369,13 +385,13 @@ export default function TermsPage() {
           </section>
 
           {/* Overview */}
-          <section className="py-16">
+          <section className="py-10">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
               viewport={{ once: true }}
-              className="space-y-12"
+              className="space-y-8"
             >
               <div className="text-center">
                 <h2 className={`text-3xl font-bold text-gray-900 mb-6 ${getSmartFontClass(content.welcomeToBaakh[locale])} ${!isRTL ? 'font-bold tracking-tight' : ''}`}>
@@ -386,7 +402,7 @@ export default function TermsPage() {
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {[
                   { 
                     title: content.access.title[locale], 
@@ -405,16 +421,16 @@ export default function TermsPage() {
                   }
                 ].map(({ title, Icon, desc }) => (
                   <Card key={title} className="rounded-2xl border border-gray-200 bg-white/80 backdrop-blur-sm">
-                    <CardHeader className="text-center pb-6">
-                      <div className="mx-auto w-16 h-16 rounded-2xl bg-gray-100 border border-gray-200 flex items-center justify-center mb-6">
+                    <CardHeader className="text-center p-4 pb-3">
+                      <div className="mx-auto w-12 h-12 rounded-2xl bg-gray-100 border border-gray-200 flex items-center justify-center mb-2">
                         <Icon className="w-8 h-8 text-gray-700" />
                       </div>
                       <CardTitle className={`text-xl font-semibold ${getSmartFontClass(title)} ${!isRTL ? 'font-bold tracking-tight' : ''}`}>
                         {title}
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="text-center">
-                      <p className={`text-gray-600 leading-relaxed ${getSmartFontClass(desc)} ${!isRTL ? 'font-medium' : ''}`}>
+                    <CardContent className="text-center p-4 pt-0">
+                      <p className={`text-gray-600 leading-7 ${getSmartFontClass(desc)} ${!isRTL ? 'font-medium' : ''}`}>
                         {desc}
                       </p>
                     </CardContent>
@@ -425,7 +441,7 @@ export default function TermsPage() {
           </section>
 
           {/* Acceptance of Terms */}
-          <section className="py-16">
+          <section className="py-12">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -433,22 +449,22 @@ export default function TermsPage() {
               viewport={{ once: true }}
               className="space-y-8"
             >
-              <h2 className={`text-3xl font-bold text-gray-900 text-center mb-12 ${getSmartFontClass(content.acceptanceOfTerms[locale])} ${!isRTL ? 'font-bold tracking-tight' : ''}`}>
+              <h2 className={`text-3xl font-bold text-gray-900 text-center mb-8 ${getSmartFontClass(content.acceptanceOfTerms[locale])} ${!isRTL ? 'font-bold tracking-tight' : ''}`}>
                 {content.acceptanceOfTerms[locale]}
               </h2>
 
               <Card className="rounded-2xl border border-gray-200 bg-white/80 backdrop-blur-sm">
-                <CardHeader className="pb-6">
-                  <CardTitle className={`flex items-center gap-3 text-xl font-semibold ${getSmartFontClass(content.byUsingOurService[locale])} ${!isRTL ? 'font-bold tracking-tight' : ''}`}>
-                    <CheckCircle className="w-6 h-6 text-gray-700" />
+                <CardHeader className="p-4 pb-3">
+                  <CardTitle className={`flex items-center gap-2 text-xl font-semibold ${getSmartFontClass(content.byUsingOurService[locale])} ${!isRTL ? 'font-bold tracking-tight' : ''}`}>
+                    <CheckCircle className="w-6 h-6 text-gray-700 shrink-0" />
                     <span>{content.byUsingOurService[locale]}</span>
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                  <p className={`text-gray-600 leading-relaxed ${getSmartFontClass(content.acceptanceDescription[locale])} ${!isRTL ? 'font-medium' : ''}`}>
+                <CardContent className="space-y-4 p-4 pt-0">
+                  <p className={`text-gray-600 leading-7 ${getSmartFontClass(content.acceptanceDescription[locale])} ${!isRTL ? 'font-medium' : ''}`}>
                     {content.acceptanceDescription[locale]}
                   </p>
-                  <ul className="space-y-3 text-gray-600">
+                  <ul className="space-y-2 text-gray-600">
                     <li className="flex items-start gap-3">
                       <CheckCircle className="w-5 h-5 text-gray-500 mt-0.5 flex-shrink-0" />
                       <span className={`${getSmartFontClass(content.ageRequirement[locale])} ${!isRTL ? 'font-medium' : ''}`}>
@@ -480,28 +496,28 @@ export default function TermsPage() {
           </section>
 
           {/* Use of Service */}
-          <section className="py-16">
+          <section className="py-12">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
               viewport={{ once: true }}
-              className="space-y-12"
+              className="space-y-10"
             >
-              <h2 className={`text-3xl font-bold text-gray-900 text-center mb-12 ${getSmartFontClass(content.useOfService[locale])} ${!isRTL ? 'font-bold tracking-tight' : ''}`}>
+              <h2 className={`text-3xl font-bold text-gray-900 text-center mb-8 ${getSmartFontClass(content.useOfService[locale])} ${!isRTL ? 'font-bold tracking-tight' : ''}`}>
                 {content.useOfService[locale]}
               </h2>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Card className="rounded-2xl border border-gray-200 bg-white/80 backdrop-blur-sm">
-                  <CardHeader className="pb-6">
-                    <CardTitle className={`flex items-center gap-3 text-xl font-semibold ${getSmartFontClass(content.permittedUses[locale])} ${!isRTL ? 'font-bold tracking-tight' : ''}`}>
-                      <CheckCircle className="w-6 h-6 text-gray-700" />
+                  <CardHeader className="p-4 pb-3">
+                    <CardTitle className={`flex items-center gap-2 text-xl font-semibold ${getSmartFontClass(content.permittedUses[locale])} ${!isRTL ? 'font-bold tracking-tight' : ''}`}>
+                      <CheckCircle className="w-6 h-6 text-gray-700 shrink-0" />
                       <span>{content.permittedUses[locale]}</span>
                     </CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <ul className="space-y-3 text-gray-600">
+                  <CardContent className="p-4 pt-0">
+                    <ul className="space-y-2 text-gray-600">
                       <li className="flex items-start gap-3">
                         <CheckCircle className="w-5 h-5 text-gray-500 mt-0.5 flex-shrink-0" />
                         <span className={`${getSmartFontClass(content.readingPoetry[locale])} ${!isRTL ? 'font-medium' : ''}`}>
@@ -537,14 +553,14 @@ export default function TermsPage() {
                 </Card>
 
                 <Card className="rounded-2xl border border-gray-200 bg-white/80 backdrop-blur-sm">
-                  <CardHeader className="pb-6">
-                    <CardTitle className={`flex items-center gap-3 text-xl font-semibold ${getSmartFontClass(content.prohibitedUses[locale])} ${!isRTL ? 'font-bold tracking-tight' : ''}`}>
-                      <AlertCircle className="w-6 h-6 text-gray-700" />
+                  <CardHeader className="p-4 pb-3">
+                    <CardTitle className={`flex items-center gap-2 text-xl font-semibold ${getSmartFontClass(content.prohibitedUses[locale])} ${!isRTL ? 'font-bold tracking-tight' : ''}`}>
+                      <AlertCircle className="w-6 h-6 text-gray-700 shrink-0" />
                       <span>{content.prohibitedUses[locale]}</span>
                     </CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <ul className="space-y-3 text-gray-600">
+                  <CardContent className="p-4 pt-0">
+                    <ul className="space-y-2 text-gray-600">
                       <li className="flex items-start gap-3">
                         <AlertCircle className="w-5 h-5 text-gray-500 mt-0.5 flex-shrink-0" />
                         <span className={`${getSmartFontClass(content.commercialUse[locale])} ${!isRTL ? 'font-medium' : ''}`}>
@@ -583,57 +599,85 @@ export default function TermsPage() {
           </section>
 
           {/* Intellectual Property */}
-          <section className="py-16">
+          <section className="py-12">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
               viewport={{ once: true }}
-              className="space-y-12"
+              className="space-y-10"
             >
-              <h2 className={`text-3xl font-bold text-gray-900 text-center mb-12 ${getSmartFontClass(content.intellectualProperty[locale])} ${!isRTL ? 'font-bold tracking-tight' : ''}`}>
+              <h2 className={`text-3xl font-bold text-gray-900 text-center mb-8 ${getSmartFontClass(content.intellectualProperty[locale])} ${!isRTL ? 'font-bold tracking-tight' : ''}`}>
                 {content.intellectualProperty[locale]}
               </h2>
 
-              <div className="space-y-8">
+              <div className="space-y-5">
                 <Card className="rounded-2xl border border-gray-200 bg-white/80 backdrop-blur-sm">
-                  <CardHeader className="pb-6">
-                    <CardTitle className={`flex items-center gap-3 text-xl font-semibold ${getSmartFontClass(content.contentOwnership[locale])} ${!isRTL ? 'font-bold tracking-tight' : ''}`}>
-                      <FileText className="w-6 h-6 text-gray-700" />
+                  <CardHeader className="p-3 pb-2">
+                    <CardTitle className={`flex items-center gap-2 text-xl font-semibold ${getSmartFontClass(content.contentOwnership[locale])} ${!isRTL ? 'font-bold tracking-tight' : ''}`}>
+                      <FileText className="w-6 h-6 text-gray-700 shrink-0" />
                       <span>{content.contentOwnership[locale]}</span>
                     </CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <p className={`text-gray-600 leading-relaxed ${getSmartFontClass(content.contentOwnershipDesc[locale])} ${!isRTL ? 'font-medium' : ''}`}>
+                  <CardContent className="p-3 pt-0">
+                    <p className={`text-gray-600 leading-6 ${getSmartFontClass(content.contentOwnershipDesc[locale])} ${!isRTL ? 'font-medium' : ''}`}>
                       {content.contentOwnershipDesc[locale]}
                     </p>
                   </CardContent>
                 </Card>
 
                 <Card className="rounded-2xl border border-gray-200 bg-white/80 backdrop-blur-sm">
-                  <CardHeader className="pb-6">
-                    <CardTitle className={`flex items-center gap-3 text-xl font-semibold ${getSmartFontClass(content.userContributions[locale])} ${!isRTL ? 'font-bold tracking-tight' : ''}`}>
-                      <Users className="w-6 h-6 text-gray-700" />
+                  <CardHeader className="p-4 pb-3">
+                    <CardTitle className={`flex items-center gap-2 text-xl font-semibold ${getSmartFontClass(content.nonProfitUse[locale])} ${!isRTL ? 'font-bold tracking-tight' : ''}`}>
+                      <Shield className="w-6 h-6 text-gray-700 shrink-0" />
+                      <span>{content.nonProfitUse[locale]}</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-4 pt-0">
+                    <p className={`text-gray-600 leading-7 ${getSmartFontClass(content.nonProfitUseDesc[locale])} ${!isRTL ? 'font-medium' : ''}`}>
+                      {content.nonProfitUseDesc[locale]}
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card className="rounded-2xl border border-gray-200 bg-white/80 backdrop-blur-sm">
+                  <CardHeader className="p-4 pb-3">
+                    <CardTitle className={`flex items-center gap-2 text-xl font-semibold ${getSmartFontClass(content.userContributions[locale])} ${!isRTL ? 'font-bold tracking-tight' : ''}`}>
+                      <Users className="w-6 h-6 text-gray-700 shrink-0" />
                       <span>{content.userContributions[locale]}</span>
                     </CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <p className={`text-gray-600 leading-relaxed ${getSmartFontClass(content.userContributionsDesc[locale])} ${!isRTL ? 'font-medium' : ''}`}>
+                  <CardContent className="p-4 pt-0">
+                    <p className={`text-gray-600 leading-7 ${getSmartFontClass(content.userContributionsDesc[locale])} ${!isRTL ? 'font-medium' : ''}`}>
                       {content.userContributionsDesc[locale]}
                     </p>
                   </CardContent>
                 </Card>
 
                 <Card className="rounded-2xl border border-gray-200 bg-white/80 backdrop-blur-sm">
-                  <CardHeader className="pb-6">
-                    <CardTitle className={`flex items-center gap-3 text-xl font-semibold ${getSmartFontClass(content.attribution[locale])} ${!isRTL ? 'font-bold tracking-tight' : ''}`}>
-                      <Globe className="w-6 h-6 text-gray-700" />
+                  <CardHeader className="p-4 pb-3">
+                    <CardTitle className={`flex items-center gap-2 text-xl font-semibold ${getSmartFontClass(content.attribution[locale])} ${!isRTL ? 'font-bold tracking-tight' : ''}`}>
+                      <Globe className="w-6 h-6 text-gray-700 shrink-0" />
                       <span>{content.attribution[locale]}</span>
                     </CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <p className={`text-gray-600 leading-relaxed ${getSmartFontClass(content.attributionDesc[locale])} ${!isRTL ? 'font-medium' : ''}`}>
+                  <CardContent className="p-4 pt-0">
+                    <p className={`text-gray-600 leading-7 ${getSmartFontClass(content.attributionDesc[locale])} ${!isRTL ? 'font-medium' : ''}`}>
                       {content.attributionDesc[locale]}
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card className="rounded-2xl border border-gray-200 bg-white/80 backdrop-blur-sm">
+                  <CardHeader className="p-4 pb-3">
+                    <CardTitle className={`flex items-center gap-2 text-xl font-semibold ${getSmartFontClass(content.integrityRules[locale])} ${!isRTL ? 'font-bold tracking-tight' : ''}`}>
+                      <FileText className="w-6 h-6 text-gray-700 shrink-0" />
+                      <span>{content.integrityRules[locale]}</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-4 pt-0">
+                    <p className={`text-gray-600 leading-7 ${getSmartFontClass(content.integrityRulesDesc[locale])} ${!isRTL ? 'font-medium' : ''}`}>
+                      {content.integrityRulesDesc[locale]}
                     </p>
                   </CardContent>
                 </Card>
@@ -642,33 +686,33 @@ export default function TermsPage() {
           </section>
 
           {/* Privacy and Data */}
-          <section className="py-16">
+          <section className="py-12">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
               viewport={{ once: true }}
-              className="space-y-12"
+              className="space-y-10"
             >
-              <h2 className={`text-3xl font-bold text-gray-900 text-center mb-12 ${getSmartFontClass(content.privacyAndData[locale])} ${!isRTL ? 'font-bold tracking-tight' : ''}`}>
+              <h2 className={`text-3xl font-bold text-gray-900 text-center mb-8 ${getSmartFontClass(content.privacyAndData[locale])} ${!isRTL ? 'font-bold tracking-tight' : ''}`}>
                 {content.privacyAndData[locale]}
               </h2>
 
               <Card className="rounded-2xl border border-gray-200 bg-white/80 backdrop-blur-sm">
-                <CardHeader className="pb-6">
-                  <CardTitle className={`flex items-center gap-3 text-xl font-semibold ${getSmartFontClass(content.dataProtection[locale])} ${!isRTL ? 'font-bold tracking-tight' : ''}`}>
-                    <Shield className="w-6 h-6 text-gray-700" />
+                <CardHeader className="p-4 pb-3">
+                  <CardTitle className={`flex items-center gap-2 text-xl font-semibold ${getSmartFontClass(content.dataProtection[locale])} ${!isRTL ? 'font-bold tracking-tight' : ''}`}>
+                    <Shield className="w-6 h-6 text-gray-700 shrink-0" />
                     <span>{content.dataProtection[locale]}</span>
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                  <p className={`text-gray-600 leading-relaxed ${getSmartFontClass(content.dataProtectionDesc[locale])} ${!isRTL ? 'font-medium' : ''}`}>
+                <CardContent className="space-y-4 p-4 pt-0">
+                  <p className={`text-gray-600 leading-7 ${getSmartFontClass(content.dataProtectionDesc[locale])} ${!isRTL ? 'font-medium' : ''}`}>
                     {content.dataProtectionDesc[locale]}
-                    <Link href="/privacy" className="text-gray-700 hover:text-gray-900 font-semibold ml-1">
+                    <Link href={`/${locale}/privacy-policy`} className="text-gray-700 hover:text-gray-900 font-semibold ml-1">
                       {content.privacyPolicy[locale]}
                     </Link>.
                   </p>
-                  <ul className="space-y-3 text-gray-600">
+                  <ul className="space-y-2 text-gray-600">
                     <li className="flex items-start gap-3">
                       <CheckCircle className="w-5 h-5 text-gray-500 mt-0.5 flex-shrink-0" />
                       <span className={`${getSmartFontClass(content.minimalData[locale])} ${!isRTL ? 'font-medium' : ''}`}>
@@ -700,25 +744,25 @@ export default function TermsPage() {
           </section>
 
           {/* Disclaimers */}
-          <section className="py-16">
+          <section className="py-12">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
               viewport={{ once: true }}
-              className="space-y-12"
+              className="space-y-10"
             >
-              <h2 className={`text-3xl font-bold text-gray-900 text-center mb-12 ${getSmartFontClass(content.disclaimers[locale])} ${!isRTL ? 'font-bold tracking-tight' : ''}`}>
+              <h2 className={`text-3xl font-bold text-gray-900 text-center mb-8 ${getSmartFontClass(content.disclaimers[locale])} ${!isRTL ? 'font-bold tracking-tight' : ''}`}>
                 {content.disclaimers[locale]}
               </h2>
 
-              <Card className="rounded-2xl border border-gray-200 bg-white/80 backdrop-blur-sm p-8">
+              <Card className="rounded-2xl border border-gray-200 bg-white/80 backdrop-blur-sm p-6">
                 <div className="space-y-8">
                   <div>
                     <h3 className={`text-2xl font-semibold text-gray-900 mb-4 ${getSmartFontClass(content.serviceAvailability[locale])} ${!isRTL ? 'font-bold tracking-tight' : ''}`}>
                       {content.serviceAvailability[locale]}
                     </h3>
-                    <p className={`text-gray-600 leading-relaxed ${getSmartFontClass(content.serviceAvailabilityDesc[locale])} ${!isRTL ? 'font-medium' : ''}`}>
+                    <p className={`text-gray-600 leading-7 ${getSmartFontClass(content.serviceAvailabilityDesc[locale])} ${!isRTL ? 'font-medium' : ''}`}>
                       {content.serviceAvailabilityDesc[locale]}
                     </p>
                   </div>
@@ -727,7 +771,7 @@ export default function TermsPage() {
                     <h3 className={`text-2xl font-semibold text-gray-900 mb-4 ${getSmartFontClass(content.contentAccuracy[locale])} ${!isRTL ? 'font-bold tracking-tight' : ''}`}>
                       {content.contentAccuracy[locale]}
                     </h3>
-                    <p className={`text-gray-600 leading-relaxed ${getSmartFontClass(content.contentAccuracyDesc[locale])} ${!isRTL ? 'font-medium' : ''}`}>
+                    <p className={`text-gray-600 leading-7 ${getSmartFontClass(content.contentAccuracyDesc[locale])} ${!isRTL ? 'font-medium' : ''}`}>
                       {content.contentAccuracyDesc[locale]}
                     </p>
                   </div>
@@ -736,7 +780,7 @@ export default function TermsPage() {
                     <h3 className={`text-2xl font-semibold text-gray-900 mb-4 ${getSmartFontClass(content.limitationOfLiability[locale])} ${!isRTL ? 'font-bold tracking-tight' : ''}`}>
                       {content.limitationOfLiability[locale]}
                     </h3>
-                    <p className={`text-gray-600 leading-relaxed ${getSmartFontClass(content.limitationOfLiabilityDesc[locale])} ${!isRTL ? 'font-medium' : ''}`}>
+                    <p className={`text-gray-600 leading-7 ${getSmartFontClass(content.limitationOfLiabilityDesc[locale])} ${!isRTL ? 'font-medium' : ''}`}>
                       {content.limitationOfLiabilityDesc[locale]}
                     </p>
                   </div>
@@ -746,27 +790,27 @@ export default function TermsPage() {
           </section>
 
           {/* Changes to Terms */}
-          <section className="py-16">
+          <section className="py-12">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
               viewport={{ once: true }}
-              className="space-y-12"
+              className="space-y-10"
             >
-              <h2 className={`text-3xl font-bold text-gray-900 text-center mb-12 ${getSmartFontClass(content.changesToTerms[locale])} ${!isRTL ? 'font-bold tracking-tight' : ''}`}>
+              <h2 className={`text-3xl font-bold text-gray-900 text-center mb-8 ${getSmartFontClass(content.changesToTerms[locale])} ${!isRTL ? 'font-bold tracking-tight' : ''}`}>
                 {content.changesToTerms[locale]}
               </h2>
 
               <Card className="rounded-2xl border border-gray-200 bg-white/80 backdrop-blur-sm">
-                <CardHeader className="pb-6">
-                  <CardTitle className={`flex items-center gap-3 text-xl font-semibold ${getSmartFontClass(content.updatesAndModifications[locale])} ${!isRTL ? 'font-bold tracking-tight' : ''}`}>
-                    <Calendar className="w-6 h-6 text-gray-700" />
+                <CardHeader className="p-4 pb-3">
+                  <CardTitle className={`flex items-center gap-2 text-xl font-semibold ${getSmartFontClass(content.updatesAndModifications[locale])} ${!isRTL ? 'font-bold tracking-tight' : ''}`}>
+                    <Calendar className="w-6 h-6 text-gray-700 shrink-0" />
                     <span>{content.updatesAndModifications[locale]}</span>
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <p className={`text-gray-600 leading-relaxed ${getSmartFontClass(content.updatesDesc[locale])} ${!isRTL ? 'font-medium' : ''}`}>
+                <CardContent className="p-4 pt-0">
+                  <p className={`text-gray-600 leading-7 ${getSmartFontClass(content.updatesDesc[locale])} ${!isRTL ? 'font-medium' : ''}`}>
                     {content.updatesDesc[locale]}
                   </p>
                 </CardContent>
@@ -775,7 +819,7 @@ export default function TermsPage() {
           </section>
 
           {/* Contact Information */}
-          <section className="py-16">
+          <section className="py-12">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -783,16 +827,16 @@ export default function TermsPage() {
               viewport={{ once: true }}
               className="text-center"
             >
-              <Card className="rounded-2xl border border-gray-200 bg-white/80 backdrop-blur-sm p-8">
+              <Card className="rounded-2xl border border-gray-200 bg-white/80 backdrop-blur-sm p-6">
                 <h2 className={`text-3xl font-bold text-gray-900 mb-6 ${getSmartFontClass(content.questionsAboutTerms[locale])} ${!isRTL ? 'font-bold tracking-tight' : ''}`}>
                   {content.questionsAboutTerms[locale]}
                 </h2>
-                <p className={`text-lg text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed ${getSmartFontClass(content.termsQuestionsDesc[locale])} ${!isRTL ? 'font-light' : ''}`}>
+                <p className={`text-lg text-gray-600 mb-6 max-w-3xl mx-auto leading-7 ${getSmartFontClass(content.termsQuestionsDesc[locale])} ${!isRTL ? 'font-light' : ''}`}>
                   {content.termsQuestionsDesc[locale]}
                 </p>
-                <Link href="/contact">
+                <Link href={`/${locale}/contact`}>
                   <Button className="h-12 px-8 text-base rounded-xl border-2 border-gray-200 bg-white text-gray-900 hover:bg-gray-50 hover:border-gray-300 shadow-sm hover:shadow-md transition-all duration-200">
-                    <Mail className="w-5 h-5 mr-2" />
+                    <Mail className="w-5 h-5 mr-2 shrink-0" />
                     {content.contactUs[locale]}
                     <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
@@ -804,4 +848,6 @@ export default function TermsPage() {
       </main>
     </div>
   );
-} 
+}
+
+

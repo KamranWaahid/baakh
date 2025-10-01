@@ -105,7 +105,6 @@ export async function GET(
       `)
       .ilike('couplet_tags', `%${slug}%`)
       .or('poetry_id.is.null,poetry_id.eq.0') // Only standalone couplets
-      .eq('lang', lang) // Filter by language
       .order('created_at', { ascending: false })
       .limit(limit);
 
@@ -144,21 +143,11 @@ export async function GET(
         created_at,
         poet_id,
         category_id,
-        poets!inner(
-          poet_id,
-          english_name,
-          sindhi_name,
-          file_url
-        ),
-        categories!inner(
-          id,
-          slug,
-          english_name,
-          sindhi_name
-        )
+        poetry_tags
       `)
       .ilike('poetry_tags', `%${slug}%`)
-      .eq('lang', lang) // Filter by language
+      .eq('visibility', true)
+      .is('deleted_at', null)
       .order('created_at', { ascending: false })
       .limit(limit);
 
@@ -171,14 +160,14 @@ export async function GET(
       .from('poetry_couplets')
       .select('*', { count: 'exact', head: true })
       .ilike('couplet_tags', `%${slug}%`)
-      .or('poetry_id.is.null,poetry_id.eq.0') // Only standalone couplets
-      .eq('lang', lang);
+      .or('poetry_id.is.null,poetry_id.eq.0'); // Only standalone couplets (count across all languages)
 
     const { count: poetryCount } = await admin
       .from('poetry_main')
-      .select('*', { count: 'exact', head: true })
+      .select('id', { count: 'exact', head: true })
       .ilike('poetry_tags', `%${slug}%`)
-      .eq('lang', lang);
+      .eq('visibility', true)
+      .is('deleted_at', null);
 
     // Get all unique tag slugs from couplets and poetry
     const allTagSlugs = new Set<string>();
@@ -216,11 +205,44 @@ export async function GET(
       });
     });
 
-    // Create poet lookup map
-    const poetMap = new Map();
-    poetsData.forEach((poet: any) => {
-      poetMap.set(poet.poet_id, poet);
-    });
+    // Build lookup maps for poetry relations
+    const poetryPoetIds = [...new Set((poetryData || []).map((p: any) => p.poet_id).filter(Boolean))];
+    const poetryCategoryIds = [...new Set((poetryData || []).map((p: any) => p.category_id).filter(Boolean))];
+    let poetryPoets: any[] = [];
+    let poetryCategories: any[] = [];
+    if (poetryPoetIds.length > 0) {
+      const { data: ppoets } = await admin
+        .from('poets')
+        .select('poet_id, poet_slug, english_name, sindhi_name, file_url')
+        .in('poet_id', poetryPoetIds);
+      poetryPoets = ppoets || [];
+    }
+    if (poetryCategoryIds.length > 0) {
+      // First get the base category info
+      const { data: pcats } = await admin
+        .from('categories')
+        .select('id, slug')
+        .in('id', poetryCategoryIds);
+      
+      // Then get the category details (names) for both languages
+      const { data: categoryDetails } = await admin
+        .from('category_details')
+        .select('cat_id, cat_name, lang')
+        .in('cat_id', poetryCategoryIds);
+      
+      // Combine the data
+      poetryCategories = (pcats || []).map((cat: any) => {
+        const enDetail = categoryDetails?.find((d: any) => d.cat_id === cat.id && d.lang === 'en');
+        const sdDetail = categoryDetails?.find((d: any) => d.cat_id === cat.id && d.lang === 'sd');
+        return {
+          ...cat,
+          english_name: enDetail?.cat_name,
+          sindhi_name: sdDetail?.cat_name
+        };
+      });
+    }
+    const poetMap = new Map(poetryPoets.map((poet: any) => [poet.poet_id, poet]));
+    const categoryMap = new Map(poetryCategories.map((c: any) => [c.id, c]));
 
     // Transform couplets data
     const couplets = (coupletsData || []).map((couplet: any) => {
@@ -245,30 +267,66 @@ export async function GET(
     });
 
     // Transform poetry data
-    const poetry = (poetryData || []).map((poem: any) => ({
-      id: poem.id,
-      title: poem.poetry_slug, // Use poetry_slug as title since title column doesn't exist
-      slug: poem.poetry_slug,
-      lang: poem.lang,
-      created_at: poem.created_at,
-      view_count: 0,
-      reading_time: 5,
-      tags: [], // Will be populated from poetry_tags if needed
-      poet: {
-        id: poem.poets?.poet_id || 'unknown',
-        name: lang === 'sd' 
-          ? (poem.poets?.sindhi_name || poem.poets?.english_name || 'Unknown')
-          : (poem.poets?.english_name || poem.poets?.sindhi_name || 'Unknown'),
-        slug: 'unknown', // Will need to fetch poet slug separately if needed
-        photo: poem.poets?.file_url || null
-      },
-      category: {
-        id: poem.categories?.id || 'unknown',
-        slug: poem.categories?.slug || 'unknown',
-        englishName: poem.categories?.english_name || 'Unknown',
-        sindhiName: poem.categories?.sindhi_name || 'Unknown'
+    const categoryNameFromSlug = (slug: string | undefined, langCode: string) => {
+      const map: Record<string, { en: string; sd: string }> = {
+        ghazal: { en: 'Ghazal', sd: 'غزل' },
+        nazm: { en: 'Nazm', sd: 'نظم' },
+        rubai: { en: 'Rubai', sd: 'رباعي' },
+        masnavi: { en: 'Masnavi', sd: 'مثنوي' },
+        qasida: { en: 'Qasida', sd: 'قصيده' },
+        doha: { en: 'Doha', sd: 'دوها' },
+        qata: { en: 'Qata', sd: 'قطعو' },
+        marsiya: { en: 'Marsiya', sd: 'مرثيو' },
+        chausittaa: { en: 'Chausittaa', sd: 'چوڱيتا' }
+      };
+      if (!slug) return 'Unknown';
+      const entry = map[slug];
+      if (!entry) return slug;
+      return langCode === 'sd' ? entry.sd : entry.en;
+    };
+
+    const deriveCategoryFromTags = (tags: string | undefined, categoryMap: Map<string, any>): string | undefined => {
+      if (!tags) return undefined;
+      const tagList = tags.split(',').map(t => t.trim().toLowerCase());
+      const knownSlugs = Array.from(categoryMap.values()).map(cat => cat.slug).filter(Boolean);
+      return tagList.find(t => knownSlugs.includes(t));
+    };
+
+    const poetry = (poetryData || []).map((poem: any) => {
+      const poet = poetMap.get(poem.poet_id) || null;
+      let cat = categoryMap.get(poem.category_id) || null;
+      let catSlug: string | undefined = cat?.slug;
+      
+      if (!catSlug || catSlug === 'unknown') {
+        catSlug = deriveCategoryFromTags(poem.poetry_tags, categoryMap) || catSlug;
       }
-    }));
+      const englishName = cat?.english_name || categoryNameFromSlug(catSlug, 'en');
+      const sindhiName = cat?.sindhi_name || categoryNameFromSlug(catSlug, 'sd');
+      return {
+        id: poem.id,
+        title: poem.poetry_slug,
+        slug: poem.poetry_slug,
+        lang: poem.lang,
+        created_at: poem.created_at,
+        view_count: 0,
+        reading_time: 5,
+        tags: (poem.poetry_tags || '').split(',').map((tagSlug: string) => tagMap.get(tagSlug.trim()) || { id: tagSlug.trim(), slug: tagSlug.trim(), label: tagSlug.trim(), tag_type: 'unknown' }),
+        poet: {
+          id: poet?.poet_id || 'unknown',
+          name: lang === 'sd'
+            ? (poet?.sindhi_name || poet?.english_name || 'Unknown')
+            : (poet?.english_name || poet?.sindhi_name || 'Unknown'),
+          slug: poet?.poet_slug || 'unknown',
+          photo: poet?.file_url || null
+        },
+        category: {
+          id: cat?.id || catSlug || 'unknown',
+          slug: catSlug || 'unknown',
+          englishName,
+          sindhiName
+        }
+      };
+    });
 
     const topicData = {
       id: tag.id,

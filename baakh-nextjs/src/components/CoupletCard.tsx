@@ -28,6 +28,8 @@ interface CoupletCardProps {
       englishName?: string;
       sindhi_laqab?: string;
       english_laqab?: string;
+      sindhiTagline?: string;
+      englishTagline?: string;
     };
     created_at: string;
     likes: number;
@@ -116,7 +118,13 @@ export default function CoupletCard({ couplet, isSindhi, index }: CoupletCardPro
         // Fallback to clipboard (silent)
         await navigator.clipboard.writeText(`${shareText}\n\n${shareUrl}`);
       }
-    } catch (error) {
+    } catch (error: any) {
+      // Ignore user-cancelled share dialogs
+      const message = String(error?.message || '').toLowerCase();
+      const name = String(error?.name || '').toLowerCase();
+      if (name.includes('abort') || message.includes('abort') || message.includes('canceled') || message.includes('cancelled')) {
+        return;
+      }
       console.error('Error sharing couplet:', error);
       // Fallback: just copy the URL
       try {
@@ -165,38 +173,50 @@ export default function CoupletCard({ couplet, isSindhi, index }: CoupletCardPro
           </div>
 
           {/* Poet Info */}
-          <div className="flex items-center justify-between pt-6 border-t border-gray-100">
-            <div className="flex items-center gap-3">
-              <Avatar className="w-8 h-8 bg-background border border-gray-200/30 shadow-sm">
-                <AvatarImage src={couplet.poet?.photo || undefined} alt={couplet.poet?.englishName || couplet.poet?.sindhiName || 'Unknown Poet'} />
-                <AvatarFallback className={cn(
-                  "text-sm font-medium text-foreground bg-gray-50 border border-gray-200/40",
-                  couplet.lang === 'sd' ? 'auto-sindhi-font' : ''
-                )}>
-                  {couplet.poet?.englishName || couplet.poet?.sindhiName ? (
-                    couplet.lang === 'sd' 
-                      ? (couplet.poet?.sindhiName || couplet.poet?.englishName)?.charAt(0)
-                      : (couplet.poet?.englishName || couplet.poet?.sindhiName)?.charAt(0).toUpperCase()
-                  ) : '?'}
-                </AvatarFallback>
-              </Avatar>
-              <span className={`text-sm text-gray-700 font-medium ${isSindhi ? 'auto-sindhi-font' : ''}`}>
-                {couplet.poet ? (
-                  isSindhi
-                    ? (couplet.poet.sindhi_laqab || couplet.poet.sindhiName || couplet.poet.englishName)
-                    : (couplet.poet.english_laqab || couplet.poet.englishName || couplet.poet.sindhiName)
-                ) : (
-                  isSindhi ? 'نامعلوم شاعر' : 'Unknown Poet'
-                )}
-              </span>
-            </div>
-            <div className="flex items-center gap-2 text-xs text-gray-500">
-              <Clock className="h-4 w-4" />
-              <MixedContentWithNumbers 
-                text={isSindhi ? '2 منٽ' : '2 min'}
-                className="text-xs"
-                sindhiClass="auto-sindhi-font"
-              />
+          <div className="pt-6 border-t border-gray-100">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-3">
+                <Avatar className="w-8 h-8 bg-background border border-gray-200/30 shadow-sm">
+                  <AvatarImage src={couplet.poet?.photo || undefined} alt={couplet.poet?.englishName || couplet.poet?.sindhiName || 'Unknown Poet'} />
+                  <AvatarFallback className={cn(
+                    "text-sm font-medium text-foreground bg-gray-50 border border-gray-200/40",
+                    couplet.lang === 'sd' ? 'auto-sindhi-font' : ''
+                  )}>
+                    {couplet.poet?.englishName || couplet.poet?.sindhiName ? (
+                      couplet.lang === 'sd' 
+                        ? (couplet.poet?.sindhiName || couplet.poet?.englishName)?.charAt(0)
+                        : (couplet.poet?.englishName || couplet.poet?.sindhiName)?.charAt(0).toUpperCase()
+                    ) : '?'}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex flex-col">
+                  <span className={`text-sm text-gray-700 font-medium ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+                    {couplet.poet ? (
+                      isSindhi
+                        ? (couplet.poet.sindhi_laqab || couplet.poet.sindhiName || couplet.poet.englishName)
+                        : (couplet.poet.english_laqab || couplet.poet.englishName || couplet.poet.sindhiName)
+                    ) : (
+                      isSindhi ? 'نامعلوم شاعر' : 'Unknown Poet'
+                    )}
+                  </span>
+                  {(couplet.poet?.sindhiTagline || couplet.poet?.englishTagline) && (
+                    <span className={`text-xs text-gray-500 ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+                      {isSindhi 
+                        ? (couplet.poet.sindhiTagline || couplet.poet.englishTagline)
+                        : (couplet.poet.englishTagline || couplet.poet.sindhiTagline)
+                      }
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-xs text-gray-500">
+                <Clock className="h-4 w-4" />
+                <MixedContentWithNumbers 
+                  text={isSindhi ? '2 منٽ' : '2 min'}
+                  className="text-xs"
+                  sindhiClass="auto-sindhi-font"
+                />
+              </div>
             </div>
           </div>
 

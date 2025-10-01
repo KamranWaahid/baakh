@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SSRead Font Test</title>
+    <style>
+        /* Sindhi Font - ssread from sindhsalamat.com */
+        @font-face { 
+            font-family: 'ssread'; 
+            src: url('http://font.sindhsalamat.com/fonts/ssread.eot') format('eot'); 
+            src: url('http://font.sindhsalamat.com/fonts/ssread.eot?#iefix') format('embedded-opentype'), 
+                 url('http://font.sindhsalamat.com/fonts/ssread.woff') format('woff'), 
+                 url('http://font.sindhsalamat.com/fonts/ssread.woff2') format('woff2'), 
+                 url('http://font.sindhsalamat.com/fonts/ssread.ttf') format('truetype'), 
+                 url('http://font.sindhsalamat.com/fonts/ssread.svg#ssread') format('svg'); 
+            font-display: swap;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            line-height: 1.6;
+        }
+
+        .font-test {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        .ssread {
+            font-family: 'ssread', 'Lateef', 'Amiri', 'Noto Naskh Arabic', serif;
+            font-size: 24px;
+            direction: rtl;
+            text-align: right;
+        }
+
+        .fallback {
+            font-family: 'Lateef', 'Amiri', 'Noto Naskh Arabic', serif;
+            font-size: 24px;
+            direction: rtl;
+            text-align: right;
+        }
+
+        h1 {
+            color: #333;
+            border-bottom: 2px solid #007acc;
+            padding-bottom: 10px;
+        }
+
+        .label {
+            font-weight: bold;
+            color: #666;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>SSRead Font Test</h1>
+    
+    <div class="font-test">
+        <div class="label">With SSRead Font:</div>
+        <div class="ssread">
+            سنڌي شاعري ۽ ادب جي دنيا ۾ خوش آمديد<br>
+            شاھ عبداللطيف ڀٽائي جي شاعري<br>
+            سچل سرمست جو ڪلام<br>
+            ڪوپليٽ ۽ غزل
+        </div>
+    </div>
+
+    <div class="font-test">
+        <div class="label">With Fallback Fonts (Lateef, Amiri, Noto Naskh Arabic):</div>
+        <div class="fallback">
+            سنڌي شاعري ۽ ادب جي دنيا ۾ خوش آمديد<br>
+            شاھ عبداللطيف ڀٽائي جي شاعري<br>
+            سچل سرمست جو ڪلام<br>
+            ڪوپليٽ ۽ غزل
+        </div>
+    </div>
+
+    <div class="font-test">
+        <div class="label">Font Loading Status:</div>
+        <div id="font-status">Checking font loading...</div>
+    </div>
+
+    <script>
+        // Check if font is loaded
+        document.fonts.ready.then(() => {
+            const ssreadLoaded = document.fonts.check('24px ssread');
+            const status = document.getElementById('font-status');
+            
+            if (ssreadLoaded) {
+                status.innerHTML = '✅ SSRead font loaded successfully!';
+                status.style.color = 'green';
+            } else {
+                status.innerHTML = '❌ SSRead font not loaded, using fallback fonts';
+                status.style.color = 'orange';
+            }
+        });
+
+        // Alternative font loading check
+        setTimeout(() => {
+            const testElement = document.createElement('div');
+            testElement.style.fontFamily = 'ssread';
+            testElement.style.fontSize = '24px';
+            testElement.style.position = 'absolute';
+            testElement.style.left = '-9999px';
+            testElement.textContent = 'Test';
+            document.body.appendChild(testElement);
+            
+            const computedStyle = window.getComputedStyle(testElement);
+            const fontFamily = computedStyle.fontFamily;
+            
+            console.log('Font family:', fontFamily);
+            
+            if (fontFamily.includes('ssread')) {
+                console.log('SSRead font is being used');
+            } else {
+                console.log('Fallback font is being used');
+            }
+            
+            document.body.removeChild(testElement);
+        }, 2000);
+    </script>
+</body>
+</html>

@@ -10,19 +10,19 @@ export async function GET(request: NextRequest) {
       supabase
         .from('poetry_main')
         .select('*', { count: 'exact', head: true })
-        .eq('visibility', true),
+        .eq('visibility', true)
+        .is('deleted_at', null),
       supabase
         .from('poets')
         .select('*', { count: 'exact', head: true })
-        .eq('visibility', true),
+        .eq('is_hidden', false),
       supabase
         .from('categories')
-        .select('*', { count: 'exact', head: true })
-        .eq('visibility', true),
+        .select('*', { count: 'exact', head: true }),
       supabase
-        .from('topics')
+        .from('tags')
         .select('*', { count: 'exact', head: true })
-        .eq('visibility', true)
+        .eq('tag_type', 'Topic')
     ]);
 
     return NextResponse.json({

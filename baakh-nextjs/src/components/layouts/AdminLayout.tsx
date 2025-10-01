@@ -148,7 +148,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const currentUser = user!;
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="admin-minimal flex h-screen bg-gray-50">
       {/* CSRF Token Meta Tag */}
       {csrfToken && (
         <meta name="csrf-token" content={csrfToken} />

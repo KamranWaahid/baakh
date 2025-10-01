@@ -17,24 +17,24 @@
   --admin-radius-xl: 1rem;      /* 16px */
   --admin-radius-2xl: 1.5rem;   /* 24px */
   
-  /* Admin-specific shadows */
-  --admin-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --admin-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --admin-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  --admin-shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  /* Admin-specific shadows removed */
+  --admin-shadow-sm: none;
+  --admin-shadow-md: none;
+  --admin-shadow-lg: none;
+  --admin-shadow-xl: none;
   
   /* Admin-specific colors */
   --admin-primary: hsl(var(--primary));
-  --admin-primary-light: hsl(var(--primary) / 0.1);
-  --admin-primary-lighter: hsl(var(--primary) / 0.05);
+  --admin-primary-light: hsl(var(--primary) / 10%);
+  --admin-primary-lighter: hsl(var(--primary) / 5%);
   --admin-secondary: hsl(var(--secondary));
   --admin-accent: hsl(var(--accent));
-  --admin-accent-light: hsl(var(--accent) / 0.1);
+  --admin-accent-light: hsl(var(--accent) / 10%);
   --admin-muted: hsl(var(--muted));
-  --admin-muted-light: hsl(var(--muted) / 0.5);
+  --admin-muted-light: hsl(var(--muted) / 50%);
   --admin-border: hsl(var(--border));
-  --admin-border-light: hsl(var(--border) / 0.3);
-  --admin-border-lighter: hsl(var(--border) / 0.1);
+  --admin-border-light: hsl(var(--border) / 30%);
+  --admin-border-lighter: hsl(var(--border) / 10%);
   
   /* Sidebar Design Tokens */
   --bg: #fff;
@@ -45,15 +45,110 @@
   --hover: #F4F4F5;          /* hover surfaces */
   --active: #F1F1F1;         /* active "pill" */
   --active-border: #E7E7E7;  /* pill border */
-  --selected: #111111;       /* quick-action selected bg */
-  --ring: 0 0 0 3px rgba(0,0,0,.08);
+  --selected: #111;       /* quick-action selected bg */
+  --ring: 0 0 0 3px rgb(0 0 0 / 8%);
   --radius: 14px;            /* pill radii */
+}
+
+/* ===== ADMIN MINIMAL TYPOGRAPHY (scoped) ===== */
+.admin-minimal {
+  font-family: var(--font-inter);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizelegibility;
+  font-kerning: normal;
+  font-variant-ligatures: common-ligatures;
+  font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+  color: hsl(var(--text-body));
+
+  --admin-surface: 0 0% 100%;
+  --admin-text: var(--text-body);
+  --admin-border-min: hsl(var(--border) / 15%);
+}
+
+.admin-minimal *:where(:not(.sindhi-text, [lang="sd"])) {
+  font-family: var(--font-inter) !important;
+}
+
+/* Never use bold in admin */
+.admin-minimal :is(b, strong, .font-bold, .font-semibold, [data-bold="true"]) {
+  font-weight: 400 !important;
+}
+
+.admin-minimal :is(h1, h2, h3, h4, h5, h6) {
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  color: hsl(var(--text-primary));
+}
+
+.admin-minimal :is(p, li, small, label, button, input, textarea) {
+  letter-spacing: 0.003em;
+}
+
+/* Colorless, minimal surfaces */
+
+.admin-minimal .bg-gray-50,
+.admin-minimal .bg-f9f9f9,
+.admin-minimal .bg-white,
+.admin-minimal main,
+.admin-minimal header {
+  background: hsl(var(--background)) !important;
+}
+
+.admin-minimal :is(.border, [class*="border-"]) {
+  border-color: var(--admin-border-min) !important;
+}
+
+.admin-minimal :is(.text-gray-900, .text-black, .text-1f1f1f) { 
+  color: hsl(var(--text-primary)) !important; 
+}
+
+.admin-minimal :is(.text-gray-700, .text-gray-600, .text-6b6b6b) { 
+  color: hsl(var(--text-body)) !important; 
+}
+
+.admin-minimal :is(.text-gray-500, .text-gray-400) { 
+  color: hsl(var(--text-muted)) !important; 
+}
+
+/* Buttons: remove heavy effects */
+.admin-minimal :is(button, .button, .admin-button, .shadcn-button) {
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.admin-minimal :is(button, .button, .admin-button, .shadcn-button):hover {
+  transform: none !important;
+}
+
+/* Tables */
+.admin-minimal table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.admin-minimal th { 
+  font-weight: 400; 
+  color: hsl(var(--text-secondary)); 
+}
+.admin-minimal td { color: hsl(var(--text-body)); }
+
+/* Inputs */
+.admin-minimal :is(input, textarea, select) {
+  font-weight: 400 !important;
+}
+
+/* Sindhi in Admin uses the configured Sindhi font */
+.admin-minimal :is([lang="sd"], .sindhi-text, .admin-sindhi-text, .sindhi-label, .sindhi-textarea) {
+  font-family: var(--font-sindhi) !important;
+  font-feature-settings: 'kern' 1, 'liga' 1;
 }
 
 /* ===== TYPOGRAPHY IMPROVEMENTS ===== */
 .admin-heading-1 {
   font-size: 2.25rem;
-  font-weight: 800;
+  font-weight: 400;
   line-height: 1.2;
   letter-spacing: -0.025em;
   color: hsl(var(--foreground));
@@ -61,7 +156,7 @@
 
 .admin-heading-2 {
   font-size: 1.875rem;
-  font-weight: 700;
+  font-weight: 400;
   line-height: 1.3;
   letter-spacing: -0.025em;
   color: hsl(var(--foreground));
@@ -69,14 +164,14 @@
 
 .admin-heading-3 {
   font-size: 1.5rem;
-  font-weight: 600;
+  font-weight: 400;
   line-height: 1.4;
   color: hsl(var(--foreground));
 }
 
 .admin-heading-4 {
   font-size: 1.25rem;
-  font-weight: 600;
+  font-weight: 400;
   line-height: 1.4;
   color: hsl(var(--foreground));
 }
@@ -101,32 +196,32 @@
 
 /* ===== SINDHI FONT SUPPORT ===== */
 .admin-sindhi-text {
-  font-family: 'MB Lateefi', 'Noto Naskh Arabic', serif;
+  font-family: var(--font-sindhi);
   font-feature-settings: 'kern' 1, 'liga' 1;
-  text-rendering: optimizeLegibility;
+  text-rendering: optimizelegibility;
 }
 
 .admin-sindhi-heading {
-  font-family: 'MB Lateefi', 'Noto Naskh Arabic', serif;
-  font-weight: 600;
+  font-family: var(--font-sindhi);
+  font-weight: 400;
   font-feature-settings: 'kern' 1, 'liga' 1;
-  text-rendering: optimizeLegibility;
+  text-rendering: optimizelegibility;
 }
 
 .admin-sindhi-body {
-  font-family: 'MB Lateefi', 'Noto Naskh Arabic', serif;
+  font-family: var(--font-sindhi);
   font-size: 1.125rem;
   line-height: 1.8;
   font-feature-settings: 'kern' 1, 'liga' 1;
-  text-rendering: optimizeLegibility;
+  text-rendering: optimizelegibility;
 }
 
 .admin-sindhi-caption {
-  font-family: 'MB Lateefi', 'Noto Naskh Arabic', serif;
+  font-family: var(--font-sindhi);
   font-size: 0.875rem;
   line-height: 1.6;
   font-feature-settings: 'kern' 1, 'liga' 1;
-  text-rendering: optimizeLegibility;
+  text-rendering: optimizelegibility;
 }
 
 /* RTL Support for Sindhi Text */
@@ -138,19 +233,19 @@
 
 /* Sindhi Input Styling */
 .admin-sindhi-input {
-  font-family: 'MB Lateefi', 'Noto Naskh Arabic', serif;
+  font-family: ssread, Lateef, Amiri, 'Noto Naskh Arabic', serif;
   font-size: 1rem;
   line-height: 1.6;
   font-feature-settings: 'kern' 1, 'liga' 1;
-  text-rendering: optimizeLegibility;
+  text-rendering: optimizelegibility;
 }
 
 /* Sindhi Label Styling */
 .admin-sindhi-label {
-  font-family: 'MB Lateefi', 'Noto Naskh Arabic', serif;
+  font-family: ssread, Lateef, Amiri, 'Noto Naskh Arabic', serif;
   font-weight: 500;
   font-feature-settings: 'kern' 1, 'liga' 1;
-  text-rendering: optimizeLegibility;
+  text-rendering: optimizelegibility;
 }
 
 .admin-text-xs {
@@ -164,7 +259,7 @@
   background: hsl(var(--card));
   border: 1px solid var(--admin-border-lighter);
   border-radius: var(--admin-radius-xl);
-  box-shadow: var(--admin-shadow-sm);
+  box-shadow: none;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   backdrop-filter: blur(8px);
 }
@@ -192,7 +287,7 @@
 
 .admin-card:hover {
   border-color: var(--admin-border-light);
-  box-shadow: var(--admin-shadow-md);
+  box-shadow: none;
   transform: translateY(-1px);
 }
 
@@ -200,12 +295,12 @@
   background: hsl(var(--card));
   border: 1px solid var(--admin-border-light);
   border-radius: var(--admin-radius-xl);
-  box-shadow: var(--admin-shadow-lg);
+  box-shadow: none;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .admin-card-elevated:hover {
-  box-shadow: var(--admin-shadow-xl);
+  box-shadow: none;
   transform: translateY(-2px);
 }
 
@@ -233,10 +328,10 @@
 }
 
 .admin-button-primary:hover {
-  background: hsl(var(--primary) / 0.9);
-  border-color: hsl(var(--primary) / 0.9);
+  background: hsl(var(--primary) / 90%);
+  border-color: hsl(var(--primary) / 90%);
   transform: translateY(-1px);
-  box-shadow: var(--admin-shadow-md);
+  box-shadow: none;
 }
 
 .admin-button-secondary {
@@ -246,7 +341,7 @@
 }
 
 .admin-button-secondary:hover {
-  background: hsl(var(--secondary) / 0.8);
+  background: hsl(var(--secondary) / 80%);
   border-color: var(--admin-border);
   transform: translateY(-1px);
 }
@@ -292,7 +387,7 @@
 .admin-input:focus {
   outline: none;
   border-color: var(--admin-primary);
-  box-shadow: 0 0 0 3px var(--admin-primary-light);
+  box-shadow: none;
 }
 
 .admin-input:hover {
@@ -316,7 +411,7 @@
 .admin-badge-primary {
   background: var(--admin-primary-light);
   color: var(--admin-primary);
-  border-color: hsl(var(--primary) / 0.2);
+  border-color: hsl(var(--primary) / 20%);
 }
 
 .admin-badge-secondary {
@@ -332,21 +427,21 @@
 }
 
 .admin-badge-success {
-  background: hsl(142 76% 36% / 0.1);
-  color: hsl(142 76% 36%);
-  border-color: hsl(142 76% 36% / 0.2);
+  background: hsl(142deg 76% 36% / 10%);
+  color: hsl(142deg 76% 36%);
+  border-color: hsl(142deg 76% 36% / 20%);
 }
 
 .admin-badge-warning {
-  background: hsl(48 96% 53% / 0.1);
-  color: hsl(48 96% 53%);
-  border-color: hsl(48 96% 53% / 0.2);
+  background: hsl(48deg 96% 53% / 10%);
+  color: hsl(48deg 96% 53%);
+  border-color: hsl(48deg 96% 53% / 20%);
 }
 
 .admin-badge-error {
-  background: hsl(0 84% 60% / 0.1);
-  color: hsl(0 84% 60%);
-  border-color: hsl(0 84% 60% / 0.2);
+  background: hsl(0deg 84% 60% / 10%);
+  color: hsl(0deg 84% 60%);
+  border-color: hsl(0deg 84% 60% / 20%);
 }
 
 /* ===== IMPROVED TABLE SYSTEM ===== */
@@ -362,7 +457,7 @@
   font-weight: 600;
   text-align: left;
   color: hsl(var(--foreground));
-  background: hsl(var(--muted) / 0.3);
+  background: hsl(var(--muted) / 30%);
   border-bottom: 1px solid var(--admin-border-light);
   white-space: nowrap;
 }
@@ -416,7 +511,7 @@
 .admin-nav-item.active {
   background: var(--admin-primary-light);
   color: var(--admin-primary);
-  border-color: hsl(var(--primary) / 0.2);
+  border-color: hsl(var(--primary) / 20%);
 }
 
 /* ===== IMPROVED DROPDOWN SYSTEM ===== */
@@ -424,7 +519,7 @@
   background: hsl(var(--popover));
   border: 1px solid var(--admin-border-light);
   border-radius: var(--admin-radius-xl);
-  box-shadow: var(--admin-shadow-xl);
+  box-shadow: none;
   backdrop-filter: blur(12px);
   padding: 0.5rem;
 }
@@ -434,7 +529,7 @@
   background: linear-gradient(
     90deg,
     hsl(var(--muted)) 25%,
-    hsl(var(--muted) / 0.5) 50%,
+    hsl(var(--muted) / 50%) 50%,
     hsl(var(--muted)) 75%
   );
   background-size: 200% 100%;
@@ -446,6 +541,7 @@
   0% {
     background-position: 200% 0;
   }
+
   100% {
     background-position: -200% 0;
   }
@@ -547,7 +643,7 @@
 }
 
 /* ===== IMPROVED RESPONSIVE DESIGN ===== */
-@media (max-width: 768px) {
+@media (width <= 768px) {
   .admin-grid-stats {
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: var(--admin-space-md);
@@ -584,6 +680,7 @@
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -594,6 +691,7 @@
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -605,6 +703,7 @@
     opacity: 0;
     transform: scale(0.95);
   }
+
   to {
     opacity: 1;
     transform: scale(1);
@@ -614,12 +713,12 @@
 /* ===== IMPROVED FOCUS STATES ===== */
 .admin-focus-ring:focus {
   outline: none;
-  box-shadow: 0 0 0 3px var(--admin-primary-light);
+  box-shadow: none;
 }
 
 .admin-focus-ring:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 3px var(--admin-primary-light);
+  box-shadow: none;
 }
 
 /* ===== IMPROVED SELECTION ===== */
@@ -662,6 +761,7 @@
   -ms-overflow-style: none; /* IE and Edge */
   scrollbar-width: none; /* Firefox */
 }
+
 .no-scrollbar::-webkit-scrollbar {
   display: none; /* Chrome, Safari, Opera */
 }
@@ -670,9 +770,9 @@
 
 /* Base Sindhi Font Classes */
 .sindhi-text {
-  font-family: 'MB Lateefi', 'Noto Naskh Arabic', serif;
+  font-family: var(--font-sindhi);
   font-feature-settings: 'kern' 1, 'liga' 1;
-  text-rendering: optimizeLegibility;
+  text-rendering: optimizelegibility;
 }
 
 
@@ -680,32 +780,31 @@
 textarea.sindhi-text,
 textarea.sindhi-textarea {
   white-space: pre-wrap !important;
-  word-wrap: break-word !important;
   overflow-wrap: break-word !important;
   resize: vertical;
 }
 
 .sindhi-heading {
-  font-family: 'MB Lateefi', 'Noto Naskh Arabic', serif;
-  font-weight: 600;
+  font-family: var(--font-sindhi);
+  font-weight: 400;
   font-feature-settings: 'kern' 1, 'liga' 1;
-  text-rendering: optimizeLegibility;
+  text-rendering: optimizelegibility;
 }
 
 .sindhi-body {
-  font-family: 'MB Lateefi', 'Noto Naskh Arabic', serif;
+  font-family: var(--font-sindhi);
   font-size: 1.125rem;
   line-height: 1.8;
   font-feature-settings: 'kern' 1, 'liga' 1;
-  text-rendering: optimizeLegibility;
+  text-rendering: optimizelegibility;
 }
 
 .sindhi-caption {
-  font-family: 'MB Lateefi', 'Noto Naskh Arabic', serif;
+  font-family: var(--font-sindhi);
   font-size: 0.875rem;
   line-height: 1.6;
   font-feature-settings: 'kern' 1, 'liga' 1;
-  text-rendering: optimizeLegibility;
+  text-rendering: optimizelegibility;
 }
 
 /* RTL Support */
@@ -717,65 +816,64 @@ textarea.sindhi-textarea {
 
 /* Sindhi Form Elements */
 .sindhi-input {
-  font-family: 'MB Lateefi', 'Noto Naskh Arabic', serif;
+  font-family: var(--font-sindhi);
   font-size: 1rem;
   line-height: 1.6;
   font-feature-settings: 'kern' 1, 'liga' 1;
-  text-rendering: optimizeLegibility;
+  text-rendering: optimizelegibility;
 }
 
 .sindhi-label {
-  font-family: 'MB Lateefi', 'Noto Naskh Arabic', serif;
-  font-weight: 500;
+  font-family: var(--font-sindhi);
+  font-weight: 400;
   font-feature-settings: 'kern' 1, 'liga' 1;
-  text-rendering: optimizeLegibility;
+  text-rendering: optimizelegibility;
 }
 
 .sindhi-textarea {
-  font-family: 'MB Lateefi', 'Noto Naskh Arabic', serif;
+  font-family: var(--font-sindhi);
   font-size: 1rem;
   line-height: 1.6;
   font-feature-settings: 'kern' 1, 'liga' 1;
-  text-rendering: optimizeLegibility;
+  text-rendering: optimizelegibility;
   white-space: pre-wrap;
-  word-wrap: break-word;
   overflow-wrap: break-word;
   resize: vertical;
 }
 
 /* Sindhi Typography Sizes */
 .sindhi-text-xs {
-  font-family: 'MB Lateefi', 'Noto Naskh Arabic', serif;
+  font-family: var(--font-sindhi);
   font-size: 0.75rem;
   line-height: 1.4;
 }
 
 .sindhi-text-sm {
-  font-family: 'MB Lateefi', 'Noto Naskh Arabic', serif;
+  font-family: var(--font-sindhi);
   font-size: 0.875rem;
   line-height: 1.5;
 }
 
 .sindhi-text-base {
-  font-family: 'MB Lateefi', 'Noto Naskh Arabic', serif;
+  font-family: var(--font-sindhi);
   font-size: 1rem;
   line-height: 1.6;
 }
 
 .sindhi-text-lg {
-  font-family: 'MB Lateefi', 'Noto Naskh Arabic', serif;
+  font-family: var(--font-sindhi);
   font-size: 1.125rem;
   line-height: 1.7;
 }
 
 .sindhi-text-xl {
-  font-family: 'MB Lateefi', 'Noto Naskh Arabic', serif;
+  font-family: var(--font-sindhi);
   font-size: 1.25rem;
   line-height: 1.8;
 }
 
 .sindhi-text-2xl {
-  font-family: 'MB Lateefi', 'Noto Naskh Arabic', serif;
+  font-family: var(--font-sindhi);
   font-size: 1.875rem;
   line-height: 1.9;
 }
@@ -845,7 +943,7 @@ textarea.sindhi-textarea {
 }
 
 .sindhi-tracking-normal {
-  letter-spacing: 0em;
+  letter-spacing: 0;
 }
 
 .sindhi-tracking-wide {
@@ -870,21 +968,21 @@ textarea.sindhi-textarea {
 }
 
 /* Sindhi Hover States */
-.sindhi-hover\:text-primary:hover {
+.sindhi-hover-text-primary:hover {
   color: var(--text-primary);
 }
 
-.sindhi-hover\:text-secondary:hover {
+.sindhi-hover-text-secondary:hover {
   color: var(--text-secondary);
 }
 
 /* Sindhi Focus States */
-.sindhi-focus\:text-primary:focus {
+.sindhi-focus-text-primary:focus {
   color: var(--text-primary);
 }
 
 /* Responsive Sindhi Text */
-@media (max-width: 768px) {
+@media (width <= 768px) {
   .sindhi-text-2xl {
     font-size: 1.5rem;
   }

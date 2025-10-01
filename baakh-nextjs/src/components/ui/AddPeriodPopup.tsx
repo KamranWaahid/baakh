@@ -25,6 +25,8 @@ interface AddPeriodPopupProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: PeriodFormData) => Promise<void>;
+  mode?: 'create' | 'edit';
+  initialData?: Partial<PeriodFormData> | null;
 }
 
 interface PeriodFormData {
@@ -88,7 +90,7 @@ const initialFormData: PeriodFormData = {
   selected_themes: []
 };
 
-export default function AddPeriodPopup({ isOpen, onClose, onSubmit }: AddPeriodPopupProps) {
+export default function AddPeriodPopup({ isOpen, onClose, onSubmit, mode = 'create', initialData = null }: AddPeriodPopupProps) {
   const [formData, setFormData] = useState<PeriodFormData>(initialFormData);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
@@ -99,6 +101,30 @@ export default function AddPeriodPopup({ isOpen, onClose, onSubmit }: AddPeriodP
   const [loading, setLoading] = useState(false);
   const [newCharacteristic, setNewCharacteristic] = useState({ sindhi: '', english: '' });
   const [isGeneratingSlug, setIsGeneratingSlug] = useState(false);
+
+  // When opening in edit mode, hydrate form with provided initialData
+  useEffect(() => {
+    if (isOpen && mode === 'edit' && initialData) {
+      setFormData(prev => ({
+        ...prev,
+        period_slug: initialData.period_slug ?? prev.period_slug,
+        start_year: initialData.start_year !== undefined ? String(initialData.start_year) : (initialData.start_year as any) || prev.start_year,
+        end_year: initialData.end_year !== undefined && initialData.end_year !== null ? String(initialData.end_year) : (initialData.end_year as any) || '',
+        is_ongoing: initialData.is_ongoing ?? prev.is_ongoing,
+        sindhi_name: initialData.sindhi_name ?? prev.sindhi_name,
+        sindhi_description: initialData.sindhi_description ?? prev.sindhi_description,
+        sindhi_characteristics: Array.isArray(initialData.sindhi_characteristics) ? initialData.sindhi_characteristics as string[] : prev.sindhi_characteristics,
+        english_name: initialData.english_name ?? prev.english_name,
+        english_description: initialData.english_description ?? prev.english_description,
+        english_characteristics: Array.isArray(initialData.english_characteristics) ? initialData.english_characteristics as string[] : prev.english_characteristics,
+        is_featured: initialData.is_featured ?? prev.is_featured,
+        sort_order: initialData.sort_order !== undefined ? Number(initialData.sort_order) : prev.sort_order,
+        selected_poets: Array.isArray(initialData.selected_poets) ? initialData.selected_poets as string[] : prev.selected_poets,
+        selected_categories: Array.isArray(initialData.selected_categories) ? initialData.selected_categories as string[] : prev.selected_categories,
+        selected_themes: Array.isArray(initialData.selected_themes) ? initialData.selected_themes as string[] : prev.selected_themes,
+      }));
+    }
+  }, [isOpen, mode, initialData]);
 
   // Add error boundary for unhandled errors
   const handleError = (error: any) => {
@@ -344,8 +370,8 @@ export default function AddPeriodPopup({ isOpen, onClose, onSubmit }: AddPeriodP
                         <History className="w-4 h-4 text-[#1F1F1F]" />
                       </div>
                       <div>
-                        <h2 className="text-xl font-semibold text-[#1F1F1F]">Add Timeline Period</h2>
-                        <p className="text-[#6B6B6B] text-sm">Create a new historical period</p>
+                        <h2 className="text-xl font-semibold text-[#1F1F1F]">{mode === 'edit' ? 'Edit Timeline Period' : 'Add Timeline Period'}</h2>
+                        <p className="text-[#6B6B6B] text-sm">{mode === 'edit' ? 'Update historical period' : 'Create a new historical period'}</p>
                       </div>
                     </div>
                     
@@ -738,7 +764,7 @@ export default function AddPeriodPopup({ isOpen, onClose, onSubmit }: AddPeriodP
                         className="flex items-center space-x-2 text-green-600 bg-green-50 p-3 rounded-lg"
                       >
                         <CheckCircle className="w-5 h-5" />
-                        <span className="text-sm font-medium">Period created successfully!</span>
+                        <span className="text-sm font-medium">{mode === 'edit' ? 'Period updated successfully!' : 'Period created successfully!'}</span>
                       </motion.div>
                     )}
                     
@@ -750,7 +776,7 @@ export default function AddPeriodPopup({ isOpen, onClose, onSubmit }: AddPeriodP
                         className="flex items-center space-x-2 text-red-600 bg-red-50 p-3 rounded-lg"
                       >
                         <AlertCircle className="w-5 h-5" />
-                        <span className="text-sm font-medium">Failed to create period. Please try again.</span>
+                        <span className="text-sm font-medium">{mode === 'edit' ? 'Failed to update period. Please try again.' : 'Failed to create period. Please try again.'}</span>
                       </motion.div>
                     )}
                   </AnimatePresence>
@@ -778,10 +804,10 @@ export default function AddPeriodPopup({ isOpen, onClose, onSubmit }: AddPeriodP
                       {isSubmitting ? (
                         <div className="flex items-center space-x-2">
                           <Loader2 className="w-4 h-4 animate-spin" />
-                          <span>Creating...</span>
+                          <span>{mode === 'edit' ? 'Saving...' : 'Creating...'}</span>
                         </div>
                       ) : (
-                        'Create Period'
+                        mode === 'edit' ? 'Save Changes' : 'Create Period'
                       )}
                     </Button>
                   </motion.div>

@@ -1,9 +1,37 @@
 /* stylelint-disable */
+/* @tailwindcss/unknown-at-rule */
 /* Modern Font System - Minimal & Clean */
 /* Helvetica Now Text Regular will be loaded via system fonts */
+/* Import Google Fonts with display=swap for better performance */
 @import url('https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;500;600&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=MB+Lateefi:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lateef:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;500;600&display=swap');
 
+/* Optional external CSS import for MB Lateefi SK 2.0 (as requested) */
+@import url('https://db.onlinewebfonts.com/c/b2570ec402764ecff4b56583fd2370a4?family=MB+Lateefi+SK+2.0');
+
+/* Removed external 'ssread' due to CORS; rely on MB Lateefi SK 2.0 */
+
+/* Sindhi Preferred Font - MB Lateefi SK 2.0
+   Load from provided external links first, then fallback to local assets */
+@font-face {
+  font-family: 'MB Lateefi SK 2.0';
+  src: url('https://db.onlinewebfonts.com/t/b2570ec402764ecff4b56583fd2370a4.eot');
+  src: url('https://db.onlinewebfonts.com/t/b2570ec402764ecff4b56583fd2370a4.eot?#iefix') format('embedded-opentype'),
+       url('https://db.onlinewebfonts.com/t/b2570ec402764ecff4b56583fd2370a4.woff2') format('woff2'),
+       url('https://db.onlinewebfonts.com/t/b2570ec402764ecff4b56583fd2370a4.woff') format('woff'),
+       url('https://db.onlinewebfonts.com/t/b2570ec402764ecff4b56583fd2370a4.ttf') format('truetype'),
+       url('https://db.onlinewebfonts.com/t/b2570ec402764ecff4b56583fd2370a4.svg#MB Lateefi SK 2.0') format('svg'),
+       url('/fonts/MB-Lateefi-SK-2.0.woff2') format('woff2'),
+       url('/fonts/MB-Lateefi-SK-2.0.woff') format('woff'),
+       url('/fonts/MB-Lateefi-SK-2.0.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* stylelint-disable-next-line at-rule-no-unknown */
 @custom-variant dark (&:is(.dark *));
 
 /* Modern Color System - Minimal & Clean */
@@ -38,9 +66,9 @@
   --text-link: 0 0% 25%;        /* Links - dark gray */
   --text-accent: 0 0% 9%;       /* Accent text - very dark */
 
-  /* Modern Font System - Helvetica Now Text Regular & MB Lateefi */
+  /* Modern Font System - Helvetica Now Text Regular & Sindhi fonts (fallback Noto Naskh) */
   --font-inter: "Helvetica Now Text Regular","Helvetica Now Text Regular Placeholder",sans-serif;
-  --font-sindhi: 'MB Lateefi', 'Noto Naskh Arabic', serif;
+  --font-sindhi: 'MB Lateefi SK 2.0';
   
   /* Spacing System - Modern & Minimal */
   --spacing-xs: 0.25rem;    /* 4px */
@@ -60,9 +88,33 @@
   --sidebar-ring: hsl(217.2 91.2% 59.8%);
 }
 
-.font-face-loaded {} /* anchor for edits */
+.font-face-loaded { --noop: 1; } /* anchor for edits; keeps ruleset non-empty */
 
-/* Using online MB Lateefi font from Google Fonts for better performance */
+/* Font loading states */
+html.fonts-loaded [lang="sd"] {
+  font-family: var(--font-sindhi) !important;
+}
+
+html.fonts-fallback [lang="sd"] {
+  font-family: 'Lateef', 'Noto Naskh Arabic', 'Noto Sans Arabic', serif !important;
+}
+
+/* Ensure fonts are visible during loading */
+[lang="sd"] {
+  font-display: swap;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Apply Sindhi font to Sindhi text */
+[lang="sd"], .sindhi-text {
+  font-family: var(--font-sindhi);
+}
+
+/* Using Google Fonts for reliable Sindhi font loading */
+/* Lateef and Amiri fonts are loaded via @import above */
+/* These fonts provide excellent support for Sindhi/Arabic scripts */
 
 .dark {
   /* Dark theme colors */
@@ -104,7 +156,9 @@
   --sidebar-ring: hsl(217.2 91.2% 59.8%);
 }
 
+/* stylelint-disable-next-line at-rule-no-unknown */
 @tailwind base;
+/* stylelint-disable-next-line at-rule-no-unknown */
 @tailwind components;
 
 /* Force light mode - disable all dark mode styles */
@@ -116,17 +170,17 @@
 }
 
 /* Override specific Tailwind dark mode classes */
-.dark\\:bg-neutral-900 { background-color: white !important; }
-.dark\\:bg-neutral-800 { background-color: white !important; }
-.dark\\:text-neutral-100 { color: #111827 !important; }
-.dark\\:text-neutral-300 { color: #374151 !important; }
-.dark\\:text-neutral-400 { color: #6b7280 !important; }
-.dark\\:border-neutral-800 { border-color: #e5e7eb !important; }
-.dark\\:border-neutral-700 { border-color: #e5e7eb !important; }
-.dark\\:hover\\:bg-neutral-800:hover { background-color: #f9fafb !important; }
-.dark\\:hover\\:text-neutral-100:hover { color: #111827 !important; }
-.dark\\:brightness-0 { filter: none !important; }
-.dark\\:invert { filter: none !important; }
+.dark\:bg-neutral-900 { background-color: white !important; }
+.dark\:bg-neutral-800 { background-color: white !important; }
+.dark\:text-neutral-100 { color: #111827 !important; }
+.dark\:text-neutral-300 { color: #374151 !important; }
+.dark\:text-neutral-400 { color: #6b7280 !important; }
+.dark\:border-neutral-800 { border-color: #e5e7eb !important; }
+.dark\:border-neutral-700 { border-color: #e5e7eb !important; }
+.dark\:hover\:bg-neutral-800:hover { background-color: #f9fafb !important; }
+.dark\:hover\:text-neutral-100:hover { color: #111827 !important; }
+.dark\:brightness-0 { filter: none !important; }
+.dark\:invert { filter: none !important; }
 
 /* Override dark mode CSS variables */
 :root.dark {
@@ -175,6 +229,7 @@
     animation: shimmer 1.8s infinite;
   }
 }
+/* stylelint-disable-next-line at-rule-no-unknown */
 @tailwind utilities;
 
 /* Base Styles */
@@ -194,13 +249,17 @@
     font-kerning: normal;
     font-variant-ligatures: common-ligatures;
     font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+    letter-spacing: 0.002em;
   }
 
   /* Improve English reading rhythm (do not apply to Sindhi/RTL) */
   [lang="en"] p,
   [dir="ltr"] p {
     line-height: 1.7;
-    letter-spacing: 0.005em;
+    letter-spacing: 0.006em;
+    font-kerning: normal;
+    font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+    word-spacing: 0.01em;
   }
 
   [lang="en"] li,
@@ -219,14 +278,26 @@
   [dir="rtl"] p,
   [lang="sd"] li,
   [dir="rtl"] li {
-    letter-spacing: normal;
+    letter-spacing: 0.003em;
+    font-kerning: normal;
+    font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+    word-spacing: 0.02em;
   }
 
   /* Enable kerning on headings */
   h1, h2, h3, h4, h5, h6 {
     font-kerning: normal;
     font-feature-settings: "kern" 1, "liga" 1;
+    letter-spacing: -0.005em;
   }
+
+  /* Language-specific heading tracking */
+  [lang="en"] h1, [dir="ltr"] h1 { letter-spacing: -0.02em; }
+  [lang="en"] h2, [dir="ltr"] h2 { letter-spacing: -0.015em; }
+  [lang="en"] h3, [dir="ltr"] h3 { letter-spacing: -0.01em; }
+  [lang="sd"] h1, [dir="rtl"] h1 { letter-spacing: -0.008em; }
+  [lang="sd"] h2, [dir="rtl"] h2 { letter-spacing: -0.006em; }
+  [lang="sd"] h3, [dir="rtl"] h3 { letter-spacing: -0.004em; }
 
   /* RTL/LTR Layout Support */
   [dir="rtl"] {
@@ -330,9 +401,34 @@
   [dir="rtl"] .card-text, [dir="rtl"] .hero-text, [dir="rtl"] .description,
   [dir="rtl"] .subtitle, [dir="rtl"] .title, [dir="rtl"] .heading {
     font-family: var(--font-sindhi) !important;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    text-rendering: optimizeLegibility;
+  }
+
+  /* Poetry content Sindhi text - Mobile responsive font sizes */
+  [lang="sd"] .poetry-content span.sindhi-text,
+  [dir="rtl"] .poetry-content span.sindhi-text {
+    font-family: var(--font-sindhi) !important;
+    font-size: clamp(1.10rem, 2.5vw, 1rem) !important; /* Responsive clamp for mobile */
+  }
+
+  @media (min-width: 640px) {
+    [lang="sd"] .poetry-content span.sindhi-text,
+    [dir="rtl"] .poetry-content span.sindhi-text {
+      font-size: 1.5rem !important; /* 24px on sm and up */
+    }
+  }
+
+  @media (min-width: 768px) {
+    [lang="sd"] .poetry-content span.sindhi-text,
+    [dir="rtl"] .poetry-content span.sindhi-text {
+      font-size: 1.75rem !important; /* 28px on md and up */
+    }
+  }
+
+  @media (min-width: 1024px) {
+    [lang="sd"] .poetry-content span.sindhi-text,
+    [dir="rtl"] .poetry-content span.sindhi-text {
+      font-size: 2rem !important; /* 32px on lg and up */
+    }
   }
 
   /* Comprehensive Sindhi font application for all content in /sd locale */
@@ -873,7 +969,7 @@
 
   .button:hover {
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    box-shadow: none;
   }
 
   /* Modern Responsive Typography */
@@ -883,7 +979,6 @@
     .text-h2 { font-size: 1.5rem; }
     .text-h3 { font-size: 1.25rem; }
     .text-h4 { font-size: 1.125rem; }
-    
   }
 
   @media (min-width: 1024px) {
@@ -892,7 +987,6 @@
     .text-h2 { font-size: 2rem; }
     .text-h3 { font-size: 1.5rem; }
     .text-h4 { font-size: 1.25rem; }
-    
   }
 
   /* Custom range input styling */
@@ -917,7 +1011,7 @@
     width: 12px;
     border-radius: 50%;
     border: 2px solid hsl(var(--background));
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    box-shadow: none;
   }
 
   input[type="range"]::-moz-range-track {
@@ -933,13 +1027,24 @@
     width: 12px;
     border-radius: 50%;
     border: 2px solid hsl(var(--background));
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    box-shadow: none;
     cursor: pointer;
   }
 }
 
 /* Utility Classes */
 @layer utilities {
+  /* Remove blue focus outline/ring from language controls and generic buttons when desired */
+  .focus-none {
+    outline: none !important;
+    box-shadow: none !important;
+  }
+  .focus-none:focus,
+  .focus-none:focus-visible,
+  .focus-none:focus-within {
+    outline: none !important;
+    box-shadow: none !important;
+  }
   /* Content width utilities */
   .content-reading {
     max-width: 680px;
@@ -1008,6 +1113,7 @@
   }
 }
 
+/* stylelint-disable-next-line at-rule-no-unknown */
 @theme inline {
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
@@ -1021,16 +1127,22 @@
 
 @layer base {
   * {
-    @apply border-border;
+    border-color: hsl(var(--border));
   }
   body {
-    @apply bg-background text-foreground;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
   }
 }
 
 /* CRITICAL: Force Sindhi font for /sd locale - Highest priority */
 [lang="sd"] * {
   font-family: var(--font-sindhi) !important;
+}
+/* Ensure English-labelled UI bits remain English font even under /sd */
+[lang="sd"] .font-english,
+[dir="rtl"] .font-english {
+  font-family: var(--font-inter) !important;
 }
 
 /* CRITICAL: Force Helvetica Now Text Regular font for numbers - Override everything */

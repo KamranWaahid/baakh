@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Heart, ArrowUpRight } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { Logo } from "./logo";
+import Image from "next/image";
 
 export default function Footer() {
   const pathname = usePathname();
@@ -17,8 +18,8 @@ export default function Footer() {
   const footerLinks = [
     { name: { en: "About", sd: "باري ۾" }, href: "/about" },
     { name: { en: "Contact", sd: "رابطو" }, href: "/contact" },
-    { name: { en: "Privacy", sd: "رازداري" }, href: "/privacy" },
-    { name: { en: "Terms", sd: "شرطن" }, href: "/terms" }
+    { name: { en: "Privacy", sd: "رازداري" }, href: "/privacy-policy" },
+    { name: { en: "Terms", sd: "شرطن" }, href: "/terms-and-conditions" }
   ];
 
   // Multi-lingual content
@@ -98,11 +99,11 @@ export default function Footer() {
       dir={isRTL ? 'rtl' : 'ltr'}
     >
       {/* Main Footer Content */}
-      <div className="max-w-7xl mx-auto px-6 sm:px-8 py-16">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 items-start">
+      <div className="max-w-7xl mx-auto px-6 sm:px-8 py-14">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 items-start">
           
           {/* Brand Section */}
-          <div className="space-y-6">
+          <div className="space-y-5">
             <div className="flex items-center gap-3">
               <img src="/Baakh.svg" alt="Baakh" className="h-10 w-auto" />
               <div>
@@ -115,17 +116,17 @@ export default function Footer() {
               </div>
             </div>
             
-            <p className={`text-gray-600 leading-relaxed max-w-sm ${getSmartFontClass(content.brandDescription[locale])} ${!isRTL ? 'font-light' : ''}`}>
+            <p className={`text-gray-600 leading-7 max-w-sm ${getSmartFontClass(content.brandDescription[locale])} ${!isRTL ? 'font-light' : ''}`}>
               {content.brandDescription[locale]}
             </p>
           </div>
 
           {/* Quick Links */}
-          <div className="space-y-6">
+          <div className="space-y-5">
             <h4 className={`text-lg font-semibold text-gray-900 ${getSmartFontClass(content.quickLinks[locale])} ${!isRTL ? 'font-bold tracking-tight' : ''}`}>
               {content.quickLinks[locale]}
             </h4>
-            <div className="grid grid-cols-1 gap-3">
+            <div className="grid grid-cols-1 gap-2.5">
               {footerLinks.map((link) => (
                 <Link
                   key={link.name[locale]}
@@ -140,11 +141,11 @@ export default function Footer() {
           </div>
 
           {/* Poetry Categories */}
-          <div className="space-y-6">
+          <div className="space-y-5">
             <h4 className={`text-lg font-semibold text-gray-900 ${getSmartFontClass(content.poetryCategories[locale])} ${!isRTL ? 'font-bold tracking-tight' : ''}`}>
               {content.poetryCategories[locale]}
             </h4>
-            <div className="grid grid-cols-1 gap-3">
+            <div className="grid grid-cols-1 gap-2.5">
               <Link
                 href={locale === 'sd' ? "/sd/poets" : "/en/poets"}
                 className={`group flex items-center justify-between text-gray-600 hover:text-gray-900 transition-colors duration-200 ${getSmartFontClass(content.poets[locale])} ${!isRTL ? 'font-medium tracking-wide' : ''}`}
@@ -178,15 +179,15 @@ export default function Footer() {
         </div>
 
         {/* Bottom Section */}
-        <div className="mt-16 pt-8 border-t border-gray-200/50">
+        <div className="mt-14 pt-7 border-t border-gray-200/50">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             {/* Copyright */}
-            <div className={`text-sm text-gray-500 ${getSmartFontClass(content.allRightsReserved[locale])} ${!isRTL ? 'font-medium' : ''}`}>
+            <div className={`text-sm text-gray-500 leading-6 ${getSmartFontClass(content.allRightsReserved[locale])} ${!isRTL ? 'font-medium' : ''}`}>
               © {new Date().getFullYear()} {isRTL ? 'باک' : 'Baakh'}. {content.allRightsReserved[locale]}
             </div>
 
             {/* Made with Love */}
-            <div className={`flex items-center gap-2 text-sm text-gray-500 ${getSmartFontClass(content.madeFor[locale] + ' ' + content.withLove[locale])} ${!isRTL ? 'font-medium' : ''}`}>
+            <div className={`flex items-center gap-2 text-sm text-gray-500 leading-6 ${getSmartFontClass(content.madeFor[locale] + ' ' + content.withLove[locale])} ${!isRTL ? 'font-medium' : ''}`}>
               <span>{content.madeFor[locale]}</span>
               <Heart className="h-4 w-4 text-red-500 fill-current animate-pulse" />
               <span>{content.withLove[locale]}</span>

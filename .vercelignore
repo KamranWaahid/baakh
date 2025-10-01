@@ -1,27 +1,4 @@
-# Backend files (not needed for frontend deployment)
-backend/
-node_modules/
-*.log
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-# Development files
-BACKEND_SETUP.md
-CI_SETUP_GUIDE.md
-SECURITY_SETUP.md
-SECURITY_TRAINING_GUIDE.md
-setup-ci.sh
-
-# Git files
-.git/
-.gitignore
-
-# IDE files
-.vscode/
-.idea/
-
-# OS files
-.DS_Store
-Thumbs.db
+# Ignore everything except the Next.js app
+*
+!baakh-nextjs/
+!vercel.json

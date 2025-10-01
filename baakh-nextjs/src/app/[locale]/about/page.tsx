@@ -251,8 +251,8 @@ export default function AboutPage() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                                 <Card className="rounded-2xl border border-gray-200 bg-white/80 backdrop-blur-sm">
-                   <CardHeader className="text-center pb-6">
+                                 <Card className="rounded-2xl border border-gray-200 bg-white shadow-sm">
+                  <CardHeader className="text-center px-8 pt-8 pb-4">
                      <div className="mx-auto w-16 h-16 rounded-2xl bg-gray-100 border border-gray-200 flex items-center justify-center mb-6">
                        <BookOpen className="w-8 h-8 text-gray-700" />
                      </div>
@@ -260,15 +260,15 @@ export default function AboutPage() {
                        {content.preserve.title[locale]}
                      </CardTitle>
                    </CardHeader>
-                   <CardContent className="text-center text-gray-600 leading-relaxed">
+                  <CardContent className="text-center text-gray-600 leading-relaxed px-8 pb-8">
                      <p className={`${getSmartFontClass(content.preserve.desc[locale])} ${!isRTL ? 'font-medium' : ''}`}>
                        {content.preserve.desc[locale]}
                      </p>
                    </CardContent>
-                 </Card>
+                </Card>
 
-                                 <Card className="rounded-2xl border border-gray-200 bg-white/80 backdrop-blur-sm">
-                   <CardHeader className="text-center pb-6">
+                                <Card className="rounded-2xl border border-gray-200 bg-white shadow-sm">
+                  <CardHeader className="text-center px-8 pt-8 pb-4">
                      <div className="mx-auto w-16 h-16 rounded-2xl bg-gray-100 border border-gray-200 flex items-center justify-center mb-6">
                        <Globe className="w-8 h-8 text-gray-700" />
                      </div>
@@ -276,15 +276,15 @@ export default function AboutPage() {
                        {content.share.title[locale]}
                      </CardTitle>
                    </CardHeader>
-                   <CardContent className="text-center text-gray-600 leading-relaxed">
+                  <CardContent className="text-center text-gray-600 leading-relaxed px-8 pb-8">
                      <p className={`${getSmartFontClass(content.share.desc[locale])} ${!isRTL ? 'font-medium' : ''}`}>
                        {content.share.desc[locale]}
                      </p>
                    </CardContent>
-                 </Card>
+                </Card>
 
-                                 <Card className="rounded-2xl border border-gray-200 bg-white/80 backdrop-blur-sm">
-                   <CardHeader className="text-center pb-6">
+                                <Card className="rounded-2xl border border-gray-200 bg-white shadow-sm">
+                  <CardHeader className="text-center px-8 pt-8 pb-4">
                      <div className="mx-auto w-16 h-16 rounded-2xl bg-gray-100 border border-gray-200 flex items-center justify-center mb-6">
                        <Heart className="w-8 h-8 text-gray-700" />
                      </div>
@@ -292,7 +292,7 @@ export default function AboutPage() {
                        {content.inspire.title[locale]}
                      </CardTitle>
                    </CardHeader>
-                   <CardContent className="text-center text-gray-600 leading-relaxed">
+                  <CardContent className="text-center text-gray-600 leading-relaxed px-8 pb-8">
                      <p className={`${getSmartFontClass(content.inspire.desc[locale])} ${!isRTL ? 'font-medium' : ''}`}>
                        {content.inspire.desc[locale]}
                      </p>
@@ -356,8 +356,8 @@ export default function AboutPage() {
                         className="relative"
                       >
                         <div className="absolute -left-[9px] top-4 w-4 h-4 rounded-full bg-white border-4 border-gray-400 shadow-sm" />
-                                                 <Card className="rounded-2xl border border-gray-200 bg-white/80 backdrop-blur-sm">
-                           <CardContent className="p-6">
+                                                <Card className="rounded-2xl border border-gray-200 bg-white shadow-sm">
+                          <CardContent className="px-6 py-6">
                              <div className="flex items-start gap-4">
                                <div className="p-3 rounded-xl bg-gray-100 border border-gray-200">
                                  <Icon className="w-6 h-6 text-gray-700" />
@@ -366,7 +366,7 @@ export default function AboutPage() {
                                  <h3 className={`text-lg font-semibold text-gray-900 mb-2 ${getSmartFontClass(step.title)} ${!isRTL ? 'font-bold tracking-tight' : ''}`}>
                                    {step.title}
                                  </h3>
-                                 <p className={`text-gray-600 leading-relaxed ${getSmartFontClass(step.desc)} ${!isRTL ? 'font-medium' : ''}`}>
+                                <p className={`text-gray-600 leading-relaxed ${getSmartFontClass(step.desc)} ${!isRTL ? 'font-normal' : ''}`}>
                                    {step.desc}
                                  </p>
                                </div>
@@ -399,7 +399,7 @@ export default function AboutPage() {
                 </p>
               </div>
 
-              <Card className="rounded-2xl border border-gray-200 bg-white/80 backdrop-blur-sm p-10">
+              <Card className="rounded-2xl border border-gray-200 bg-white shadow-sm p-10">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
                   <div>
                     <h3 className={`text-2xl font-semibold text-gray-900 mb-6 ${getSmartFontClass(content.historicalSignificance[locale])} ${!isRTL ? 'font-bold tracking-tight' : ''}`}>
@@ -512,7 +512,7 @@ export default function AboutPage() {
                   transition={{ duration: 0.6, delay: 0.1 }}
                   viewport={{ once: true }}
                 >
-                                     <Card className="rounded-2xl border border-gray-200 bg-white/80 backdrop-blur-sm text-center">
+              <Card className="rounded-2xl border border-gray-200 bg-white shadow-sm text-center">
                      <CardContent className="p-8">
                        <Avatar className="w-24 h-24 mx-auto mb-6 ring-4 ring-gray-100 border-2 border-gray-200">
                          <AvatarFallback className="text-xl font-bold bg-gray-100 text-gray-700">KW</AvatarFallback>
@@ -543,7 +543,7 @@ export default function AboutPage() {
                   transition={{ duration: 0.6, delay: 0.2 }}
                   viewport={{ once: true }}
                 >
-                                     <Card className="rounded-2xl border border-gray-200 bg-white/80 backdrop-blur-sm text-center">
+              <Card className="rounded-2xl border border-gray-200 bg-white shadow-sm text-center">
                      <CardContent className="p-8">
                        <Avatar className="w-24 h-24 mx-auto mb-6 ring-4 ring-gray-100 border-2 border-gray-200">
                          <AvatarFallback className="text-xl font-bold bg-gray-100 text-gray-700">UT</AvatarFallback>
@@ -574,7 +574,7 @@ export default function AboutPage() {
                   transition={{ duration: 0.6, delay: 0.3 }}
                   viewport={{ once: true }}
                 >
-                                     <Card className="rounded-2xl border border-gray-200 bg-white/80 backdrop-blur-sm text-center">
+              <Card className="rounded-2xl border border-gray-200 bg-white shadow-sm text-center">
                      <CardContent className="p-8">
                        <Avatar className="w-24 h-24 mx-auto mb-6 ring-4 ring-gray-100 border-2 border-gray-200">
                          <AvatarFallback className="text-xl font-bold bg-gray-100 text-gray-700">CJ</AvatarFallback>
@@ -610,7 +610,7 @@ export default function AboutPage() {
               viewport={{ once: true }}
               className="text-center"
             >
-              <Card className="rounded-2xl border border-gray-200 bg-white/80 backdrop-blur-sm p-12">
+              <Card className="rounded-2xl border border-gray-200 bg-white shadow-sm p-12">
                 <h2 className={`text-3xl font-bold text-gray-900 mb-6 ${getSmartFontClass(content.startExploring[locale])} ${!isRTL ? 'font-bold tracking-tight' : ''}`}>
                   {content.startExploring[locale]}
                 </h2>

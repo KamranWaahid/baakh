@@ -1,5 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { createHash } from 'crypto';
+
+// Create a device fingerprint based on multiple factors
+function createDeviceFingerprint(data: {
+  ip: string;
+  userAgent: string;
+  acceptLanguage: string;
+  acceptEncoding: string;
+}): string {
+  // Combine all factors to create a unique fingerprint
+  const fingerprintData = [
+    data.ip,
+    data.userAgent,
+    data.acceptLanguage,
+    data.acceptEncoding
+  ].join('|');
+  
+  // Create a hash of the combined data
+  const hash = createHash('sha256').update(fingerprintData).digest('hex');
+  
+  // Return a shorter, more manageable fingerprint
+  return `fp_${hash.substring(0, 16)}`;
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,29 +39,29 @@ export async function POST(request: NextRequest) {
     
     const supabase = createAdminClient();
     
-    // Get client IP and user agent
+    // Get client information for fingerprinting
     const userIP = request.headers.get('x-forwarded-for') || 
                    request.headers.get('x-real-ip') || 
                    'unknown';
     const userAgent = request.headers.get('user-agent') || 'unknown';
+    const acceptLanguage = request.headers.get('accept-language') || 'unknown';
+    const acceptEncoding = request.headers.get('accept-encoding') || 'unknown';
     
-    // Attempt to use cookie-stored viewer_session_id if body sessionId missing
-    let effectiveSessionId = sessionId;
-    try {
-      if (!effectiveSessionId) {
-        const cookieHeader = request.headers.get('cookie') || '';
-        const match = cookieHeader.match(/(?:^|;\s*)viewer_session_id=([^;]+)/);
-        if (match && match[1]) {
-          effectiveSessionId = decodeURIComponent(match[1]);
-        }
-      }
-    } catch {}
+    // Create a persistent fingerprint based on device + IP + browser + location
+    // This ensures one view per unique combination of these factors
+    const fingerprint = createDeviceFingerprint({
+      ip: userIP,
+      userAgent,
+      acceptLanguage,
+      acceptEncoding
+    });
 
     // Track the view using the database function
+    // Use fingerprint as session_id to ensure one view per unique device+IP+browser+location
     const { data, error } = await supabase.rpc('track_content_view', {
       p_content_id: parseInt(contentId),
       p_content_type: contentType,
-      p_session_id: effectiveSessionId || null,
+      p_session_id: fingerprint,
       p_user_ip: userIP,
       p_user_agent: userAgent
     });
@@ -48,7 +71,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to track view' }, { status: 500 });
     }
     
-    return NextResponse.json({ success: true, tracked: data });
+    // Parse the JSON response from the database function
+    const result = typeof data === 'string' ? JSON.parse(data) : data;
+    
+    return NextResponse.json({ 
+      success: result.success, 
+      newView: result.new_view,
+      message: result.message 
+    });
     
   } catch (error) {
     console.error('Error in track view API:', error);

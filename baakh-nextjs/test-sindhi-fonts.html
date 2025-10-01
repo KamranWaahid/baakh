@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sindhi Font Test</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lateef:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            margin: 2rem;
+            background: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .font-test {
+            margin: 1rem 0;
+            padding: 1rem;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+        }
+        .font-name {
+            font-weight: bold;
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
+        .sindhi-text {
+            font-size: 1.2rem;
+            line-height: 1.8;
+        }
+        .lateef { font-family: 'Lateef', 'Noto Naskh Arabic', serif; }
+        .amiri { font-family: 'Amiri', 'Noto Naskh Arabic', serif; }
+        .noto { font-family: 'Noto Naskh Arabic', serif; }
+        .fallback { font-family: serif; }
+        
+        .status {
+            padding: 0.5rem;
+            border-radius: 4px;
+            margin: 0.5rem 0;
+        }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>Sindhi Font Loading Test</h1>
+        <p>This page tests if the Sindhi fonts are loading correctly after deployment.</p>
+        
+        <div class="font-test">
+            <div class="font-name">Lateef Font (Primary):</div>
+            <div class="sindhi-text lateef">سنڌي شاعري جو وڏو خزانو - Lateef font test</div>
+        </div>
+        
+        <div class="font-test">
+            <div class="font-name">Amiri Font (Secondary):</div>
+            <div class="sindhi-text amiri">سنڌي شاعري جو وڏو خزانو - Amiri font test</div>
+        </div>
+        
+        <div class="font-test">
+            <div class="font-name">Noto Naskh Arabic (Fallback):</div>
+            <div class="sindhi-text noto">سنڌي شاعري جو وڏو خزانو - Noto Naskh Arabic font test</div>
+        </div>
+        
+        <div class="font-test">
+            <div class="font-name">System Serif (Final Fallback):</div>
+            <div class="sindhi-text fallback">سنڌي شاعري جو وڏو خزانو - System serif font test</div>
+        </div>
+        
+        <div id="status" class="status">
+            <strong>Status:</strong> <span id="status-text">Checking font loading...</span>
+        </div>
+        
+        <h2>Font Loading Check</h2>
+        <div id="font-check-results"></div>
+    </div>
+
+    <script>
+        // Check if fonts are loaded
+        function checkFontLoading() {
+            const fonts = ['Lateef', 'Amiri', 'Noto Naskh Arabic'];
+            const results = [];
+            let allLoaded = true;
+            
+            fonts.forEach(font => {
+                try {
+                    // Check if font is loaded by comparing computed styles
+                    const testElement = document.createElement('span');
+                    testElement.style.fontFamily = font;
+                    testElement.style.fontSize = '16px';
+                    testElement.textContent = 'Test';
+                    testElement.style.visibility = 'hidden';
+                    document.body.appendChild(testElement);
+                    
+                    const computedStyle = window.getComputedStyle(testElement);
+                    const isLoaded = computedStyle.fontFamily.includes(font);
+                    
+                    document.body.removeChild(testElement);
+                    
+                    results.push({
+                        font: font,
+                        loaded: isLoaded,
+                        status: isLoaded ? '✅ Loaded' : '❌ Failed to load'
+                    });
+                    
+                    if (!isLoaded) allLoaded = false;
+                } catch (error) {
+                    results.push({
+                        font: font,
+                        loaded: false,
+                        status: '❌ Error checking font'
+                    });
+                    allLoaded = false;
+                }
+            });
+            
+            // Update status
+            const statusElement = document.getElementById('status');
+            const statusText = document.getElementById('status-text');
+            const resultsElement = document.getElementById('font-check-results');
+            
+            if (allLoaded) {
+                statusElement.className = 'status success';
+                statusText.textContent = 'All fonts loaded successfully!';
+            } else {
+                statusElement.className = 'status error';
+                statusText.textContent = 'Some fonts failed to load. Check the details below.';
+            }
+            
+            // Display results
+            resultsElement.innerHTML = results.map(result => 
+                `<div class="font-test">
+                    <div class="font-name">${result.font}:</div>
+                    <div>${result.status}</div>
+                </div>`
+            ).join('');
+        }
+        
+        // Check fonts after page load
+        window.addEventListener('load', () => {
+            setTimeout(checkFontLoading, 1000); // Wait 1 second for fonts to load
+        });
+        
+        // Also check when fonts are loaded
+        if (document.fonts && document.fonts.ready) {
+            document.fonts.ready.then(checkFontLoading);
+        }
+    </script>
+</body>
+</html>

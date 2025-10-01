@@ -88,9 +88,18 @@ function CoupletCard({ couplet, index, isSindhi, isAuthenticated, handleLikeClic
               <div className="w-8 h-8 bg-gradient-to-br from-gray-200 to-gray-300 rounded-full flex items-center justify-center">
                 <User className="h-4 w-4 text-gray-600" />
               </div>
-              <span className={`text-sm text-gray-700 font-medium ${getSmartFontClass(getPrimaryPoetName(couplet.poet, isSindhi))}`}>
-                {getPrimaryPoetName(couplet.poet, isSindhi)}
-              </span>
+              {(() => {
+                const poet = couplet.poet || ({} as any);
+                const displayNameRaw = isSindhi
+                  ? (poet.sindhi_laqab || poet.english_laqab || poet.sindhiName || poet.englishName || poet.name)
+                  : (poet.english_laqab || poet.sindhi_laqab || poet.englishName || poet.sindhiName || poet.name);
+                const displayName = String(displayNameRaw || poet.name || '—');
+                return (
+                  <span className={`text-sm text-gray-700 font-medium ${getSmartFontClass(displayName)}`}>
+                    {displayName}
+                  </span>
+                );
+              })()}
             </div>
             <div className="flex items-center gap-2 text-xs text-gray-500">
               <Calendar className="h-4 w-4" />
@@ -231,10 +240,11 @@ export default function CoupletsPage() {
         sortBy,
         sortOrder,
         lang: isSindhi ? 'sd' : 'en',
-        standalone: '1' // Only fetch standalone couplets (without poetry)
+        standalone: '1' // Only fetch standalone couplets (poetry_id = 0 or null)
       });
       
       if (poetFilter) {
+        // Always pass through a single `poet` param; backend accepts id-or-slug
         params.append('poet', poetFilter);
       }
       const response = await fetch(`/api/couplets?${params}`);

@@ -196,8 +196,11 @@ export default function TimelineSection({ isSindhi }: TimelineSectionProps) {
                       {period.name}
                     </h3>
                     {period.description && (
-                      <p className={`${isSindhi ? 'auto-sindhi-font card-text' : 'text-gray-600 text-[14px] leading-6'} mb-4`}>
-                        {period.description}
+                      <p className={`${isSindhi ? 'auto-sindhi-font card-text' : 'text-gray-600 text-[14px] leading-6'} mb-4 line-clamp-3`}>
+                        {period.description.length > 120 
+                          ? `${period.description.substring(0, 120)}...` 
+                          : period.description
+                        }
                       </p>
                     )}
 

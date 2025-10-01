@@ -22,6 +22,17 @@ import { cn } from '@/lib/utils';
 import { useAuthRequired } from '@/hooks/useAuthRequired';
 import { AuthModal } from '@/components/ui/AuthModal';
 
+// Ensure images resolve to absolute paths under /public for nested routes
+function resolveAssetUrl(src?: string | null): string | undefined {
+  if (!src) return undefined;
+  const url = String(src).trim();
+  if (!url) return undefined;
+  if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:') || url.startsWith('blob:')) return url;
+  if (url.startsWith('/')) return url;
+  if (url.startsWith('public/')) return `/${url.slice(7)}`;
+  return `/${url}`;
+}
+
 interface Couplet {
   id: string;
   lines: string[];
@@ -424,7 +435,7 @@ export default function TopicPage() {
                       <div className="flex items-center justify-between pt-6 border-t border-gray-100">
                         <div className="flex items-center gap-3">
                           <Avatar className="w-8 h-8 bg-background border border-border/20 shadow-sm">
-                            <AvatarImage src={couplet.poet?.photo || undefined} alt={couplet.poet?.name || 'Unknown'} />
+                            <AvatarImage src={resolveAssetUrl(couplet.poet?.photo)} alt={couplet.poet?.name || 'Unknown'} />
                             <AvatarFallback className={cn(
                               "text-sm font-medium text-foreground",
                               couplet.lang === 'sd' ? 'auto-sindhi-font' : ''
@@ -579,26 +590,36 @@ export default function TopicPage() {
                   transition={{ duration: 0.5, delay: index * 0.1 }}
                   className="transition-all duration-200"
                 >
-                  <Link href={`${isSindhi ? '/sd' : '/en'}/poets/${poem.poet.slug}/form/${poem.category.slug}/${poem.slug}`}>
-                    <Card className="border border-gray-200/50 bg-white rounded-[12px] shadow-none hover:shadow-md transition-all duration-200">
-                      <CardContent className="p-6">
-                        <div className="space-y-4">
-                          <h3 className={`text-lg font-semibold text-gray-900 line-clamp-2 ${poem.lang === 'sd' ? 'auto-sindhi-font' : ''}`}>
+                  <Card className="border border-gray-200/50 bg-white rounded-[12px] shadow-none">
+                    <CardContent className="p-6">
+                      <div className="space-y-4">
+                        {/* Title */}
+                        <Link href={`${isSindhi ? '/sd' : '/en'}/poets/${poem.poet.slug}/form/${poem.category.slug}/${poem.slug}`} className="block group">
+                          <h4 className={`!text-[7px] font-medium text-gray-900 line-clamp-2 leading-tight hover:text-gray-700 hover:underline transition-colors ${poem.lang === 'sd' ? 'font-sindhi' : ''}`}>
                             {poem.title}
-                          </h3>
-                          
+                          </h4>
+                        </Link>
+
+                        {/* Category Badge */}
+                        <div className="flex items-center justify-between mb-1">
                           <div className="flex items-center gap-2">
-                            <Badge variant="outline" className="text-xs">
+                            <div className="w-7 h-7 bg-gray-100 rounded-lg flex items-center justify-center">
+                              <BookOpenCheck className="h-3.5 w-3.5 text-gray-600" />
+                            </div>
+                            <Badge variant="secondary" className="text-xs px-2.5 py-1 bg-gray-100 text-gray-700 border-0 rounded-full font-normal">
                               {getDisplayName(poem.category)}
                             </Badge>
                           </div>
+                        </div>
 
-                          <div className="flex items-center justify-between pt-4">
-                            <div className="flex items-center gap-3">
-                              <Avatar className="w-8 h-8 bg-background border border-border/20 shadow-sm">
-                                <AvatarImage src={poem.poet?.photo || undefined} alt={poem.poet?.name || 'Unknown'} />
+                        {/* Poet Info */}
+                        <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                          <div className="flex items-center gap-4">
+                            <Link href={`${isSindhi ? '/sd' : '/en'}/poets/${poem.poet.slug}`} className="group/poet cursor-pointer">
+                              <Avatar className="w-8 h-8 bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200/60 shadow-sm group-hover/poet:shadow-md group-hover/poet:border-gray-300 group-hover/poet:scale-105 transition-all duration-200">
+                                <AvatarImage src={resolveAssetUrl(poem.poet?.photo)} alt={poem.poet?.name || 'Unknown'} className="object-cover" />
                                 <AvatarFallback className={cn(
-                                  "text-sm font-medium text-foreground",
+                                  `text-sm font-semibold text-gray-700 bg-gradient-to-br from-gray-100 to-gray-200`,
                                   poem.lang === 'sd' ? 'auto-sindhi-font' : ''
                                 )}>
                                   {poem.lang === 'sd' 
@@ -607,35 +628,56 @@ export default function TopicPage() {
                                   }
                                 </AvatarFallback>
                               </Avatar>
-                              <span className={`text-sm text-gray-700 font-medium ${poem.lang === 'sd' ? 'auto-sindhi-font' : ''}`}>
-                                {poem.poet?.name || 'Unknown Poet'}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-2 text-xs text-gray-500">
-                              <Clock className="h-4 w-4" />
-                              <MixedContentWithNumbers 
-                                text={isSindhi ? `${poem.reading_time || 5} منٽ` : `${poem.reading_time || 5} min`}
-                                className="text-xs"
-                              />
+                            </Link>
+                            <div className="flex-1 min-w-0">
+                              <Link href={`${isSindhi ? '/sd' : '/en'}/poets/${poem.poet.slug}`} className="block">
+                                <p className={`text-sm text-gray-900 font-medium truncate hover:text-gray-700 hover:underline transition-all duration-200 ${poem.lang === 'sd' ? 'auto-sindhi-font' : ''}`}>
+                                  {poem.poet?.name || 'Unknown Poet'}
+                                </p>
+                              </Link>
                             </div>
                           </div>
-
-                          <div className="flex items-center justify-between pt-2">
-                            <div className="flex items-center gap-1 text-xs text-gray-500">
-                              <Eye className="h-4 w-4" />
-                              <NumberFont className="text-xs">
-                                {poem.view_count ? `${poem.view_count}` : '0'}
-                              </NumberFont>
-                            </div>
-                            <div className="flex items-center gap-1 text-xs text-gray-500">
-                              <Calendar className="h-4 w-4" />
-                              <span>{new Date(poem.created_at).toLocaleDateString()}</span>
-                            </div>
+                          <div className="flex items-center gap-2 text-xs text-gray-500">
+                            <Clock className="h-4 w-4" />
+                            <MixedContentWithNumbers 
+                              text={isSindhi ? `${poem.reading_time || 5} منٽ` : `${poem.reading_time || 5} min`}
+                              className="text-xs"
+                            />
                           </div>
                         </div>
-                      </CardContent>
-                    </Card>
-                  </Link>
+
+                        {/* Action Icons and Views */}
+                        <div className="flex items-center justify-between pt-4">
+                          <div className="flex items-center gap-3">
+                            <button className="p-1.5 hover:bg-gray-100 rounded-full transition-colors" aria-label="Like">
+                              <Heart className="h-4 w-4 text-gray-600 hover:text-red-500" />
+                            </button>
+                            <button className="p-1.5 hover:bg-gray-100 rounded-full transition-colors" aria-label="Bookmark">
+                              <Bookmark className="h-4 w-4 text-gray-600 hover:text-blue-500" />
+                            </button>
+                            <button className="p-1.5 hover:bg-gray-100 rounded-full transition-colors" aria-label="Share">
+                              <Share2 className="h-4 w-4 text-gray-600 hover:text-green-500" />
+                            </button>
+                          </div>
+                          <div className="flex items-center gap-1 text-xs text-gray-500">
+                            <Eye className="h-3.5 w-3.5" />
+                            <NumberFont className="text-xs">{poem.view_count || 0}</NumberFont>
+                          </div>
+                        </div>
+
+                        {/* View Poetry Button */}
+                        <div className="pt-1">
+                          <Button asChild className="w-full bg-gray-900 hover:bg-gray-800 text-white border-0 rounded-full py-2.5 transition-all duration-200 mt-2" size="sm">
+                            <Link href={`${isSindhi ? '/sd' : '/en'}/poets/${poem.poet.slug}/form/${poem.category.slug}/${poem.slug}`}>
+                              <span className={`${isSindhi ? 'auto-sindhi-font' : ''} font-medium text-sm`}>
+                                {isSindhi ? 'شاعري ڏسو' : 'View Poetry'}
+                              </span>
+                            </Link>
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </motion.div>
               ))
             )}

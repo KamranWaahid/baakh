@@ -18,13 +18,15 @@ import {
   Heart,
   Bookmark,
   ChevronDown,
-  Clock,
-  MapPin
+  Clock
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { usePathname } from "next/navigation";
 import { NumberFont, MixedContentWithNumbers } from "@/components/ui/NumberFont";
+import { useAuthRequired } from '@/hooks/useAuthRequired';
+import { AuthModal } from '@/components/ui/AuthModal';
+import { useOptimisticActions } from '@/hooks/useOptimisticActions';
 
 interface Poetry {
   id: string;
@@ -58,6 +60,8 @@ export default function PoetryPage() {
   const isSindhi = pathname?.startsWith('/sd');
   const isRTL = isSindhi;
   
+  const { isAuthenticated, showAuthModal, authContext, requireAuth, closeAuthModal, user } = useAuthRequired();
+  
   const [poetry, setPoetry] = useState<Poetry[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -69,35 +73,7 @@ export default function PoetryPage() {
   const [total, setTotal] = useState(0);
   const [categories, setCategories] = useState<Array<{id: number, slug: string, name: string}>>([]);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
-  const [tooltipState, setTooltipState] = useState<{
-    isVisible: boolean;
-    position: { x: number; y: number; shouldShowAbove: boolean } | null;
-    poet: {
-      name: string;
-      laqab?: string;
-      avatar?: string;
-      tagline?: string;
-      location?: string;
-      poetryCount?: number;
-      followers?: number;
-      following?: number;
-      joinDate?: string;
-      verified?: boolean;
-    } | null;
-  }>({
-    isVisible: false,
-    position: null,
-    poet: null
-  });
 
-  // Helper functions for poet name handling
-  const getPoetDisplayName = (poet: { name: string; laqab?: string }) => {
-    return poet.laqab || poet.name;
-  };
-
-  const getPoetAvatarName = (poet: { name: string; laqab?: string }) => {
-    return poet.laqab || poet.name;
-  };
 
   // Multi-lingual content
   const content = {
@@ -197,61 +173,71 @@ export default function PoetryPage() {
     setPage(1);
   };
 
+  // Action handlers for like, bookmark, and share
+  const handleLike = (poemId: string) => {
+    if (!isAuthenticated) {
+      requireAuth(() => {}, 'like');
+      return;
+    }
+    
+    if (!user?.userId) return;
+    
+    // For now, we'll implement a simple toggle without the optimistic actions hook
+    // In a real implementation, you'd use the useOptimisticActions hook here
+    console.log('Like clicked for poem:', poemId);
+  };
+
+  const handleBookmark = (poemId: string) => {
+    if (!isAuthenticated) {
+      requireAuth(() => {}, 'bookmark');
+      return;
+    }
+    
+    if (!user?.userId) return;
+    
+    // For now, we'll implement a simple toggle without the optimistic actions hook
+    // In a real implementation, you'd use the useOptimisticActions hook here
+    console.log('Bookmark clicked for poem:', poemId);
+  };
+
+  const handleShare = async (poem: Poetry) => {
+    try {
+      const shareUrl = `${window.location.origin}/${isSindhi ? 'sd' : 'en'}/poets/${poem.poet_slug}/form/${poem.category_slug}/${poem.poetry_slug}`;
+      const shareText = `${poem.title}\n\n- ${poem.poet_name}`;
+      
+      if (navigator.share) {
+        // Use native Web Share API if available
+        await navigator.share({
+          title: `${poem.poet_name} - ${isSindhi ? 'شاعري' : 'Poetry'}`,
+          text: shareText,
+          url: shareUrl
+        });
+      } else {
+        // Fallback to clipboard (silent)
+        await navigator.clipboard.writeText(`${shareText}\n\n${shareUrl}`);
+      }
+    } catch (error: any) {
+      // Ignore user-cancelled share dialogs
+      const message = String(error?.message || '').toLowerCase();
+      const name = String(error?.name || '').toLowerCase();
+      if (name.includes('abort') || message.includes('abort') || message.includes('canceled') || message.includes('cancelled')) {
+        return;
+      }
+      console.error('Error sharing poetry:', error);
+      // Fallback: just copy the URL
+      try {
+        await navigator.clipboard.writeText(`${window.location.origin}/${isSindhi ? 'sd' : 'en'}/poets/${poem.poet_slug}/form/${poem.category_slug}/${poem.poetry_slug}`);
+      } catch (clipboardError) {
+        console.error('Clipboard error:', clipboardError);
+      }
+    }
+  };
+
   const handleCategoryChange = (category: string) => {
     setSelectedCategory(category);
     setPage(1);
   };
 
-  const handlePoetNameHover = (event: React.MouseEvent, poet: {
-    name: string;
-    laqab?: string;
-    avatar?: string;
-    tagline?: string;
-    location?: string;
-    poetryCount?: number;
-    followers?: number;
-    following?: number;
-    joinDate?: string;
-    verified?: boolean;
-  }) => {
-    const rect = event.currentTarget.getBoundingClientRect();
-    const tooltipHeight = 280; // Approximate height of tooltip
-    
-    // Check if there's enough space below and above
-    const spaceBelow = window.innerHeight - rect.bottom;
-    const spaceAbove = rect.top;
-    
-    // Determine if tooltip should go above or below
-    // If not enough space below, try above. If not enough space above, force below with scroll
-    let shouldShowAbove = false;
-    if (spaceBelow < tooltipHeight && spaceAbove >= tooltipHeight) {
-      shouldShowAbove = true;
-    } else if (spaceBelow < tooltipHeight && spaceAbove < tooltipHeight) {
-      // Not enough space in either direction, force below and let user scroll
-      shouldShowAbove = false;
-    }
-    
-    setTooltipState({
-      isVisible: true,
-      position: { 
-        x: rect.left, 
-        y: rect.top,
-        shouldShowAbove 
-      },
-      poet
-    });
-  };
-
-  const handlePoetNameLeave = () => {
-    // Add a small delay to prevent flickering when moving between elements
-    setTimeout(() => {
-      setTooltipState({
-        isVisible: false,
-        position: null,
-        poet: null
-      });
-    }, 100);
-  };
 
   const handleSort = (newSortBy: typeof sortBy) => {
     if (sortBy === newSortBy) {
@@ -280,26 +266,6 @@ export default function PoetryPage() {
     fetchCategories();
   }, [isSindhi, fetchCategories]);
 
-  // Hide tooltip on scroll or resize to prevent positioning issues
-  useEffect(() => {
-    const handleScrollOrResize = () => {
-      if (tooltipState.isVisible) {
-        setTooltipState({
-          isVisible: false,
-          position: null,
-          poet: null
-        });
-      }
-    };
-
-    window.addEventListener('scroll', handleScrollOrResize, { passive: true });
-    window.addEventListener('resize', handleScrollOrResize, { passive: true });
-
-    return () => {
-      window.removeEventListener('scroll', handleScrollOrResize);
-      window.removeEventListener('resize', handleScrollOrResize);
-    };
-  }, [tooltipState.isVisible]);
 
   // Debug: Log poetry data when it changes
   useEffect(() => {
@@ -309,125 +275,6 @@ export default function PoetryPage() {
     }
   }, [poetry]);
 
-  // Poet tooltip component for hover details
-  const PoetTooltip = ({ poet, isVisible, position }: { 
-    poet: { 
-      name: string; 
-      laqab?: string; 
-      avatar?: string; 
-      tagline?: string;
-      location?: string;
-      poetryCount?: number;
-      followers?: number;
-      following?: number;
-      joinDate?: string;
-      verified?: boolean;
-    } | null; 
-    isVisible: boolean; 
-    position: { x: number; y: number; shouldShowAbove: boolean } | null;
-  }) => {
-    if (!isVisible || !position || !poet) return null;
-
-    return (
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95, y: 10 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.95, y: 10 }}
-        transition={{ duration: 0.2, ease: "easeOut" }}
-        className="fixed z-50 bg-white border border-gray-100 rounded-xl p-4 w-72"
-
-        style={{
-          left: Math.max(16, Math.min(window.innerWidth - 304, position.x - 144)),
-          top: position.shouldShowAbove ? position.y - 240 : position.y + 8,
-        }}
-      >
-        {/* Header with avatar and name */}
-        <div className="flex items-start gap-3 mb-3">
-          <Avatar className="w-12 h-12 bg-gray-50 border border-gray-100 flex-shrink-0">
-            <AvatarImage 
-              src={poet.avatar} 
-              alt={getPoetDisplayName(poet)}
-              className="object-cover"
-            />
-            <AvatarFallback className={`text-sm font-medium text-gray-600 bg-gray-100 ${getSmartFontClass(getPoetAvatarName(poet))}`}>
-              {getPoetAvatarName(poet).charAt(0)}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              <h4 className={`text-sm font-semibold text-gray-900 ${getSmartFontClass(getPoetDisplayName(poet))}`}>
-                {getPoetDisplayName(poet)}
-              </h4>
-              {poet.verified && (
-                <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
-                  <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                </div>
-              )}
-            </div>
-            {poet.tagline && (
-              <p className={`text-xs text-gray-500 leading-relaxed ${getSmartFontClass(poet.tagline)}`}>
-                {poet.tagline}
-              </p>
-            )}
-          </div>
-        </div>
-
-        {/* Stats row */}
-        <div className="flex items-center gap-4 mb-3 pb-3 border-b border-gray-50">
-          <div className="text-center">
-            <div className={`text-sm font-semibold text-gray-900 ${isSindhi ? 'auto-sindhi-font' : ''}`}>
-              {poet.poetryCount || 0}
-            </div>
-            <div className={`text-xs text-gray-400 ${isSindhi ? 'auto-sindhi-font' : ''}`}>
-              {isSindhi ? 'شاعريون' : 'Poems'}
-            </div>
-          </div>
-          <div className="text-center">
-            <div className={`text-sm font-semibold text-gray-900 ${isSindhi ? 'auto-sindhi-font' : ''}`}>
-              {poet.followers || Math.floor(Math.random() * 1000) + 100}
-            </div>
-            <div className={`text-xs text-gray-400 ${isSindhi ? 'auto-sindhi-font' : ''}`}>
-              {isSindhi ? 'پيروڪار' : 'Followers'}
-            </div>
-          </div>
-          <div className="text-center">
-            <div className={`text-sm font-semibold text-gray-900 ${isSindhi ? 'auto-sindhi-font' : ''}`}>
-              {poet.following || Math.floor(Math.random() * 200) + 50}
-            </div>
-            <div className={`text-xs text-gray-400 ${isSindhi ? 'auto-sindhi-font' : ''}`}>
-              {isSindhi ? 'پيروي' : 'Following'}
-            </div>
-          </div>
-        </div>
-
-        {/* Additional details */}
-        <div className="space-y-2">
-          {poet.location && (
-            <div className="flex items-center gap-2 text-xs text-gray-500">
-              <MapPin className="h-3 w-3 text-gray-400 flex-shrink-0" />
-              <span className={getSmartFontClass(poet.location)}>{poet.location}</span>
-            </div>
-          )}
-          {poet.joinDate && (
-            <div className="flex items-center gap-2 text-xs text-gray-500">
-              <Calendar className="h-3 w-3 text-gray-400 flex-shrink-0" />
-              <span className={isSindhi ? 'auto-sindhi-font' : ''}>
-                {isSindhi ? `${poet.joinDate} کان شاعري ڪري رهيو آهي` : `Writing poetry since ${poet.joinDate}`}
-              </span>
-            </div>
-          )}
-          <div className="flex items-center gap-2 text-xs text-gray-500">
-            <BookOpen className="h-3 w-3 text-gray-400 flex-shrink-0" />
-            <span className={isSindhi ? 'auto-sindhi-font' : ''}>
-              {isSindhi ? 'سنڌي شاعري ۾ مھارت' : 'Expert in Sindhi Poetry'}
-            </span>
-          </div>
-        </div>
-      </motion.div>
-    );
-  };
 
   // Skeleton loader component for poetry cards
   const PoetryCardSkeleton = () => (
@@ -695,9 +542,9 @@ export default function PoetryPage() {
                       <div className="space-y-3 mb-5">
                           <div className="space-y-2">
                             <Link href={isSindhi ? `/sd/poets/${poem.poet_slug}/form/${poem.category_slug}/${poem.poetry_slug}` : `/en/poets/${poem.poet_slug}/form/${poem.category_slug}/${poem.poetry_slug}`} className="block group">
-                              <h3 className={`text-base font-medium text-gray-900 line-clamp-2 leading-tight hover:text-gray-700 hover:underline transition-colors ${getSmartFontClass(poem.title)}`}>
+                              <h4 className={`!text-[7px] font-medium text-gray-900 line-clamp-2 leading-tight hover:text-gray-700 hover:underline transition-colors font-sindhi`}>
                                 {poem.title}
-                              </h3>
+                              </h4>
                             </Link>
                           </div>
                       </div>
@@ -760,22 +607,7 @@ export default function PoetryPage() {
                             </Avatar>
                           </Link>
                           <div className="flex-1 min-w-0">
-                            <div 
-                              className="block group/poet-name cursor-pointer"
-                              onMouseEnter={(e) => handlePoetNameHover(e, {
-                                name: poem.poet_name,
-                                laqab: poem.poet_laqab,
-                                avatar: poem.poet_avatar,
-                                tagline: poem.poet_tagline,
-                                location: poem.poet_location || 'Sindh, Pakistan',
-                                poetryCount: Math.floor(Math.random() * 50) + 10,
-                                followers: Math.floor(Math.random() * 1000) + 100,
-                                following: Math.floor(Math.random() * 200) + 50,
-                                joinDate: '2020',
-                                verified: Math.random() > 0.7 // 30% chance of being verified
-                              })}
-                              onMouseLeave={handlePoetNameLeave}
-                            >
+                            <div className="block group/poet-name cursor-pointer">
                               <Link 
                                 href={isSindhi ? `/sd/poets/${poem.poet_slug}` : `/en/poets/${poem.poet_slug}`}
                                 className="block"
@@ -785,7 +617,7 @@ export default function PoetryPage() {
                                 </p>
                               </Link>
                               {poem.poet_tagline && (
-                                <p className={`text-xs text-gray-500 truncate ${getSmartFontClass(poem.poet_tagline)}`}>
+                                <p className={`text-[8px] md:text-[9px] leading-tight text-gray-500 truncate ${getSmartFontClass(poem.poet_tagline)}`}>
                                   {poem.poet_tagline}
                                 </p>
                               )}
@@ -802,18 +634,30 @@ export default function PoetryPage() {
                       </div>
 
                       {/* Action Icons */}
-                      <div className="flex items-center justify-between pt-4">
-                        <div className="flex items-center gap-3">
-                          <button className="p-1.5 hover:bg-gray-100 rounded-full transition-colors">
-                            <Heart className="h-4 w-4 text-gray-600 hover:text-red-500" />
-                          </button>
-                          <button className="p-1.5 hover:bg-gray-100 rounded-full transition-colors">
-                            <Bookmark className="h-4 w-4 text-gray-600 hover:text-blue-500" />
-                          </button>
-                          <button className="p-1.5 hover:bg-gray-100 rounded-full transition-colors">
-                            <Share className="h-4 w-4 text-gray-600 hover:text-green-500" />
-                          </button>
-                        </div>
+                        <div className="flex items-center justify-between pt-4">
+                          <div className="flex items-center gap-3">
+                           <button 
+                             onClick={() => handleLike(poem.id)}
+                             className="p-1.5 hover:bg-gray-100 rounded-full transition-colors"
+                             title={isAuthenticated ? 'Like this poetry' : 'Login to like'}
+                           >
+                             <Heart className="h-4 w-4 text-gray-600 hover:text-red-500" />
+                           </button>
+                           <button 
+                             onClick={() => handleBookmark(poem.id)}
+                             className="p-1.5 hover:bg-gray-100 rounded-full transition-colors"
+                             title={isAuthenticated ? 'Bookmark this poetry' : 'Login to bookmark'}
+                           >
+                             <Bookmark className="h-4 w-4 text-gray-600 hover:text-blue-500" />
+                           </button>
+                           <button 
+                             onClick={() => handleShare(poem)}
+                             className="p-1.5 hover:bg-gray-100 rounded-full transition-colors"
+                             title={isSindhi ? "شئير ڪريو" : "Share"}
+                           >
+                             <Share className="h-4 w-4 text-gray-600 hover:text-green-500" />
+                           </button>
+                          </div>
                         <div className="flex items-center gap-1 text-xs text-gray-500">
                           <Eye className="h-3.5 w-3.5" />
                           <NumberFont size="xs">{poem.views}</NumberFont>
@@ -970,17 +814,16 @@ export default function PoetryPage() {
           </motion.div>
         )}
 
-        {/* Poet Tooltip */}
-        <AnimatePresence>
-          <PoetTooltip
-            poet={tooltipState.poet}
-            isVisible={tooltipState.isVisible}
-            position={tooltipState.position}
-          />
-        </AnimatePresence>
-      </main>
-    </div>
-  );
-}
+        </main>
+        
+        {/* Auth Modal */}
+        <AuthModal 
+          isOpen={showAuthModal} 
+          onClose={closeAuthModal}
+          context={authContext}
+        />
+      </div>
+    );
+  }
 
 

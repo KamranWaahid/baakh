@@ -1,12 +1,13 @@
 import { createClient } from '@supabase/supabase-js';
 
 export function createAdminClient() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  // Prefer server-only vars; fall back to public if needed
+  const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY;
   
   // Check if Supabase is properly configured
-  const isConfigured = supabaseUrl && 
-    supabaseServiceKey && 
+  const isConfigured = supabaseUrl &&
+    supabaseServiceKey &&
     supabaseUrl !== 'your_supabase_project_url_here' && 
     supabaseServiceKey !== 'your_supabase_service_role_key_here' &&
     supabaseUrl.startsWith('https://') &&
@@ -24,8 +25,8 @@ export function createAdminClient() {
         lt: () => chain,
         or: () => chain,
         order: () => chain,
-        limit: () => Promise.resolve({ data: [], error: null }),
-        range: () => Promise.resolve({ data: [], error: null })
+        limit: () => Promise.resolve({ data: [], error: null, count: 0 }),
+        range: () => Promise.resolve({ data: [], error: null, count: 0 })
       };
       return chain;
     };
@@ -36,6 +37,10 @@ export function createAdminClient() {
         select: (_cols?: any, opts?: { head?: boolean; count?: 'exact' | 'planned' | 'estimated' }) => {
           if (opts?.head) {
             return Promise.resolve({ data: null, count: 0, error: null });
+          }
+          // If count is requested, return a promise with count
+          if (opts?.count) {
+            return Promise.resolve({ data: [], count: 0, error: null });
           }
           // Otherwise, return a chainable builder; terminal ops resolve to empty arrays
           return makeChain();

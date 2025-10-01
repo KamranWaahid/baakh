@@ -48,7 +48,7 @@ export default function LanguageSwitcher() {
         <Button 
           variant="ghost" 
           size="sm" 
-          className="h-9 px-3 rounded-md flex items-center gap-2 text-gray-600 hover:text-gray-900 dark:text-neutral-300 dark:hover:text-neutral-100"
+          className="h-9 px-3 rounded-md flex items-center gap-2 text-gray-600 hover:text-gray-900 dark:text-neutral-300 dark:hover:text-neutral-100 focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0"
         >
           <Languages className="w-4 h-4" />
           <span className="hidden sm:inline text-sm font-medium">
@@ -66,7 +66,7 @@ export default function LanguageSwitcher() {
           <DropdownMenuItem
             key={lang.code}
             className={cn(
-              "w-full px-3 py-2 text-sm rounded-md cursor-pointer",
+              "w-full px-3 py-2 text-sm rounded-md cursor-pointer focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0",
               "focus:outline-none",
               currentLocale === lang.code 
                 ? 'text-gray-900 font-semibold dark:text-neutral-100' 
@@ -78,7 +78,7 @@ export default function LanguageSwitcher() {
             <div className="flex items-center gap-2 w-full">
               <span className={cn(
                 "flex-1 text-left",
-                lang.code === 'sd' ? 'auto-sindhi-font' : 'font-medium tracking-wide',
+                lang.code === 'sd' ? 'auto-sindhi-font' : 'font-medium tracking-wide font-english',
                 currentLocale === lang.code ? 'font-semibold' : 'font-normal'
               )}>
                 {lang.name}

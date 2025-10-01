@@ -1,36 +1,10 @@
 {
   "name": "baakh",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev:frontend": "npm --prefix baakh-nextjs run dev",
-    "dev:backend": "npm --prefix backend run dev",
-    "dev": "concurrently -k -n frontend,backend -c auto \"npm:dev:frontend\" \"npm:dev:backend\"",
-    "build": "cd baakh-nextjs && npm install && npm run build",
+    "build": "cd baakh-nextjs && npm run build",
     "start": "cd baakh-nextjs && npm run start",
-    "install": "cd baakh-nextjs && npm install"
-  },
-  "devDependencies": {
-    "@eslint/eslintrc": "^3.3.1",
-    "concurrently": "^9.0.1",
-    "eslint": "^9.36.0",
-    "eslint-config-next": "^15.5.3"
-  },
-  "dependencies": {
-    "next-intl": "^4.3.4"
-  },
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/KamranWaahid/Baakh.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
-  "bugs": {
-    "url": "https://github.com/KamranWaahid/Baakh/issues"
-  },
-  "homepage": "https://github.com/KamranWaahid/Baakh#readme"
+    "dev": "cd baakh-nextjs && npm run dev"
+  }
 }

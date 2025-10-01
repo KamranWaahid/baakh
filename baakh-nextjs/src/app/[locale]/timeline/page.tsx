@@ -346,7 +346,7 @@ export default function TimelinePage() {
                     </div>
 
                     <Link href={isSindhi ? `/sd/timeline/${period.period_slug}` : `/en/timeline/${period.period_slug}`}>
-                      <Card className="group cursor-pointer rounded-xl border border-gray-200/50 hover:border-gray-300 shadow-sm transition-all bg-white hover:bg-gray-50">
+                      <Card className="cursor-pointer rounded-xl border border-gray-200/50 shadow-sm bg-white">
                         <CardHeader className="pt-6 pb-4">
                           <div className="flex items-start gap-4">
                             <div className={`p-4 rounded-xl ${getColorClasses(period.color_code)}`}>
@@ -354,7 +354,7 @@ export default function TimelinePage() {
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center justify-between mb-2">
-                                <CardTitle className={`text-xl font-semibold leading-tight group-hover:opacity-90 transition-opacity ${isSindhi ? 'auto-sindhi-font' : ''}`}>
+                                <CardTitle className={`text-xl font-semibold leading-tight ${isSindhi ? 'auto-sindhi-font' : ''}`}>
                                   {period.name}
                                 </CardTitle>
                                 <Badge variant="outline" className="text-xs px-3 py-1 rounded-full">
@@ -401,13 +401,8 @@ export default function TimelinePage() {
                           </div>
                           )}
 
-                          <div className="flex items-center justify-between pt-4 border-t border-gray-200/40 dark:border-white/10">
-                            <div className="text-sm text-muted-foreground">
-                              <span className={isSindhi ? 'auto-sindhi-font' : ''}>
-                                {isSindhi ? 'دور جي اهميت' : 'Period Significance'}: {period.description || (isSindhi ? 'دستياب نہيں' : 'Not available')}
-                              </span>
-                            </div>
-                            <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+                          <div className="flex items-center justify-end pt-4 border-t border-gray-200/40 dark:border-white/10">
+                            <ChevronRight className="w-4 h-4 text-muted-foreground" />
                           </div>
                         </CardContent>
                       </Card>

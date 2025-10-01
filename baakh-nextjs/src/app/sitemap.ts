@@ -55,27 +55,27 @@ const staticPages = [
     lastmod: new Date().toISOString()
   },
   {
-    url: '/sd/privacy',
+    url: '/sd/privacy-policy',
     changefreq: 'yearly',
-    priority: 0.3,
+    priority: 0.5,
     lastmod: new Date().toISOString()
   },
   {
-    url: '/en/privacy',
+    url: '/en/privacy-policy',
     changefreq: 'yearly',
-    priority: 0.3,
+    priority: 0.5,
     lastmod: new Date().toISOString()
   },
   {
-    url: '/sd/terms',
+    url: '/sd/terms-and-conditions',
     changefreq: 'yearly',
-    priority: 0.3,
+    priority: 0.5,
     lastmod: new Date().toISOString()
   },
   {
-    url: '/en/terms',
+    url: '/en/terms-and-conditions',
     changefreq: 'yearly',
-    priority: 0.3,
+    priority: 0.5,
     lastmod: new Date().toISOString()
   }
 ]

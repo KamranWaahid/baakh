@@ -142,26 +142,54 @@ router.get('/:id', async (req, res) => {
       poet = data;
       poetError = error;
     } else {
-      // If it's not a UUID, search by slug (generate slug from name and compare)
+      // If it's not a UUID, search by slug (case-insensitive)
       console.log('Searching by slug');
-      
-      // Get all poets and find one with matching slug
-      const { data: poets, error } = await global.supabase
+      const idLower = String(id).trim().toLowerCase();
+
+      // Try direct slug match first
+      // Try direct slug field
+      let direct = await global.supabase
         .from('poets')
-        .select('*');
-      
-      if (error) {
-        poetError = error;
-      } else {
-        // Find poet with matching slug
-        poet = poets.find(p => {
-          if (!p.english_name) return false;
-          const generatedSlug = p.english_name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-          return generatedSlug === id;
-        });
+        .select('*')
+        .ilike('slug', idLower)
+        .maybeSingle();
+
+      if (!direct.error && direct.data) {
+        poet = direct.data;
+      }
+
+      // Try poet_slug field if not found
+      if (!poet) {
+        direct = await global.supabase
+          .from('poets')
+          .select('*')
+          .ilike('poet_slug', idLower)
+          .maybeSingle();
+        if (!direct.error && direct.data) {
+          poet = direct.data;
+        }
+      }
+
+      if (!poet) {
+        // Fallback: generate slug from english_name and compare
+        const { data: poets, error } = await global.supabase
+          .from('poets')
+          .select('*');
         
-        if (!poet) {
-          poetError = { message: 'Poet not found' };
+        if (error) {
+          poetError = error;
+        } else {
+          poet = poets.find(p => {
+            const source = (p.slug || p.poet_slug || '').toString().trim().toLowerCase();
+            if (source) return source === idLower;
+            if (!p.english_name) return false;
+            const generatedSlug = String(p.english_name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+            return generatedSlug === idLower;
+          });
+          
+          if (!poet) {
+            poetError = { message: 'Poet not found' };
+          }
         }
       }
     }
@@ -173,24 +201,79 @@ router.get('/:id', async (req, res) => {
       });
     }
 
-    // Get poet's categories
-    const { data: categories, error: categoriesError } = await global.supabase
-      .from('poetry_categories')
-      .select(`
-        id,
-        slug,
-        name,
-        content_style,
-        categories!inner(
-          id,
-          slug,
-          name,
-          content_style
-        )
-      `)
-      .eq('poet_id', poet.id);
+    // Get poet's categories based on poetry_main.category_id linking poets to categories
+    // 1) Find distinct category_ids for this poet from poetry_main
+    const { data: poetPoetry, error: poetPoetryError } = await global.supabase
+      .from('poetry_main')
+      .select('category_id')
+      .eq('poet_id', poet.id)
+      .not('category_id', 'is', null);
+
+    let categories = [];
+    let categoriesWithPoetry = [];
+    if (!poetPoetryError && Array.isArray(poetPoetry) && poetPoetry.length > 0) {
+      const categoryIds = Array.from(new Set(poetPoetry.map(p => p.category_id).filter(Boolean)));
+      if (categoryIds.length > 0) {
+        // 2) Fetch base category records
+        const { data: categoriesBase, error: categoriesBaseError } = await global.supabase
+          .from('categories')
+          .select('id, slug, content_style')
+          .in('id', categoryIds);
+
+        // 3) Fetch category names in both languages
+        const { data: categoryDetails, error: categoryDetailsError } = await global.supabase
+          .from('category_details')
+          .select('cat_id, cat_name, lang')
+          .in('cat_id', categoryIds);
+
+        if (!categoriesBaseError && Array.isArray(categoriesBase)) {
+          const detailsByCat = (categoryDetails || []).reduce((acc, d) => {
+            const key = String(d.cat_id);
+            if (!acc[key]) acc[key] = [];
+            acc[key].push(d);
+            return acc;
+          }, {});
+
+          categories = categoriesBase.map(c => {
+            const det = detailsByCat[String(c.id)] || [];
+            const en = det.find(x => x.lang === 'en');
+            const sd = det.find(x => x.lang === 'sd');
+            return {
+              id: c.id,
+              slug: c.slug,
+              content_style: c.content_style,
+              english_name: en ? en.cat_name : undefined,
+              sindhi_name: sd ? sd.cat_name : undefined
+            };
+          });
+
+          // For each category, fetch up to 4 poetry items for this poet in that category
+          const perCategoryPromises = categories.map(async (cat) => {
+            const { data: poetryList } = await global.supabase
+              .from('poetry_main')
+              .select('id, poetry_slug, title, poetry_title, created_at')
+              .eq('poet_id', poet.id)
+              .eq('category_id', cat.id)
+              .order('created_at', { ascending: false })
+              .limit(4);
+            const items = (poetryList || []).map(p => {
+              const rawSlug = String(p.poetry_slug || '').trim();
+              const fallbackTitle = rawSlug ? rawSlug.replace(/[-_]+/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : 'Untitled';
+              return {
+                id: p.id,
+                poetry_slug: rawSlug,
+                title: p.title || p.poetry_title || fallbackTitle
+              };
+            });
+            return { ...cat, poetry: items };
+          });
+          categoriesWithPoetry = await Promise.all(perCategoryPromises);
+        }
+      }
+    }
 
     // Get poet's couplets (sample for display)
+    // NOTE: The correct column on poetry_couplets is 'poet_id'
     const { data: couplets, error: coupletsError } = await global.supabase
       .from('poetry_couplets')
       .select(`
@@ -203,7 +286,7 @@ router.get('/:id', async (req, res) => {
         views,
         created_at
       `)
-      .eq('poet.id', poet.id)
+      .eq('poet_id', poet.id)
       .order('created_at', { ascending: false })
       .limit(10);
 
@@ -259,7 +342,8 @@ router.get('/:id', async (req, res) => {
     res.json({
       success: true,
       poet: transformedPoet,
-      categories: categories || []
+      categories: categories || [],
+      categoriesWithPoetry: categoriesWithPoetry || []
     });
 
   } catch (error) {

@@ -168,9 +168,9 @@ export default function CategoryDetailPage() {
                 href={`/${currentLocale}/poets/${poem.poet_slug || 'unknown'}/form/${poem.category_slug || 'poetry'}/${poem.poetry_slug || poem.slug}`} 
                 className="block group"
               >
-                <h3 className={`text-base font-medium text-gray-900 line-clamp-2 leading-tight hover:text-gray-700 hover:underline transition-colors ${langConfig.fontClass}`}>
+                <h4 className={`!text-[7px] font-medium text-gray-900 line-clamp-2 leading-tight hover:text-gray-700 hover:underline transition-colors font-sindhi`}>
                   {poem.title}
-                </h3>
+                </h4>
               </Link>
             </div>
           </div>

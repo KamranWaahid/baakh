@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { X, User, Award, PenTool } from "lucide-react";
+import { X, User, Award, PenTool, CalendarDays, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getSmartFontClass } from "@/lib/font-detection-utils";
 
@@ -19,10 +19,14 @@ interface PoetDescriptionModalProps {
     longDescription?: string;
     sindhi_details?: string;
     english_details?: string;
-    period: string;
-    location: string;
+    period?: string;
+    location?: string;
     locationSd?: string;
     locationEn?: string;
+    birth_date?: string | null;
+    death_date?: string | null;
+    birth_place?: string | null;
+    death_place?: string | null;
   };
   isSindhi: boolean;
   content: {
@@ -41,6 +45,8 @@ export default function PoetDescriptionModal({
   content 
 }: PoetDescriptionModalProps) {
   if (!isOpen) return null;
+
+  const label = (en: string, sd: string) => (isSindhi ? sd : en);
 
   return (
     <AnimatePresence>
@@ -67,11 +73,8 @@ export default function PoetDescriptionModal({
               </div>
               <div>
                 <h2 className={`text-xl font-bold text-gray-900 ${getSmartFontClass(poet.name)}`}>
-                  {poet.name}
+                  {label('Poet Details', 'شاعر جي تفصيلات')}
                 </h2>
-                <p className={`text-sm text-gray-500 ${getSmartFontClass(poet.period + ' • ' + (isSindhi ? (poet as any).birth_place_sd || (poet as any).birth_place : (poet as any).birth_place_en || (poet as any).birth_place))}`}>
-                  {poet.period} • {isSindhi ? (poet as any).birth_place_sd || (poet as any).birth_place : (poet as any).birth_place_en || (poet as any).birth_place}
-                </p>
               </div>
             </div>
             <Button
@@ -86,61 +89,70 @@ export default function PoetDescriptionModal({
 
           {/* Content */}
           <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
-            {/* Name Information */}
+            {/* Identity Details */}
             <div className="mb-8 p-6 bg-gray-50 rounded-xl border border-gray-200">
-              <h3 className={`text-lg font-semibold mb-4 text-gray-900 ${getSmartFontClass(content.originalName)}`}>
-                {isSindhi ? "شاعر جي تفصيلات" : "Poet Details"}
-              </h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* Original Name */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Full Names */}
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-gray-600">{label('Full Name (English)', 'مڪمل نالو (انگريزي)')}</p>
+                  <p className={`font-medium text-gray-900 ${getSmartFontClass(poet.englishName)}`}>{poet.englishName || '—'}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-gray-600">{label('Full Name (Sindhi)', 'مڪمل نالو (سنڌي)')}</p>
+                  <p className={`font-medium text-gray-900 ${getSmartFontClass(poet.sindhiName)}`}>{poet.sindhiName || '—'}</p>
+                </div>
+                {/* Laqab */}
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-gray-600">{label('Laqab (Title)', 'لقب')}</p>
+                  <p className={`font-medium text-gray-900 ${getSmartFontClass((poet.sindhi_laqab || poet.english_laqab || ''))}`}>{isSindhi ? (poet.sindhi_laqab || '—') : (poet.english_laqab || '—')}</p>
+                </div>
+                {/* Takhalus */}
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-gray-600">{label('Takhalus (Pen Name)', 'تخلص')}</p>
+                  <p className={`font-medium text-gray-900 ${getSmartFontClass((poet.sindhi_takhalus || poet.english_takhalus || ''))}`}>{isSindhi ? (poet.sindhi_takhalus || '—') : (poet.english_takhalus || '—')}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Dates and Places */}
+            <div className="mb-8 p-6 bg-gray-50 rounded-xl border border-gray-200">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="flex items-start gap-3">
                   <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                    <User className="w-4 h-4 text-gray-600" />
+                    <CalendarDays className="w-4 h-4 text-gray-600" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-600 mb-1">
-                      {isSindhi ? "اصل نالو" : "Original Name"}
-                    </p>
-                    <p className={`font-medium text-gray-900 ${getSmartFontClass(poet.sindhiName || poet.englishName)}`}>
-                      {isSindhi ? poet.sindhiName : poet.englishName}
-                    </p>
+                    <p className="text-sm font-medium text-gray-600">{label('Birth Date', 'جنم تاريخ')}</p>
+                    <p className="font-medium text-gray-900">{poet.birth_date || '—'}</p>
                   </div>
                 </div>
-
-                {/* Laqab */}
-                {(poet.sindhi_laqab || poet.english_laqab) && (
-                  <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                      <Award className="w-4 h-4 text-gray-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-600 mb-1">
-                        {isSindhi ? "لقب" : "Laqab (Honorific Title)"}
-                      </p>
-                      <p className={`font-medium text-gray-900 ${getSmartFontClass(poet.sindhi_laqab || poet.english_laqab || '')}`}>
-                        {isSindhi ? poet.sindhi_laqab : poet.english_laqab}
-                      </p>
-                    </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                    <CalendarDays className="w-4 h-4 text-gray-600" />
                   </div>
-                )}
-
-                {/* Takhalus */}
-                {(poet.sindhi_takhalus || poet.english_takhalus) && (
-                  <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                      <PenTool className="w-4 h-4 text-gray-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-600 mb-1">
-                        {isSindhi ? "تخلص" : "Takhalus (Pen Name)"}
-                      </p>
-                      <p className={`font-medium text-gray-900 ${getSmartFontClass((poet.sindhi_takhalus || poet.english_takhalus || ''))}`}>
-                        {isSindhi ? poet.sindhi_takhalus : poet.english_takhalus}
-                      </p>
-                    </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">{label('Death Date', 'وفات تاريخ')}</p>
+                    <p className="font-medium text-gray-900">{poet.death_date || '—'}</p>
                   </div>
-                )}
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                    <MapPin className="w-4 h-4 text-gray-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">{label('Birth Place', 'جنم جو هنڌ')}</p>
+                    <p className={`font-medium text-gray-900 ${getSmartFontClass(poet.birth_place || '')}`}>{poet.birth_place || '—'}</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                    <MapPin className="w-4 h-4 text-gray-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">{label('Death Place', 'وفات جو هنڌ')}</p>
+                    <p className={`font-medium text-gray-900 ${getSmartFontClass(poet.death_place || '')}`}>{poet.death_place || '—'}</p>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -154,7 +166,7 @@ export default function PoetDescriptionModal({
                   .split('\n')
                   .map((paragraph, index) => (
                     <p key={index} className="text-justify">
-                      {paragraph.trim()}
+                      {paragraph.trim() || '—'}
                     </p>
                   ))}
               </div>

@@ -18,6 +18,7 @@ export async function GET(request: NextRequest) {
         created_at,
         is_featured
       `)
+      .eq('is_hidden', false)
       .is('deleted_at', null)
       .order('created_at', { ascending: false })
 

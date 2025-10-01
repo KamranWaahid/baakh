@@ -24,7 +24,7 @@ export function SindhiFontDemo() {
         
         <div>
           <div className="text-caption text-gray-600 mb-sm">Body Text:</div>
-          <div className="text-body font-sindhi">سنڌي متن - This uses MB Lateefi 2.0 font</div>
+          <div className="text-body font-sindhi">سنڌي متن - This uses ssread font from sindhsalamat.com</div>
         </div>
         
         <div>

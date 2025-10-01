@@ -62,8 +62,39 @@ export async function GET(request: NextRequest) {
 
     const hasMore = (poets?.length || 0) === limit && (count || 0) > finalOffset + limit;
 
+    // Augment with works_count (number of couplets per poet)
+    let poetsWithCounts = poets || [];
+    try {
+      if (poets && poets.length > 0) {
+        // Prefer numeric poet_id if present (matches poetry_couplets.poet_id); fallback to id
+        const poetIdKeys = poets.map((p: any) => (p.poet_id ?? p.id)).filter((v: any) => v !== null && v !== undefined);
+        const uniquePoetIds = Array.from(new Set(poetIdKeys));
+
+        if (uniquePoetIds.length > 0) {
+          // Use per-poet head count queries for reliable counts
+          const countResults = await Promise.all(uniquePoetIds.map(async (pid: any) => {
+            const { count: cplCount } = await supabase
+              .from('poetry_couplets')
+              .select('*', { head: true, count: 'exact' })
+              .eq('poet_id', pid);
+            return { pid, count: cplCount || 0 };
+          }));
+
+          const countsMap = new Map<any, number>(countResults.map(r => [r.pid, r.count]));
+
+          poetsWithCounts = poets.map((p: any) => {
+            const key = p.poet_id ?? p.id;
+            return { ...p, works_count: countsMap.get(key) ?? 0 };
+          });
+        }
+      }
+    } catch (e) {
+      // Non-fatal: if counting fails, proceed without works_count
+      console.warn('Failed to compute works_count for poets:', e);
+    }
+
     return NextResponse.json({ 
-      poets: poets || [], 
+      poets: poetsWithCounts, 
       hasMore,
       total: count || 0,
       page,

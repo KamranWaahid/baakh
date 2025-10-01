@@ -11,6 +11,9 @@ export async function GET(request: NextRequest) {
     const sortBy = searchParams.get('sortBy') || 'created_at';
     const sortOrder = searchParams.get('sortOrder') || 'desc';
     const lang = searchParams.get('lang') || 'en';
+    const poetParam = searchParams.get('poet') || '';
+    const startYear = searchParams.get('start_year');
+    const endYear = searchParams.get('end_year');
 
     // Helper: build enhanced mock response (used when DB/env not available)
     const buildMockResponse = () => {
@@ -204,7 +207,7 @@ export async function GET(request: NextRequest) {
         }
       ];
 
-      // Apply search/category/sort/pagination to mock data
+      // Apply search/category/poet/sort/pagination to mock data
       let filteredPoetry = mockPoetry;
       if (search) {
         filteredPoetry = mockPoetry.filter(poem => 
@@ -215,7 +218,32 @@ export async function GET(request: NextRequest) {
         );
       }
       if (category && category !== 'All Categories' && category !== 'سڀ ڪيٽيگري') {
-        filteredPoetry = filteredPoetry.filter(poem => poem.category === category);
+        const slug = category.toLowerCase();
+        const mapSlugToName: { [key: string]: { en: string; sd: string } } = {
+          ghazal: { en: 'Ghazal', sd: 'غزل' },
+          nazm: { en: 'Nazm', sd: 'نظم' },
+          rubai: { en: 'Rubai', sd: 'رباعي' },
+          masnavi: { en: 'Masnavi', sd: 'مثنوي' },
+          qasida: { en: 'Qasida', sd: 'قصيده' },
+          doha: { en: 'Doha', sd: 'دوها' }
+        };
+        const expectedName = lang === 'sd' ? mapSlugToName[slug]?.sd : mapSlugToName[slug]?.en;
+        filteredPoetry = filteredPoetry.filter(poem => {
+          const poemSlug = (poem as any).category_slug?.toLowerCase?.();
+          return poemSlug === slug || poem.category === expectedName;
+        });
+      }
+      if (poetParam) {
+        const poetSlugLc = poetParam.toLowerCase();
+        const filteredByPoet = filteredPoetry.filter(poem => {
+          const pslug = (poem as any).poet_slug?.toLowerCase?.();
+          const pname = (poem as any).poet_name?.toLowerCase?.();
+          return pslug === poetSlugLc || (pname && pname.includes(poetSlugLc.replace(/-/g, ' ')));
+        });
+        // If no mock content matches this poet, keep category results (fallback)
+        if (filteredByPoet.length > 0) {
+          filteredPoetry = filteredByPoet;
+        }
       }
       if (sortBy === 'title') {
         filteredPoetry.sort((a, b) => {
@@ -286,7 +314,7 @@ export async function GET(request: NextRequest) {
       query = query.or(`poetry_slug.ilike.%${search}%`);
     }
 
-    // Resolve category filter to category_id
+    // Resolve category filter to category_id (accept display name or slug)
     let categoryIdFilter: number | undefined = undefined;
     if (category && category !== 'All Categories' && category !== 'سڀ ڪيٽيگري') {
       const categoryMap: { [key: string]: string } = {
@@ -303,7 +331,7 @@ export async function GET(request: NextRequest) {
         'Doha': 'doha',
         'دوها': 'doha'
       };
-      const categorySlug = categoryMap[category];
+      const categorySlug = categoryMap[category] || category; // tolerate slug directly
       if (categorySlug) {
         const { data: catRow } = await supabase
           .from('categories')
@@ -314,6 +342,58 @@ export async function GET(request: NextRequest) {
           categoryIdFilter = catRow.id as number;
           query = query.eq('category_id', categoryIdFilter);
         }
+      }
+    }
+
+    // Resolve poet filter to poet_id (accept UUID or slug-like)
+    if (poetParam) {
+      const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      let poetIdResolved: string | null = null;
+      if (uuidRe.test(poetParam)) {
+        poetIdResolved = poetParam;
+      } else {
+        const nameGuess = poetParam.replace(/-/g, ' ').trim();
+        const { data: poetRow } = await supabase
+          .from('poets')
+          .select('id, english_name')
+          .ilike('english_name', `%${nameGuess}%`)
+          .maybeSingle();
+        if (poetRow?.id) {
+          poetIdResolved = poetRow.id as unknown as string;
+        }
+      }
+      if (poetIdResolved) {
+        query = query.eq('poet_id', poetIdResolved);
+      }
+    }
+
+    // Apply year range filter (for timeline periods)
+    if (startYear && endYear) {
+      console.log('Filtering poetry by era:', { startYear, endYear });
+      // Filter poetry by poet's birth/death dates within the era
+      // This requires a join with poets table, so we'll filter poets first
+      const { data: poetsInEra } = await supabase
+        .from('poets')
+        .select('id')
+        .or(
+          `and(birth_date.lte.${endYear}-12-31,or(death_date.gte.${startYear}-01-01,death_date.is.null)),` +
+          `and(birth_date.gte.${startYear}-01-01,birth_date.lte.${endYear}-12-31),` +
+          `and(death_date.gte.${startYear}-01-01,death_date.lte.${endYear}-12-31)`
+        );
+      
+      console.log('Poets found in era:', poetsInEra?.length || 0);
+      if (poetsInEra && poetsInEra.length > 0) {
+        const poetIds = (poetsInEra as Array<{ id: string }>).map((p: { id: string }) => p.id);
+        query = query.in('poet_id', poetIds);
+      } else {
+        // No poets in this era, return empty result
+        return NextResponse.json({
+          poetry: [],
+          total: 0,
+          page,
+          limit,
+          message: 'No poetry found for this era'
+        });
       }
     }
 
@@ -384,7 +464,7 @@ export async function GET(request: NextRequest) {
       console.error('Related fetch error:', { poetsError: poetsRes.error, categoriesError: categoriesRes.error, translationsError: translationsRes.error });
     }
 
-    const poetById: Map<number, any> = new Map((poetsRes.data || []).map((p: any) => [p.poet_id, p]));
+    const poetById: Map<any, any> = new Map((poetsRes.data || []).map((p: any) => [p.poet_id, p]));
     const categoryById: Map<number, any> = new Map((categoriesRes.data || []).map((c: any) => [c.id, c]));
     const translationsByPoetryId: Map<number, any[]> = new Map();
     (translationsRes.data || []).forEach((t: any) => {

@@ -21,6 +21,8 @@ router.get('/periods', async (req, res) => {
     let query = global.supabase
       .from('timeline_periods')
       .select('*', { count: 'exact' });
+    // Exclude soft-deleted
+    query = query.eq('deleted_at', null);
 
     // Apply search filter
     if (search) {
@@ -139,7 +141,27 @@ router.get('/periods/:id', async (req, res) => {
 
     res.json({
       success: true,
-      period: transformedPeriod
+      period: transformedPeriod,
+      // Include raw multilingual fields for admin editing use-cases
+      period_raw: {
+        id: period.id,
+        period_slug: period.period_slug,
+        start_year: period.start_year,
+        end_year: period.end_year,
+        is_ongoing: period.is_ongoing,
+        sindhi_name: period.sindhi_name,
+        sindhi_description: period.sindhi_description,
+        sindhi_characteristics: period.sindhi_characteristics,
+        english_name: period.english_name,
+        english_description: period.english_description,
+        english_characteristics: period.english_characteristics,
+        color_code: period.color_code,
+        icon_name: period.icon_name,
+        is_featured: period.is_featured,
+        sort_order: period.sort_order,
+        created_at: period.created_at,
+        updated_at: period.updated_at
+      }
     });
 
   } catch (error) {
@@ -348,6 +370,8 @@ router.get('/events', async (req, res) => {
           file_url
         )
       `, { count: 'exact' });
+    // Exclude soft-deleted
+    query = query.eq('deleted_at', null);
 
     // Apply search filter
     if (search) {
