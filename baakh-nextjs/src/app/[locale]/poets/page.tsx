@@ -357,7 +357,7 @@ export default function PoetsPage() {
           poetsCount: data.poets?.length || 0,
           firstPoetSample: fp ? {
             id: fp.id,
-            slug: fp.poet_slug || fp.slug,
+            slug: fp.poet_slug,
             english_name: fp.english_name,
             sindhi_name: fp.sindhi_name,
             english_laqab: fp.english_laqab,
