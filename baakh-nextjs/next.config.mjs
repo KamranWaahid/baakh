@@ -6,8 +6,8 @@ const __dirname = path.dirname(__filename);
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Remove outputFileTracingRoot since we're not using a monorepo setup for Vercel
-  // outputFileTracingRoot: path.join(__dirname, '..'),
+  // Set the correct root directory to avoid lockfile warnings
+  outputFileTracingRoot: __dirname,
   // Disable ESLint during build to prevent deployment failures
   eslint: {
     ignoreDuringBuilds: true,

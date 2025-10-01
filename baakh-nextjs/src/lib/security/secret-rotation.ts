@@ -23,10 +23,16 @@ class SecretRotationManager {
   private rotationPolicy: RotationPolicy;
 
   constructor() {
-    this.supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    // Only create Supabase client if environment variables are available
+    if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      this.supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL,
+        process.env.SUPABASE_SERVICE_ROLE_KEY
+      );
+    } else {
+      // Use a no-op client when Supabase is not configured
+      this.supabase = null;
+    }
 
     this.rotationPolicy = {
       rotationInterval: 90, // 90 days
@@ -59,6 +65,21 @@ class SecretRotationManager {
    * Load secret configuration from database
    */
   private async loadSecretConfig(name: string, currentSecret: string): Promise<void> {
+    if (!this.supabase) {
+      // If Supabase is not configured, just store the secret in memory
+      const now = new Date();
+      const nextRotation = new Date(now.getTime() + (this.rotationPolicy.rotationInterval * 24 * 60 * 60 * 1000));
+      
+      this.secrets.set(name, {
+        name,
+        current: currentSecret,
+        rotationDate: now,
+        nextRotation,
+        algorithm: this.getAlgorithmForSecret(name)
+      });
+      return;
+    }
+
     try {
       const { data, error } = await this.supabase
         .from('secret_rotation')
@@ -105,6 +126,12 @@ class SecretRotationManager {
   private async saveSecretConfig(name: string): Promise<void> {
     const config = this.secrets.get(name);
     if (!config) return;
+
+    if (!this.supabase) {
+      // If Supabase is not configured, just log the operation
+      console.log(`Secret ${name} configuration updated in memory only`);
+      return;
+    }
 
     try {
       const { error } = await this.supabase
@@ -307,6 +334,11 @@ class SecretRotationManager {
    * Create database table for secret rotation tracking
    */
   async createSecretRotationTable(): Promise<void> {
+    if (!this.supabase) {
+      console.log('Supabase not configured - skipping table creation');
+      return;
+    }
+
     const createTableSQL = `
       CREATE TABLE IF NOT EXISTS secret_rotation (
         id SERIAL PRIMARY KEY,
