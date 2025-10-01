@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import GlobalErrorHandler from '@/components/GlobalErrorHandler'
 import FontPreloader from '@/components/FontPreloader'
+import { Analytics } from '@vercel/analytics/next'
 
 // Modern Font System - Helvetica Now Text Regular (system font)
 
@@ -51,6 +52,7 @@ export default function RootLayout({
         <FontPreloader />
         <GlobalErrorHandler />
         {children}
+        <Analytics />
       </body>
     </html>
   )
