@@ -36,6 +36,7 @@ interface Poet {
   sindhi_name?: string;
   sindhi_laqab?: string;
   sindhi_tagline?: string;
+  sindhi_details?: string;
   birth_date?: string;
   death_date?: string;
   birth_place?: string;
@@ -43,6 +44,7 @@ interface Poet {
   tags?: string[];
   translated_tags?: string[];
   file_url?: string | null;
+  photo?: string;
   is_featured?: boolean;
   created_at: string;
   updated_at: string;
@@ -254,9 +256,10 @@ export default function PoetsPage() {
         setCopiedPoetId(poet.id);
         setTimeout(() => setCopiedPoetId((cur) => (cur === poet.id ? null : cur)), 1500);
       }
-    } catch (error: any) {
-      const message = String(error?.message || '').toLowerCase();
-      const name = String(error?.name || '').toLowerCase();
+    } catch (error: unknown) {
+      const errorObj = error as Error;
+      const message = String(errorObj?.message || '').toLowerCase();
+      const name = String(errorObj?.name || '').toLowerCase();
       if (name.includes('abort') || message.includes('abort') || message.includes('canceled') || message.includes('cancelled')) {
         return;
       }
@@ -326,7 +329,7 @@ export default function PoetsPage() {
       
       if (response.ok) {
         const data: PoetsResponse = await response.json();
-        const fp: any = data.poets?.[0] || null;
+        const fp: Poet | null = data.poets?.[0] || null;
         console.log('Frontend - Received poets data:', {
           total: data.total,
           poetsCount: data.poets?.length || 0,
@@ -501,7 +504,7 @@ export default function PoetsPage() {
   };
 
   const getDisplayDetails = (poet: Poet) => {
-    const text = isSindhi ? (poet as any).sindhi_details : (poet as any).english_details;
+    const text = isSindhi ? poet.sindhi_details : poet.english_details;
     return (text || '').toString().trim();
   };
 
@@ -860,7 +863,7 @@ export default function PoetsPage() {
                       <div className="relative">
                         <div className="aspect-square bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center overflow-hidden">
                           <PoetImage
-                            src={resolveImageSrc(poet.file_url || (poet as any).photo || null)}
+                            src={resolveImageSrc(poet.file_url || poet.photo || null)}
                             alt={getPrimaryPoetName(poet, isSindhi)}
                             isSindhi={!!isSindhi}
                             fallbackInitial={getAvatarPoetName(poet, isSindhi)}
@@ -1092,10 +1095,12 @@ export default function PoetsPage() {
                   <div className="h-12 w-12 rounded-full bg-gray-100 overflow-hidden flex items-center justify-center">
                     {/* Reuse avatar logic */}
                     {/* fallback handled by span if no image */}
-                    {(detailsPoet.file_url || (detailsPoet as any).photo) ? (
-                      <img 
-                        src={resolveImageSrc(detailsPoet.file_url || (detailsPoet as any).photo) || ''}
+                    {(detailsPoet.file_url || detailsPoet.photo) ? (
+                      <Image 
+                        src={resolveImageSrc(detailsPoet.file_url || detailsPoet.photo) || ''}
                         alt={getPrimaryPoetName(detailsPoet, isSindhi)}
+                        width={48}
+                        height={48}
                         className="h-12 w-12 object-cover"
                         onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
                       />
