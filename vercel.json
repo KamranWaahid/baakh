@@ -5,27 +5,5 @@
       "src": "baakh-nextjs/package.json",
       "use": "@vercel/next"
     }
-  ],
-  "routes": [
-    {
-      "src": "/Baakh.svg",
-      "headers": {
-        "Cache-Control": "public, max-age=31536000, immutable",
-        "Content-Type": "image/svg+xml"
-      }
-    },
-    {
-      "src": "/favicon.ico",
-      "headers": {
-        "Cache-Control": "public, max-age=31536000, immutable"
-      }
-    },
-    {
-      "src": "/favicon-baakh.svg",
-      "headers": {
-        "Cache-Control": "public, max-age=31536000, immutable",
-        "Content-Type": "image/svg+xml"
-      }
-    }
   ]
 }
