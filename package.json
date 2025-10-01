@@ -1,10 +1,17 @@
 {
-  "name": "baakh",
+  "name": "baakh-project",
   "version": "1.0.0",
+  "description": "Baakh - Sindhi Poetry Archive",
   "private": true,
   "scripts": {
     "build": "cd baakh-nextjs && npm run build",
-    "start": "cd baakh-nextjs && npm run start",
-    "dev": "cd baakh-nextjs && npm run dev"
+    "dev": "cd baakh-nextjs && npm run dev",
+    "start": "cd baakh-nextjs && npm run start"
+  },
+  "workspaces": [
+    "baakh-nextjs"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
