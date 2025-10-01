@@ -1,7 +1,7 @@
 // Backend API configuration
 export const BACKEND_CONFIG = {
   // Backend server URL - change this to your backend server URL
-  BASE_URL: process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5001',
+  BASE_URL: process.env.NEXT_PUBLIC_BACKEND_URL || 'https://localhost:5001',
   
   // API endpoints
   ENDPOINTS: {

@@ -73,7 +73,7 @@ export async function GET(
       
       // Try backend API as fallback
       try {
-        const backendResponse = await fetch(`http://localhost:5001/api/poets/${poetSlug}?lang=${language}`);
+        const backendResponse = await fetch(`https://localhost:5001/api/poets/${poetSlug}?lang=${language}`);
         if (backendResponse.ok) {
           const backendData = await backendResponse.json();
           console.log('✅ Found poet in backend API:', backendData.poet?.english_name);

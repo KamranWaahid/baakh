@@ -17,7 +17,7 @@ import {
   Share,
   ChevronDown
 } from "lucide-react";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { AnimatePresence } from "framer-motion";
 // Removed unused Avatar and Image imports
 import { usePathname, useRouter } from "next/navigation";
@@ -25,6 +25,7 @@ import { NumberFont, MixedContentWithNumbers } from "@/components/ui/NumberFont"
 import { getSmartFontClass } from "@/lib/font-detection-utils";
 import { getPrimaryPoetName, getSecondaryPoetName, getAvatarPoetName } from "@/lib/poet-name-utils";
 import SmartPagination from "@/components/ui/SmartPagination";
+import { getErrorInfo, isApiError, isNetworkError, isTimeoutError } from "@/lib/error-types";
 
 interface Poet {
   id: string;
@@ -83,6 +84,10 @@ export default function PoetsPage() {
   const [copiedPoetId, setCopiedPoetId] = useState<string | null>(null);
   const [detailsPoet, setDetailsPoet] = useState<Poet | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  
+  // Refs for timeout management
+  const copyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Animated counter component
   const AnimatedCounter = ({ value, className }: { value: number; className?: string }) => {
@@ -244,7 +249,11 @@ export default function PoetsPage() {
       } else if (navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(url);
         setCopiedPoetId(poet.id);
-        setTimeout(() => setCopiedPoetId((cur) => (cur === poet.id ? null : cur)), 1500);
+        // Clear existing timeout
+        if (copyTimeoutRef.current) {
+          clearTimeout(copyTimeoutRef.current);
+        }
+        copyTimeoutRef.current = setTimeout(() => setCopiedPoetId((cur) => (cur === poet.id ? null : cur)), 1500);
       } else {
         // Fallback
         const temp = document.createElement('input');
@@ -254,16 +263,29 @@ export default function PoetsPage() {
         document.execCommand('copy');
         document.body.removeChild(temp);
         setCopiedPoetId(poet.id);
-        setTimeout(() => setCopiedPoetId((cur) => (cur === poet.id ? null : cur)), 1500);
+        // Clear existing timeout
+        if (copyTimeoutRef.current) {
+          clearTimeout(copyTimeoutRef.current);
+        }
+        copyTimeoutRef.current = setTimeout(() => setCopiedPoetId((cur) => (cur === poet.id ? null : cur)), 1500);
       }
     } catch (error: unknown) {
-      const errorObj = error as Error;
-      const message = String(errorObj?.message || '').toLowerCase();
-      const name = String(errorObj?.name || '').toLowerCase();
+      const errorInfo = getErrorInfo(error);
+      const message = errorInfo.message.toLowerCase();
+      const name = errorInfo.name.toLowerCase();
+      
       if (name.includes('abort') || message.includes('abort') || message.includes('canceled') || message.includes('cancelled')) {
         return;
       }
-      // ignore other share errors silently
+      
+      // Log specific error types for debugging
+      if (isApiError(error)) {
+        console.warn('Share API error:', errorInfo);
+      } else if (isNetworkError(error)) {
+        console.warn('Share network error:', errorInfo);
+      } else {
+        console.warn('Share error:', errorInfo);
+      }
     }
   };
 
@@ -420,6 +442,18 @@ export default function PoetsPage() {
 
     return () => clearTimeout(timer);
   }, [searchQuery]);
+
+  // Cleanup timeouts on unmount
+  useEffect(() => {
+    return () => {
+      if (copyTimeoutRef.current) {
+        clearTimeout(copyTimeoutRef.current);
+      }
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const handlePeriodChange = (period: string) => {
     setSelectedPeriod(period);

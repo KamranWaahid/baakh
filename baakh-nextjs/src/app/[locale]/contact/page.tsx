@@ -16,7 +16,7 @@ import {
   Clock,
   ArrowRight
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { usePathname } from "next/navigation";
 
 export default function ContactPage() {
@@ -32,6 +32,17 @@ export default function ContactPage() {
     message: ""
   });
   const [submitted, setSubmitted] = useState(false);
+  
+  const submitTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (submitTimeoutRef.current) {
+        clearTimeout(submitTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Multi-lingual content
   const content = {
@@ -185,7 +196,11 @@ export default function ContactPage() {
       }
       setFormData({ name: "", email: "", subject: "", message: "" });
       setSubmitted(true);
-      setTimeout(() => setSubmitted(false), 3000);
+      // Clear existing timeout
+      if (submitTimeoutRef.current) {
+        clearTimeout(submitTimeoutRef.current);
+      }
+      submitTimeoutRef.current = setTimeout(() => setSubmitted(false), 3000);
     } catch (err) {
       // silent fail
     }
