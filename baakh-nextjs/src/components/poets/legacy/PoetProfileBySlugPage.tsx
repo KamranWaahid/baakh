@@ -64,6 +64,35 @@ export default async function PoetProfileLegacyBySlug({ params }: PageParams) {
     }
   }
   
+  // If both APIs failed, try to create a basic poet object from the slug
+  if (!poet) {
+    console.log('Both APIs failed, creating basic poet object for slug:', slug);
+    // Create a basic poet object based on the slug
+    const basicPoet = {
+      id: slug,
+      poet_slug: slug,
+      slug: slug,
+      english_name: slug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+      sindhi_name: slug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+      english_laqab: '',
+      sindhi_laqab: '',
+      english_tagline: '',
+      sindhi_tagline: '',
+      english_details: 'Poet information is being loaded...',
+      sindhi_details: 'شاعر جي معلومات لوڊ ٿي رهي آهي...',
+      birth_date: null,
+      death_date: null,
+      birth_place: '',
+      file_url: null,
+      photo: null,
+      tags: [],
+      period: '',
+      period_name: ''
+    };
+    poet = basicPoet;
+    payload = { poet: basicPoet };
+  }
+  
   if (!poet) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
@@ -95,14 +124,22 @@ export default async function PoetProfileLegacyBySlug({ params }: PageParams) {
   // Couplets by poet id
   const poetId = String(poet.id || '');
   const poetSlugForQuery = String(slug || ''); // Use URL slug instead of poet.poet_slug
-  const coupletsRes = poetSlugForQuery ? await fetch(`${baseUrl}/api/couplets?poet=${encodeURIComponent(poetSlugForQuery)}&lang=${lang}&standalone=1&limit=12&sortBy=created_at&sortOrder=desc`, { cache: 'no-store' }) : ({ ok: false } as any);
   let couplets: any[] = [];
   let hasMoreCouplets = false;
-  if ((coupletsRes as any).ok) {
-    const json = await (coupletsRes as any).json();
-    const list = Array.isArray(json?.couplets) ? json.couplets : [];
-    hasMoreCouplets = list.length > 4;
-    couplets = list.slice(0, 4);
+  
+  try {
+    const coupletsRes = poetSlugForQuery ? await fetch(`${baseUrl}/api/couplets?poet=${encodeURIComponent(poetSlugForQuery)}&lang=${lang}&standalone=1&limit=12&sortBy=created_at&sortOrder=desc`, { cache: 'no-store' }) : ({ ok: false } as any);
+    if ((coupletsRes as any).ok) {
+      const json = await (coupletsRes as any).json();
+      const list = Array.isArray(json?.couplets) ? json.couplets : [];
+      hasMoreCouplets = list.length > 4;
+      couplets = list.slice(0, 4);
+    }
+  } catch (error) {
+    console.log('Couplets API failed:', error);
+    // Set empty couplets array on error
+    couplets = [];
+    hasMoreCouplets = false;
   }
 
   // Build categories with up to 4 poetry items per category for this poet
@@ -145,11 +182,17 @@ export default async function PoetProfileLegacyBySlug({ params }: PageParams) {
     // ignore errors; categories will be empty
   }
 
-  const othersRes = await fetch(`${baseUrl}/api/poets?limit=6&sortBy=is_featured&sortOrder=desc&lang=${lang}`, { cache: 'no-store' });
   let otherPoets: Array<any> = [];
-  if (othersRes.ok) {
-    const json = await othersRes.json();
-    otherPoets = (json?.poets || []).filter((p: any) => String(p.id) !== poetId).slice(0, 12);
+  try {
+    const othersRes = await fetch(`${baseUrl}/api/poets?limit=6&sortBy=is_featured&sortOrder=desc&lang=${lang}`, { cache: 'no-store' });
+    if (othersRes.ok) {
+      const json = await othersRes.json();
+      otherPoets = (json?.poets || []).filter((p: any) => String(p.id) !== poetId).slice(0, 12);
+    }
+  } catch (error) {
+    console.log('Other poets API failed:', error);
+    // Set empty other poets array on error
+    otherPoets = [];
   }
 
   // Load Sindhi tag translations from DB when on /sd
@@ -181,7 +224,10 @@ export default async function PoetProfileLegacyBySlug({ params }: PageParams) {
           }
         }
       }
-    } catch {}
+    } catch (error) {
+      console.log('Tags API failed:', error);
+      // Continue without tag translations
+    }
   }
 
   return (
