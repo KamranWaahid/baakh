@@ -12,20 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { FileText, Mail, MessageSquare, Send, Users, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 
-interface PageParams {
-  params: Promise<{ locale: string }>;
-}
 
 export default function SubmitPage() {
-  // Temporary redirect to new slug
-  if (typeof window !== 'undefined') {
-    const isSindhi = window.location.pathname.startsWith('/sd');
-    const target = isSindhi ? '/sd/submit-poet-work' : '/en/submit-poet-work';
-    if (window.location.pathname !== target) {
-      window.location.replace(target);
-      return null;
-    }
-  }
   const pathname = usePathname();
   const isSindhi = pathname?.startsWith('/sd');
   const isRTL = isSindhi;
@@ -42,6 +30,15 @@ export default function SubmitPage() {
   
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+
+  // Temporary redirect to new slug - moved after hooks
+  if (typeof window !== 'undefined') {
+    const target = isSindhi ? '/sd/submit-poet-work' : '/en/submit-poet-work';
+    if (window.location.pathname !== target) {
+      window.location.replace(target);
+      return null;
+    }
+  }
 
   const content = {
     title: isSindhi ? 'پنھنجو ڪم داخل ڪرايو' : 'Submit Your Work',

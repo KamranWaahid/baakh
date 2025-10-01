@@ -21,7 +21,7 @@ import {
 import { motion } from "framer-motion";
 import { NumberFont, MixedContentWithNumbers } from "@/components/ui/NumberFont";
 import { getSmartFontClass } from "@/lib/font-detection-utils";
-import { getPrimaryPoetName } from "@/lib/poet-name-utils";
+// import { getPrimaryPoetName } from "@/lib/poet-name-utils";
 import { useAuthRequired } from "@/hooks/useAuthRequired";
 import { AuthModal } from "@/components/ui/AuthModal";
 import { useViewTracking } from "@/hooks/useViewTracking";
@@ -89,7 +89,7 @@ function CoupletCard({ couplet, index, isSindhi, isAuthenticated, handleLikeClic
                 <User className="h-4 w-4 text-gray-600" />
               </div>
               {(() => {
-                const poet = couplet.poet || ({} as any);
+                const poet = couplet.poet || { sindhi_laqab: '', english_laqab: '', sindhiName: '', englishName: '', name: '' };
                 const displayNameRaw = isSindhi
                   ? (poet.sindhi_laqab || poet.english_laqab || poet.sindhiName || poet.englishName || poet.name)
                   : (poet.english_laqab || poet.sindhi_laqab || poet.englishName || poet.sindhiName || poet.name);

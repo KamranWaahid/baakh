@@ -18,7 +18,11 @@ export default function LoginPage() {
       transition={{ duration: 0.3 }}
     >
       {/* Hide global chrome (Navigation/Footer) on this page */}
-      <style dangerouslySetInnerHTML={{ __html: `header, footer { display: none !important; }` }} />
+      <style>{`
+        header, footer { 
+          display: none !important; 
+        }
+      `}</style>
       <div className="flex flex-col gap-4 p-6 md:p-10">
         <motion.div
           className="flex items-center justify-between md:justify-start gap-3"
