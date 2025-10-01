@@ -5,5 +5,10 @@
       "src": "baakh-nextjs/package.json",
       "use": "@vercel/next"
     }
-  ]
+  ],
+  "functions": {
+    "baakh-nextjs/src/app/api/**/*.ts": {
+      "maxDuration": 30
+    }
+  }
 }
