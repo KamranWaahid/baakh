@@ -6,9 +6,10 @@
       "use": "@vercel/next"
     }
   ],
-  "functions": {
-    "baakh-nextjs/src/app/api/**/*.ts": {
-      "maxDuration": 30
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/baakh-nextjs/$1"
     }
-  }
+  ]
 }

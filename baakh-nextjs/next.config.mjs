@@ -14,6 +14,9 @@ const nextConfig = {
   },
   // Ensure proper build output
   trailingSlash: false,
+  // Configure for Vercel deployment
+  basePath: process.env.NODE_ENV === 'production' ? '' : '',
+  assetPrefix: process.env.NODE_ENV === 'production' ? '' : '',
   // Allow remote images from Supabase storage
   images: {
     remotePatterns: [
