@@ -22,10 +22,9 @@ jobs:
       - name: Install deps (baakh-nextjs)
         run: |
           cd baakh-nextjs
-          npm ci
+          npm install --no-audit --no-fund
 
       - name: Run TypeScript strict check (workspace)
-        run: |
-          cd baakh-nextjs
-          npm run tsc -- --noEmit --strict
+        working-directory: baakh-nextjs
+        run: npm run tsc -- --noEmit --strict
 
