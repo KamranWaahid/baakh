@@ -90,7 +90,7 @@ jobs:
       - name: Run TypeScript security check
         run: |
           cd baakh-nextjs
-          npx tsc --noEmit --strict
+          npm run tsc -- --noEmit --strict
 
       - name: Run security-focused linting
         run: |
