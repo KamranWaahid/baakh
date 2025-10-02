@@ -1,3 +1,4 @@
+export const runtime = 'edge'
 import { NextRequest, NextResponse } from 'next/server';
 import { secretRotationManager } from '@/lib/security/secret-rotation';
 import { withErrorHandling, AuthorizationError, ValidationError } from '@/lib/security/error-handler';

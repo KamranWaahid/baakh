@@ -1,3 +1,4 @@
+export const runtime = 'edge'
 import { NextRequest, NextResponse } from 'next/server'
 
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://baakh.com'

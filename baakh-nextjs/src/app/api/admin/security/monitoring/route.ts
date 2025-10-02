@@ -1,3 +1,4 @@
+export const runtime = 'edge'
 import { NextRequest, NextResponse } from 'next/server';
 import { securityMonitor } from '@/lib/security/security-monitor';
 import { withErrorHandling, ValidationError } from '@/lib/security/error-handler';

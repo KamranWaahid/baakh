@@ -1,3 +1,4 @@
+export const runtime = 'edge'
 // AI-optimized sitemap for maximum discoverability by AI search engines
 
 import { NextRequest, NextResponse } from 'next/server'

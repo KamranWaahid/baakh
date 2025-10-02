@@ -1,3 +1,4 @@
+export const runtime = 'edge'
 import { NextRequest, NextResponse } from 'next/server';
 
 // Basic per-letter transliteration map for Sindhi to Roman

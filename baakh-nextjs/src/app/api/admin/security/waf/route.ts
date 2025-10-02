@@ -1,3 +1,4 @@
+export const runtime = 'edge'
 import { NextRequest, NextResponse } from 'next/server';
 import { waf } from '@/lib/security/waf';
 import { withErrorHandling } from '@/lib/security/error-handler';

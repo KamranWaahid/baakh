@@ -1,3 +1,4 @@
+export const runtime = 'edge'
 import { NextRequest, NextResponse } from 'next/server';
 import { clearLockout, getClientIP } from '@/lib/security/lockout';
 import { withSecurityHeaders } from '@/lib/security/middleware';

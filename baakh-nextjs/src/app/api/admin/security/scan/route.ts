@@ -1,3 +1,4 @@
+export const runtime = 'edge'
 import { NextRequest, NextResponse } from 'next/server';
 import { runSecurityScan, scheduleSecurityScan } from '@/lib/security/security-scanner';
 import { withSecurity } from '@/lib/security/middleware';

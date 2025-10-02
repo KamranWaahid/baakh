@@ -1,3 +1,4 @@
+export const runtime = 'edge'
 import { NextRequest, NextResponse } from 'next/server';
 import { generateCSRFToken, createSignedCSRFToken } from '@/lib/security/csrf';
 import { withSecurityHeaders } from '@/lib/security/middleware';
