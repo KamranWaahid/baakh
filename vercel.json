@@ -5,11 +5,5 @@
       "src": "baakh-nextjs/package.json",
       "use": "@vercel/next"
     }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "/baakh-nextjs/$1"
-    }
   ]
 }
