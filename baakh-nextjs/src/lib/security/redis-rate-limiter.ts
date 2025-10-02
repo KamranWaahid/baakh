@@ -1,11 +1,9 @@
-import { createClient, RedisClientType } from 'redis';
-
 interface RateLimitConfig {
-  windowMs: number; // Time window in milliseconds
-  maxRequests: number; // Maximum requests per window
-  keyPrefix?: string; // Prefix for Redis keys
-  skipSuccessfulRequests?: boolean; // Don't count successful requests
-  skipFailedRequests?: boolean; // Don't count failed requests
+  windowMs: number;
+  maxRequests: number;
+  keyPrefix?: string;
+  skipSuccessfulRequests?: boolean;
+  skipFailedRequests?: boolean;
 }
 
 interface RateLimitResult {
@@ -15,220 +13,113 @@ interface RateLimitResult {
   totalHits: number;
 }
 
-class RedisRateLimiter {
-  private client: RedisClientType | null = null;
-  private config: RateLimitConfig;
-  private isConnected = false;
+type TimestampStore = Map<string, number[]>;
+
+function getStore(): TimestampStore {
+  const globalScope = globalThis as typeof globalThis & {
+    __edgeRateLimiterStore?: TimestampStore;
+  };
+
+  if (!globalScope.__edgeRateLimiterStore) {
+    globalScope.__edgeRateLimiterStore = new Map();
+  }
+
+  return globalScope.__edgeRateLimiterStore;
+}
+
+class EdgeRateLimiter {
+  private readonly config: Required<Pick<RateLimitConfig, 'windowMs' | 'maxRequests' | 'keyPrefix' | 'skipSuccessfulRequests' | 'skipFailedRequests'>>;
+  private readonly store = getStore();
 
   constructor(config: RateLimitConfig) {
     this.config = {
       keyPrefix: 'rate_limit:',
       skipSuccessfulRequests: false,
       skipFailedRequests: false,
-      ...config
+      ...config,
     };
   }
 
-  /**
-   * Initialize Redis connection
-   */
-  async connect(): Promise<void> {
-    if (this.isConnected) return;
-
-    try {
-      const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
-      this.client = createClient({ url: redisUrl });
-      
-      this.client.on('error', (err) => {
-        console.error('Redis Rate Limiter Error:', err);
-        this.isConnected = false;
-      });
-
-      this.client.on('connect', () => {
-        console.log('Redis Rate Limiter connected');
-        this.isConnected = true;
-      });
-
-      await this.client.connect();
-    } catch (error) {
-      console.error('Failed to connect to Redis:', error);
-      this.isConnected = false;
-    }
+  private prune(identifier: string, now: number): number[] {
+    const key = `${this.config.keyPrefix}${identifier}`;
+    const windowStart = now - this.config.windowMs;
+    const existing = this.store.get(key) ?? [];
+    const filtered = existing.filter(timestamp => timestamp > windowStart);
+    this.store.set(key, filtered);
+    return filtered;
   }
 
-  /**
-   * Check if request is allowed and update counters
-   */
-  async checkLimit(
-    identifier: string, 
-    isSuccess: boolean = true
-  ): Promise<RateLimitResult> {
-    // Fallback to in-memory if Redis is not available
-    if (!this.isConnected || !this.client) {
-      return this.fallbackCheck(identifier);
-    }
-
-    try {
-      const key = `${this.config.keyPrefix}${identifier}`;
-      const now = Date.now();
-      const windowStart = now - this.config.windowMs;
-
-      // Use Redis pipeline for atomic operations
-      const pipeline = this.client.multi();
-
-      // Remove expired entries
-      pipeline.zRemRangeByScore(key, '-inf', windowStart);
-
-      // Count current requests in window
-      pipeline.zCard(key);
-
-      // Add current request
-      pipeline.zAdd(key, { score: now, value: `${now}-${Math.random()}` });
-
-      // Set expiration
-      pipeline.expire(key, Math.ceil(this.config.windowMs / 1000));
-
-      const results = await pipeline.exec();
-
-      if (!results) {
-        throw new Error('Redis pipeline execution failed');
-      }
-
-      const totalHits = Number(results[1]);
-      const remaining = Math.max(0, this.config.maxRequests - totalHits - 1);
-      const allowed = totalHits < this.config.maxRequests;
-
-      // Calculate reset time
-      const oldestRequest = await this.client.zRangeWithScores(key, 0, 0, { REV: true });
-      const resetTime = oldestRequest.length > 0 
-        ? Number(oldestRequest[1]) + this.config.windowMs
-        : now + this.config.windowMs;
-
+  async checkLimit(identifier: string, isSuccess: boolean = true): Promise<RateLimitResult> {
+    if ((isSuccess && this.config.skipSuccessfulRequests) || (!isSuccess && this.config.skipFailedRequests)) {
       return {
-        allowed,
-        remaining,
-        resetTime,
-        totalHits: totalHits + 1
+        allowed: true,
+        remaining: this.config.maxRequests,
+        resetTime: Date.now() + this.config.windowMs,
+        totalHits: 0,
       };
-
-    } catch (error) {
-      console.error('Redis rate limiting error:', error);
-      return this.fallbackCheck(identifier);
     }
-  }
 
-  /**
-   * Fallback to in-memory rate limiting when Redis is unavailable
-   */
-  private fallbackCheck(identifier: string): RateLimitResult {
-    // This is a simplified fallback - in production, you might want to use
-    // a more sophisticated in-memory solution or fail gracefully
+    const now = Date.now();
+    const key = `${this.config.keyPrefix}${identifier}`;
+    const timestamps = this.prune(identifier, now);
+    const totalHits = timestamps.length;
+    const allowed = totalHits < this.config.maxRequests;
+
+    if (allowed) {
+      timestamps.push(now);
+      this.store.set(key, timestamps);
+    }
+
+    const remaining = Math.max(0, this.config.maxRequests - (allowed ? totalHits + 1 : totalHits));
+    const oldest = timestamps[0] ?? now;
+    const resetTime = oldest + this.config.windowMs;
+
     return {
-      allowed: true,
-      remaining: this.config.maxRequests - 1,
-      resetTime: Date.now() + this.config.windowMs,
-      totalHits: 1
+      allowed,
+      remaining,
+      resetTime,
+      totalHits: allowed ? totalHits + 1 : totalHits,
     };
   }
 
-  /**
-   * Get current rate limit status without incrementing
-   */
   async getStatus(identifier: string): Promise<RateLimitResult> {
-    if (!this.isConnected || !this.client) {
-      return this.fallbackCheck(identifier);
-    }
+    const now = Date.now();
+    const key = `${this.config.keyPrefix}${identifier}`;
+    const timestamps = this.prune(identifier, now);
+    const totalHits = timestamps.length;
+    const remaining = Math.max(0, this.config.maxRequests - totalHits);
+    const oldest = timestamps[0] ?? now;
 
-    try {
-      const key = `${this.config.keyPrefix}${identifier}`;
-      const now = Date.now();
-      const windowStart = now - this.config.windowMs;
-
-      // Remove expired entries
-      await this.client.zRemRangeByScore(key, '-inf', windowStart);
-
-      // Count current requests
-      const totalHits = await this.client.zCard(key);
-      const remaining = Math.max(0, this.config.maxRequests - totalHits);
-      const allowed = totalHits < this.config.maxRequests;
-
-      // Calculate reset time
-      const oldestRequest = await this.client.zRangeWithScores(key, 0, 0, { REV: true });
-      const resetTime = oldestRequest.length > 0 
-        ? Number(oldestRequest[1]) + this.config.windowMs
-        : now + this.config.windowMs;
-
-      return {
-        allowed,
-        remaining,
-        resetTime,
-        totalHits
-      };
-
-    } catch (error) {
-      console.error('Redis status check error:', error);
-      return this.fallbackCheck(identifier);
-    }
+    return {
+      allowed: totalHits < this.config.maxRequests,
+      remaining,
+      resetTime: oldest + this.config.windowMs,
+      totalHits,
+    };
   }
 
-  /**
-   * Reset rate limit for a specific identifier
-   */
   async reset(identifier: string): Promise<void> {
-    if (!this.isConnected || !this.client) return;
-
-    try {
-      const key = `${this.config.keyPrefix}${identifier}`;
-      await this.client.del(key);
-    } catch (error) {
-      console.error('Redis reset error:', error);
-    }
-  }
-
-  /**
-   * Close Redis connection
-   */
-  async disconnect(): Promise<void> {
-    if (this.client && this.isConnected) {
-      await this.client.quit();
-      this.isConnected = false;
-    }
+    const key = `${this.config.keyPrefix}${identifier}`;
+    this.store.delete(key);
   }
 }
 
-// Create rate limiter instances for different endpoints
-export const apiRateLimiter = new RedisRateLimiter({
-  windowMs: 15 * 60 * 1000, // 15 minutes
+export const apiRateLimiter = new EdgeRateLimiter({
+  windowMs: 60_000,
   maxRequests: 100,
-  keyPrefix: 'api_rate_limit:'
+  keyPrefix: 'edge:api:'
 });
 
-export const authRateLimiter = new RedisRateLimiter({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  maxRequests: 5, // More restrictive for auth endpoints
-  keyPrefix: 'auth_rate_limit:'
+export const authRateLimiter = new EdgeRateLimiter({
+  windowMs: 60_000,
+  maxRequests: 30,
+  keyPrefix: 'edge:auth:'
 });
 
-export const adminRateLimiter = new RedisRateLimiter({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  maxRequests: 200, // Higher limit for admin operations
-  keyPrefix: 'admin_rate_limit:'
+export const adminRateLimiter = new EdgeRateLimiter({
+  windowMs: 60_000,
+  maxRequests: 20,
+  keyPrefix: 'edge:admin:'
 });
 
-// Initialize rate limiters
-export async function initializeRateLimiters(): Promise<void> {
-  await Promise.all([
-    apiRateLimiter.connect(),
-    authRateLimiter.connect(),
-    adminRateLimiter.connect()
-  ]);
-}
-
-// Cleanup function
-export async function cleanupRateLimiters(): Promise<void> {
-  await Promise.all([
-    apiRateLimiter.disconnect(),
-    authRateLimiter.disconnect(),
-    adminRateLimiter.disconnect()
-  ]);
-}
+export type { RateLimitResult };

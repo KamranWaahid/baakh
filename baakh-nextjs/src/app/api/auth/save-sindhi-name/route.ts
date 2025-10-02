@@ -1,7 +1,7 @@
 export const runtime = 'edge'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js';
-import jwt from 'jsonwebtoken'
+import { signJwt } from '@/lib/security/edge-jwt';
 
 function getSupabaseClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -85,16 +85,19 @@ export async function POST(request: NextRequest) {
     console.log('All operations completed successfully')
     
     // Generate JWT token for automatic login
-    const token = jwt.sign(
+    if (!process.env.SUPABASE_JWT_SECRET) {
+      throw new Error('SUPABASE_JWT_SECRET environment variable is missing');
+    }
+
+    const token = await signJwt(
       {
         sub: userId,
-        username: userId, // Using userId as username for now
+        username: userId,
         role: 'e2ee_user',
         iat: Math.floor(Date.now() / 1000),
-        exp: Math.floor(Date.now() / 1000) + (60 * 60 * 24) // 24 hours
+        exp: Math.floor(Date.now() / 1000) + (60 * 60 * 24)
       },
-      process.env.SUPABASE_JWT_SECRET!,
-      { algorithm: 'HS256' }
+      process.env.SUPABASE_JWT_SECRET
     )
     
     console.log('JWT token generated for user:', userId)

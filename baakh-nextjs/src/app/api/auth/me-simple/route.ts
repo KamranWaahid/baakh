@@ -2,6 +2,7 @@ export const runtime = 'edge'
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { base64ToBytes } from '@/lib/security/edge-bytes';
 
 export async function GET() {
   console.log('=== SIMPLE AUTH ME API ROUTE STARTED ===');
@@ -78,7 +79,7 @@ export async function GET() {
         // Try to parse the session cookie
         if (sessionCookie.value.startsWith('base64-')) {
           const base64Data = sessionCookie.value.substring(7);
-          const decodedString = Buffer.from(base64Data, 'base64').toString('utf-8');
+          const decodedString = new TextDecoder().decode(base64ToBytes(base64Data));
           sessionData = JSON.parse(decodedString);
         } else {
           sessionData = JSON.parse(sessionCookie.value);

@@ -1,6 +1,7 @@
 export const runtime = 'edge'
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { toSupabaseBinary } from '@/lib/security/edge-bytes';
 
 function getSupabaseClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -60,9 +61,7 @@ export async function POST(request: NextRequest) {
     // Convert base64 strings to proper binary format for Supabase
     const convertToBinary = (base64String: string) => {
       try {
-        // Remove any padding and convert to binary
-        const binary = Buffer.from(base64String, 'base64');
-        return binary;
+        return toSupabaseBinary(base64String);
       } catch (error) {
         console.error('Error converting base64 to binary:', error);
         throw new Error('Invalid base64 data');

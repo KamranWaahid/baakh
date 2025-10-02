@@ -1,6 +1,7 @@
 export const runtime = 'edge'
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { convertToBase64 as edgeConvertToBase64, ConversionLogger } from '@/lib/security/edge-bytes';
 
 function getSupabaseClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -54,116 +55,17 @@ export async function GET() {
       masterKeyCipherType: typeof user.master_key_cipher
     });
     
-    // Test the convertToBase64 function with enhanced Buffer object detection
-    const convertToBase64 = (data: any, fieldName: string) => {
+    // Test the convertToBase64 function with enhanced binary data detection
+    const conversionLogger: ConversionLogger = (message, details) => {
+      console.log(message, details);
+    };
+
+    const convertToBase64 = (data: unknown, fieldName: string) => {
       try {
-        console.log(`[${fieldName}] Testing conversion:`, { 
-          type: typeof data, 
-          constructor: data?.constructor?.name,
-          isNull: data === null,
-          isUndefined: data === undefined,
-          data: data
-        });
-        
-        if (data === null || data === undefined) {
-          return { success: false, error: 'Data is null or undefined' };
-        }
-        
-        // If it's already a Buffer object (from Supabase)
-        if (data && typeof data === 'object' && data.type === 'Buffer' && Array.isArray(data.data)) {
-          const buffer = Buffer.from(data.data);
-          const base64 = buffer.toString('base64');
-          return { success: true, result: base64, method: 'Buffer.from(data.data)' };
-        }
-        
-        // If it's a Buffer instance
-        if (Buffer.isBuffer(data)) {
-          return { success: true, result: data.toString('base64'), method: 'Buffer.toString()' };
-        }
-        
-        // If it's a Uint8Array
-        if (data instanceof Uint8Array) {
-          const buffer = Buffer.from(data);
-          return { success: true, result: buffer.toString('base64'), method: 'Buffer.from(Uint8Array)' };
-        }
-        
-        // If it's a hex string with \x prefix
-        if (typeof data === 'string' && data.startsWith('\\x')) {
-          // Check if this hex string represents a JSON Buffer object
-          try {
-            const cleanHex = data.replace(/\\x/g, '');
-            const hexBytes = new Uint8Array(cleanHex.length / 2);
-            for (let i = 0; i < cleanHex.length; i += 2) {
-              hexBytes[i / 2] = parseInt(cleanHex.substr(i, 2), 16);
-            }
-            const jsonString = new TextDecoder().decode(hexBytes);
-            
-            // Try to parse as JSON to see if it's a Buffer object
-            const parsed = JSON.parse(jsonString);
-            if (parsed && typeof parsed === 'object' && parsed.type === 'Buffer' && Array.isArray(parsed.data)) {
-              console.log(`[${fieldName}] Found Buffer object in hex, extracting data array`);
-              // This is a Buffer object stored as hex, extract the actual data
-              const actualBytes = new Uint8Array(parsed.data);
-              const base64 = Buffer.from(actualBytes).toString('base64');
-              return { success: true, result: base64, method: 'extracted Buffer data from hex' };
-            }
-          } catch (jsonError) {
-            // Not a JSON Buffer object, treat as regular hex
-            console.log(`[${fieldName}] Not a JSON Buffer object, treating as regular hex`);
-          }
-          
-          const cleanHex = data.replace(/\\x/g, '');
-          const buffer = Buffer.from(cleanHex, 'hex');
-          return { success: true, result: buffer.toString('base64'), method: 'hex string with \\x prefix' };
-        }
-        
-        // If it's a regular hex string
-        if (typeof data === 'string' && /^[0-9a-fA-F]+$/.test(data)) {
-          // Check if this hex string represents a JSON Buffer object
-          try {
-            const hexBytes = new Uint8Array(data.length / 2);
-            for (let i = 0; i < data.length; i += 2) {
-              hexBytes[i / 2] = parseInt(data.substr(i, 2), 16);
-            }
-            const jsonString = new TextDecoder().decode(hexBytes);
-            
-            // Try to parse as JSON to see if it's a Buffer object
-            const parsed = JSON.parse(jsonString);
-            if (parsed && typeof parsed === 'object' && parsed.type === 'Buffer' && Array.isArray(parsed.data)) {
-              console.log(`[${fieldName}] Found Buffer object in hex, extracting data array`);
-              // This is a Buffer object stored as hex, extract the actual data
-              const actualBytes = new Uint8Array(parsed.data);
-              const base64 = Buffer.from(actualBytes).toString('base64');
-              return { success: true, result: base64, method: 'extracted Buffer data from hex' };
-            }
-          } catch (jsonError) {
-            // Not a JSON Buffer object, treat as regular hex
-            console.log(`[${fieldName}] Not a JSON Buffer object, treating as regular hex`);
-          }
-          
-          const buffer = Buffer.from(data, 'hex');
-          return { success: true, result: buffer.toString('base64'), method: 'hex string' };
-        }
-        
-        // If it's already a base64 string
-        if (typeof data === 'string') {
-          if (/^[A-Za-z0-9+/]*={0,2}$/.test(data)) {
-            return { success: true, result: data, method: 'already base64' };
-          } else {
-            const buffer = Buffer.from(data, 'utf8');
-            return { success: true, result: buffer.toString('base64'), method: 'string as utf8 bytes' };
-          }
-        }
-        
-        // If it's an array of numbers
-        if (Array.isArray(data)) {
-          const buffer = Buffer.from(data);
-          return { success: true, result: buffer.toString('base64'), method: 'array of numbers' };
-        }
-        
-        return { success: false, error: `Unknown format: ${typeof data}` };
+        const result = edgeConvertToBase64(data, fieldName, conversionLogger);
+        return { success: true, result, method: 'edge-bytes' };
       } catch (error: any) {
-        return { success: false, error: error.message };
+        return { success: false, error: error?.message || 'Conversion failed' };
       }
     };
     

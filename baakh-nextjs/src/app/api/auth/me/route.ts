@@ -2,6 +2,7 @@ export const runtime = 'edge'
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { createClient } from '@supabase/supabase-js';
+import { base64ToBytes } from '@/lib/security/edge-bytes';
 
 export async function GET() {
   if (process.env.NODE_ENV !== 'production') {
@@ -67,6 +68,7 @@ export async function GET() {
       }
     }
     // Parse the session cookie value - handle base64 encoded cookies
+    const textDecoder = new TextDecoder();
     let sessionData;
     try {
       // Check if the cookie is base64 encoded
@@ -74,7 +76,8 @@ export async function GET() {
         // Extract the base64 part after "base64-"
         const base64Data = sessionCookie.value.substring(7);
         // Decode base64 to string
-        const decodedString = Buffer.from(base64Data, 'base64').toString('utf-8');
+        const decodedBytes = base64ToBytes(base64Data);
+        const decodedString = textDecoder.decode(decodedBytes);
         // Parse the decoded JSON
         sessionData = JSON.parse(decodedString);
         if (process.env.NODE_ENV !== 'production') {
@@ -163,5 +166,3 @@ export async function GET() {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
-
-

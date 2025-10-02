@@ -1,7 +1,7 @@
 export const runtime = 'edge'
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import jwt from 'jsonwebtoken';
+import { verifyJwt, JWTPayload } from '@/lib/security/edge-jwt';
 
 function getSupabaseClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -32,9 +32,14 @@ export async function DELETE(request: NextRequest) {
     console.log('Delete account - JWT Secret available:', !!process.env.SUPABASE_JWT_SECRET)
     
     // Verify JWT token
-    let decoded: any
+    const jwtSecret = process.env.SUPABASE_JWT_SECRET;
+    if (!jwtSecret) {
+      throw new Error('SUPABASE_JWT_SECRET is not configured');
+    }
+
+    let decoded: JWTPayload & { sub?: string; user_id?: string; username?: string };
     try {
-      decoded = jwt.verify(token, process.env.SUPABASE_JWT_SECRET!)
+      decoded = await verifyJwt(token, jwtSecret);
       console.log('Delete account - Token decoded successfully:', { 
         sub: decoded.sub, 
         user_id: decoded.user_id,
