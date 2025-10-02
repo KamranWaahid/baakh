@@ -1,9 +1,7 @@
 {
   "name": "baakh",
   "compatibility_date": "2025-10-02",
-  "pages_build_output_dir": ".vercel/output/static",
-  "assets": {
-    "directory": ".vercel/output/static"
-  }
+  "pages_build_output_dir": ".vercel/output",
+  
 }
 
