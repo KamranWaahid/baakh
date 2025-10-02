@@ -1,7 +1,26 @@
 export const runtime = 'edge'
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-// Edge runtime: disable Node fs/path usage
+
+type HesudharMemoryFile = {
+  content: string;
+  updatedAt: string;
+};
+
+function getMemoryFile(): HesudharMemoryFile {
+  const globalScope = globalThis as typeof globalThis & {
+    __hesudharMemoryFile?: HesudharMemoryFile;
+  };
+
+  if (!globalScope.__hesudharMemoryFile) {
+    globalScope.__hesudharMemoryFile = {
+      content: '',
+      updatedAt: new Date(0).toISOString()
+    };
+  }
+
+  return globalScope.__hesudharMemoryFile;
+}
 
 function getSupabaseClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -13,9 +32,6 @@ function getSupabaseClient() {
   
   return createClient(supabaseUrl, supabaseServiceKey);
 }
-
-const HESUDHAR_FILE_PATH = '/dev/null';
-const SYNC_METADATA_PATH = '/dev/null';
 
 async function getLastSyncInfo() {
   try {
@@ -38,13 +54,11 @@ async function getLastSyncInfo() {
 
 async function saveSyncMetadata(lastEntryId: number, totalEntries: number) {
   try {
-    const metadata = {
-      lastSyncTime: new Date().toISOString(),
-      lastEntryId: lastEntryId,
-      totalEntries: totalEntries,
-      version: '1.0'
-    };
-    // Edge: skip writing
+    console.debug('ℹ️ Sync metadata update skipped on Edge runtime', {
+      lastEntryId,
+      totalEntries,
+      lastSyncTime: new Date().toISOString()
+    });
   } catch (error) {
     console.warn('⚠️ Could not save sync metadata:', error instanceof Error ? error.message : 'Unknown error');
   }
@@ -97,22 +111,20 @@ export async function POST(request: NextRequest) {
     
     // Read existing file content
     const existingEntries: Map<string, string> = new Map();
-    
-    if (fs.existsSync(HESUDHAR_FILE_PATH)) {
-      const existingContent = fs.readFileSync(HESUDHAR_FILE_PATH, 'utf8');
-      
-      // Parse existing entries
-      existingContent.split('\n').forEach(line => {
-        line = line.trim();
-        if (line && !line.startsWith('#')) {
-          const parts = line.split('|');
-          if (parts.length === 2) {
-            existingEntries.set(parts[0], parts[1]);
+    const memoryFile = getMemoryFile();
+
+    if (memoryFile.content) {
+      memoryFile.content.split('\n').forEach((rawLine: string) => {
+        const trimmedLine = rawLine.trim();
+        if (trimmedLine && !trimmedLine.startsWith('#')) {
+          const [incorrect, correct] = trimmedLine.split('|');
+          if (incorrect && typeof correct === 'string') {
+            existingEntries.set(incorrect, correct);
           }
         }
       });
-      
-      console.log(`📖 Existing file has ${existingEntries.size} entries`);
+
+      console.log(`📖 Existing in-memory file has ${existingEntries.size} entries`);
     }
     
     // Add new entries to the map
@@ -146,7 +158,8 @@ export async function POST(request: NextRequest) {
     });
     
     // Write to file
-    fs.writeFileSync(HESUDHAR_FILE_PATH, fileContent, 'utf8');
+    memoryFile.content = fileContent;
+    memoryFile.updatedAt = new Date().toISOString();
     
     // Save sync metadata
     const maxId = Math.max(...newEntries.map(e => e.id));
@@ -179,28 +192,28 @@ export async function POST(request: NextRequest) {
 export async function GET() {
   try {
     // Check if file exists
-    if (!fs.existsSync(HESUDHAR_FILE_PATH)) {
+    const memoryFile = getMemoryFile();
+
+    if (!memoryFile.content) {
       return NextResponse.json({
         success: false,
         message: 'Hesudhar file not found'
       });
     }
 
-    // Read file stats
-    const stats = fs.statSync(HESUDHAR_FILE_PATH);
-    const fileContent = fs.readFileSync(HESUDHAR_FILE_PATH, 'utf8');
+    const fileContent = memoryFile.content;
     
     // Count corrections
-    const lines = fileContent.split('\n').filter(line => 
+    const lines = fileContent.split('\n').filter((line: string) => 
       line.trim() && !line.startsWith('#')
     );
     
     return NextResponse.json({
       success: true,
       fileExists: true,
-      lastModified: stats.mtime.toISOString(),
+      lastModified: memoryFile.updatedAt,
       correctionsCount: lines.length,
-      fileSize: stats.size
+      fileSize: fileContent.length
     });
 
   } catch (error) {
@@ -211,4 +224,3 @@ export async function GET() {
     }, { status: 500 });
   }
 }
-

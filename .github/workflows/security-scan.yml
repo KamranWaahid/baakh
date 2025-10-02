@@ -13,6 +13,8 @@ jobs:
   dependency-scan:
     name: Dependency Vulnerability Scan
     runs-on: ubuntu-latest
+    env:
+      HAS_SNYK: ${{ secrets.SNYK_TOKEN != '' }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -45,10 +47,10 @@ jobs:
         continue-on-error: true
 
       - name: Run Snyk to check for vulnerabilities
+        if: env.HAS_SNYK == 'true'
         uses: snyk/actions/node@master
         env:
-          # SNYK_TOKEN is optional - if not provided, Snyk will run in free mode
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN || '' }}
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           args: --severity-threshold=high
         continue-on-error: true
@@ -127,7 +129,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # GITLEAKS_LICENSE is optional - if not provided, GitLeaks will run in free mode
-          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE || '' }}
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
         continue-on-error: true
 
   container-scan:
@@ -257,7 +259,7 @@ jobs:
           text: 'Security scan failed for ${{ github.repository }}'
         env:
           # SLACK_WEBHOOK_URL is optional - if not provided, Slack notification will be skipped
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL || '' }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         continue-on-error: true
 
       - name: Notify on success
@@ -269,5 +271,5 @@ jobs:
           text: 'Security scan completed successfully for ${{ github.repository }}'
         env:
           # SLACK_WEBHOOK_URL is optional - if not provided, Slack notification will be skipped
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL || '' }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         continue-on-error: true

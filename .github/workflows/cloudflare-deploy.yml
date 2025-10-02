@@ -8,6 +8,10 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      HAS_CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
+      HAS_CF_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID != '' }}
+      HAS_CF_PROJECT: ${{ secrets.CLOUDFLARE_PAGES_PROJECT != '' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -32,15 +36,20 @@ jobs:
           echo "No wrangler.jsonc or wrangler.toml found in baakh-nextjs; skipping Cloudflare deploy." >> $GITHUB_STEP_SUMMARY
 
       - name: Install deps (baakh-nextjs)
-        if: steps.check-wrangler.outputs.has_config == 'true'
+        if: steps.check-wrangler.outputs.has_config == 'true' && env.HAS_CF_TOKEN == 'true' && env.HAS_CF_ACCOUNT == 'true' && env.HAS_CF_PROJECT == 'true'
         working-directory: baakh-nextjs
         run: npm install --no-audit --no-fund
 
       - name: Deploy to Cloudflare with Wrangler (Pages)
-        if: steps.check-wrangler.outputs.has_config == 'true'
+        if: steps.check-wrangler.outputs.has_config == 'true' && env.HAS_CF_TOKEN == 'true' && env.HAS_CF_ACCOUNT == 'true' && env.HAS_CF_PROJECT == 'true'
         working-directory: baakh-nextjs
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: npm run build:pages && npx wrangler pages deploy ./.vercel/output/static --project-name=${{ secrets.CLOUDFLARE_PAGES_PROJECT }} --branch=${{ github.ref_name }}
+
+      - name: Skip deploy (missing Cloudflare secrets)
+        if: steps.check-wrangler.outputs.has_config == 'true' && (env.HAS_CF_TOKEN != 'true' || env.HAS_CF_ACCOUNT != 'true' || env.HAS_CF_PROJECT != 'true')
+        run: |
+          echo "Missing one or more Cloudflare secrets (CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_PAGES_PROJECT). Skipping deploy." >> $GITHUB_STEP_SUMMARY
 
