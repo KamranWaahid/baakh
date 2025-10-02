@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:pages": "next-on-pages build",
     "start": "next start",
     "lint": "next lint",
     "tsc": "tsc",
@@ -64,6 +65,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@cloudflare/next-on-pages": "^1.13.5",
     "@tailwindcss/typography": "^0.5.18",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^20.19.11",
