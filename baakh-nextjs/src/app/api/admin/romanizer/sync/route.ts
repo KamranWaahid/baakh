@@ -1,8 +1,7 @@
 export const runtime = 'edge'
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import fs from 'fs';
-import path from 'path';
+// Edge runtime: disable Node fs/path usage
 import { clearRomanizerCache } from '../../../../../../lib/romanizer-utils';
 
 function getSupabaseClient() {
@@ -16,19 +15,17 @@ function getSupabaseClient() {
   return createClient(supabaseUrl, supabaseServiceKey);
 }
 
-const ROMANIZER_FILE_PATH = path.join(process.cwd(), 'romanizer.txt');
-const SYNC_METADATA_PATH = path.join(process.cwd(), '.romanizer-sync-metadata.json');
+const ROMANIZER_FILE_PATH = '/dev/null';
+const SYNC_METADATA_PATH = '/dev/null';
 
 async function getLastSyncInfo() {
   try {
-    if (fs.existsSync(SYNC_METADATA_PATH)) {
-      const metadata = JSON.parse(fs.readFileSync(SYNC_METADATA_PATH, 'utf8'));
-      return {
-        lastSyncTime: metadata.lastSyncTime,
-        lastEntryTimestamp: metadata.lastEntryTimestamp || metadata.lastEntryId || 0,
-        totalEntries: metadata.totalEntries
-      };
-    }
+    // Edge: return defaults; persistence is not available
+    return {
+      lastSyncTime: null,
+      lastEntryTimestamp: 0,
+      totalEntries: 0
+    };
   } catch (error) {
     console.warn('⚠️ Could not read sync metadata:', error instanceof Error ? error.message : 'Unknown error');
   }
@@ -48,7 +45,7 @@ async function saveSyncMetadata(lastEntryTimestamp: number, totalEntries: number
       totalEntries: totalEntries,
       version: '1.0'
     };
-    fs.writeFileSync(SYNC_METADATA_PATH, JSON.stringify(metadata, null, 2));
+    // Edge: skip writing
   } catch (error) {
     console.warn('⚠️ Could not save sync metadata:', error instanceof Error ? error.message : 'Unknown error');
   }
@@ -121,24 +118,9 @@ export async function POST(request: NextRequest) {
     console.log(`📥 Found ${newEntries.length} new entries`);
     
     // Read existing file content
-    let existingEntries = new Map();
+    let existingEntries: Map<string, string> = new Map();
     
-    if (fs.existsSync(ROMANIZER_FILE_PATH)) {
-      const existingContent = fs.readFileSync(ROMANIZER_FILE_PATH, 'utf8');
-      
-      // Parse existing entries
-      existingContent.split('\n').forEach(line => {
-        line = line.trim();
-        if (line && !line.startsWith('#')) {
-          const parts = line.split('|');
-          if (parts.length === 2) {
-            existingEntries.set(parts[0], parts[1]);
-          }
-        }
-      });
-      
-      console.log(`📖 Existing file has ${existingEntries.size} entries`);
-    }
+    // Edge: skip reading existing file
     
     // Add new entries to the map
     let addedCount = 0;
@@ -166,12 +148,11 @@ export async function POST(request: NextRequest) {
     // Sort entries alphabetically for consistency
     const sortedEntries = Array.from(existingEntries.entries()).sort((a, b) => a[0].localeCompare(b[0]));
     
-    sortedEntries.forEach(([sindhi, roman]) => {
+    sortedEntries.forEach(([sindhi, roman]: [string, string]) => {
       fileContent += `${sindhi}|${roman}\n`;
     });
     
-    // Write to file
-    fs.writeFileSync(ROMANIZER_FILE_PATH, fileContent, 'utf8');
+    // Edge: skip writing to file
     
     // Clear the cache to force reload of new mappings
     clearRomanizerCache();
@@ -212,7 +193,7 @@ export async function GET() {
   try {
     const supabase = getSupabaseClient();
     // Check if file exists
-    if (!fs.existsSync(ROMANIZER_FILE_PATH)) {
+    {
       return NextResponse.json({
         success: false,
         message: 'Romanizer file not found'
@@ -220,8 +201,8 @@ export async function GET() {
     }
 
     // Read file stats
-    const stats = fs.statSync(ROMANIZER_FILE_PATH);
-    const fileContent = fs.readFileSync(ROMANIZER_FILE_PATH, 'utf8');
+    const stats = { mtime: new Date(), size: 0 } as any;
+    const fileContent = '';
     
     // Count mappings
     const lines = fileContent.split('\n').filter(line => 

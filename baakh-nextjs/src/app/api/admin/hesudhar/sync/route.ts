@@ -19,14 +19,12 @@ const SYNC_METADATA_PATH = '/dev/null';
 
 async function getLastSyncInfo() {
   try {
-    {
-      // Edge: return defaults; persistence is not available
-      return {
-        lastSyncTime: metadata.lastSyncTime,
-        lastEntryId: metadata.lastEntryId,
-        totalEntries: metadata.totalEntries
-      };
-    }
+    // Edge: return defaults; persistence is not available
+    return {
+      lastSyncTime: null,
+      lastEntryId: 0,
+      totalEntries: 0
+    };
   } catch (error) {
     console.warn('⚠️ Could not read sync metadata:', error instanceof Error ? error.message : 'Unknown error');
   }
@@ -98,7 +96,7 @@ export async function POST(request: NextRequest) {
     console.log(`📥 Found ${newEntries.length} new entries`);
     
     // Read existing file content
-    const existingEntries = new Map();
+    const existingEntries: Map<string, string> = new Map();
     
     if (fs.existsSync(HESUDHAR_FILE_PATH)) {
       const existingContent = fs.readFileSync(HESUDHAR_FILE_PATH, 'utf8');
@@ -143,7 +141,7 @@ export async function POST(request: NextRequest) {
     // Sort entries alphabetically for consistency
     const sortedEntries = Array.from(existingEntries.entries()).sort((a, b) => a[0].localeCompare(b[0]));
     
-    sortedEntries.forEach(([incorrect, correct]) => {
+    sortedEntries.forEach(([incorrect, correct]: [string, string]) => {
       fileContent += `${incorrect}|${correct}\n`;
     });
     

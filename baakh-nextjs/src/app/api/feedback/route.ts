@@ -1,7 +1,7 @@
 export const runtime = 'edge'
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import crypto from 'crypto';
+// Edge: avoid Node 'crypto'; degrade hashing
 
 // Create Supabase client function to avoid build-time errors
 function createSupabaseClient() {
@@ -17,7 +17,12 @@ function createSupabaseClient() {
 
 // Helper function to hash IP address for privacy
 function hashIP(ip: string): string {
-  return crypto.createHash('sha256').update(ip + process.env.CSRF_SECRET).digest('hex');
+  const input = ip + (process.env.CSRF_SECRET || '');
+  let hash = 0;
+  for (let i = 0; i < input.length; i++) {
+    hash = (hash * 31 + input.charCodeAt(i)) >>> 0;
+  }
+  return hash.toString(16);
 }
 
 export async function POST(request: NextRequest) {
