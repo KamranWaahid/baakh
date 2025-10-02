@@ -48,7 +48,8 @@ export function verifyCSRFToken(token: string, storedToken: string, storedExpire
  */
 export function createSignedCSRFToken(token: string): string {
   // Edge fallback: append a static marker instead of HMAC (reduced security)
-  if (typeof EdgeRuntime !== 'undefined') {
+  const edgeRuntimeDetected = typeof globalThis !== 'undefined' && 'EdgeRuntime' in globalThis;
+  if (edgeRuntimeDetected) {
     console.warn('CSRF signing downgraded on Edge runtime');
     return `${token}.edge`;
   }
