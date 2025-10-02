@@ -1,25 +1,4 @@
 const isEdgeRuntime = typeof EdgeRuntime !== 'undefined';
-let nodeFs = null;
-let nodePath = null;
-
-async function ensureNodeModulesLoaded() {
-  if (isEdgeRuntime) return false;
-  if (!nodeFs || !nodePath) {
-    const [{ default: fsMod }, { default: pathMod }] = await Promise.all([
-      import('fs'),
-      import('path')
-    ]);
-    nodeFs = fsMod;
-    nodePath = pathMod;
-  }
-  return true;
-}
-
-async function getHesudharFilePath() {
-  const ok = await ensureNodeModulesLoaded();
-  if (!ok) return null;
-  return nodePath.join(process.cwd(), 'hesudhar.txt');
-}
 
 // Cache for hesudhar corrections
 let hesudharCache = null;
@@ -62,56 +41,13 @@ function replaceWords(inputText, correctionMap) {
  */
 async function loadHesudharCorrections() {
   try {
+    // On Cloudflare Pages (Edge) and generic environments, skip filesystem access
     if (isEdgeRuntime) {
       return new Map();
     }
-    const filePath = await getHesudharFilePath();
-    if (!filePath) return new Map();
-    // Check if file exists
-    if (!nodeFs.existsSync(filePath)) {
-      console.warn('⚠️ Hesudhar file not found, using empty corrections');
-      return new Map();
-    }
-
-    // Check file modification time for cache invalidation
-    nodeFs.statSync(filePath);
-    const currentTime = Date.now();
-
-    // Return cached data if still valid
-    if (hesudharCache && (currentTime - lastFileCheck) < CACHE_DURATION) {
-      return hesudharCache;
-    }
-
-    // Read and parse file
-    const fileContent = nodeFs.readFileSync(filePath, 'utf8');
-    const corrections = new Map();
-
-    // Parse each line
-    fileContent.split('\n').forEach(line => {
-      line = line.trim();
-      
-      // Skip empty lines and comments
-      if (!line || line.startsWith('#')) {
-        return;
-      }
-
-      // Parse format: incorrect_word|corrected_word
-      const parts = line.split('|');
-      if (parts.length === 2) {
-        const [incorrect, corrected] = parts;
-        if (incorrect && corrected) {
-          // Store normalized key for consistent matching
-          corrections.set(normalize(incorrect.trim()), corrected.trim());
-        }
-      }
-    });
-
-    // Update cache
-    hesudharCache = corrections;
-    lastFileCheck = currentTime;
-
-    console.log(`📖 Loaded ${corrections.size} hesudhar corrections from local file`);
-    return corrections;
+    // In non-Edge environments, this implementation intentionally avoids fs to remain Edge-compatible
+    // You can implement Node.js file loading in a separate Node-only environment if needed
+    return new Map();
 
   } catch (error) {
     console.error('❌ Error loading hesudhar corrections:', error.message);

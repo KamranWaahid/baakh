@@ -1,25 +1,4 @@
 const isEdgeRuntime = typeof EdgeRuntime !== 'undefined';
-let nodeFs = null;
-let nodePath = null;
-
-async function ensureNodeModulesLoaded() {
-  if (isEdgeRuntime) return false;
-  if (!nodeFs || !nodePath) {
-    const [{ default: fsMod }, { default: pathMod }] = await Promise.all([
-      import('fs'),
-      import('path')
-    ]);
-    nodeFs = fsMod;
-    nodePath = pathMod;
-  }
-  return true;
-}
-
-async function getRomanizerFilePath() {
-  const ok = await ensureNodeModulesLoaded();
-  if (!ok) return null;
-  return nodePath.join(process.cwd(), 'romanizer.txt');
-}
 
 // Cache for romanizer mappings
 let romanizerCache = null;
@@ -119,56 +98,13 @@ function toSlug(text) {
  */
 async function loadRomanizerMappings() {
   try {
+    // On Cloudflare Pages (Edge) and generic environments, skip filesystem access
     if (isEdgeRuntime) {
       return new Map();
     }
-    const filePath = await getRomanizerFilePath();
-    if (!filePath) return new Map();
-    // Check if file exists
-    if (!nodeFs.existsSync(filePath)) {
-      console.warn('⚠️ Romanizer file not found, using empty mappings');
-      return new Map();
-    }
-
-    // Check file modification time for cache invalidation
-    nodeFs.statSync(filePath);
-    const currentTime = Date.now();
-
-    // Return cached data if still valid
-    if (romanizerCache && (currentTime - lastFileCheck) < CACHE_DURATION) {
-      return romanizerCache;
-    }
-
-    // Read and parse file
-    const fileContent = nodeFs.readFileSync(filePath, 'utf8');
-    const mappings = new Map();
-
-    // Parse each line
-    fileContent.split('\n').forEach(line => {
-      line = line.trim();
-      
-      // Skip empty lines and comments
-      if (!line || line.startsWith('#')) {
-        return;
-      }
-
-      // Parse format: sindhi_word|roman_word
-      const parts = line.split('|');
-      if (parts.length === 2) {
-        const [sindhi, roman] = parts;
-        if (sindhi && roman) {
-          // Store normalized key for consistent matching
-          mappings.set(normalize(sindhi.trim()), roman.trim());
-        }
-      }
-    });
-
-    // Update cache
-    romanizerCache = mappings;
-    lastFileCheck = currentTime;
-
-    console.log(`📖 Loaded ${mappings.size} romanizer mappings from local file`);
-    return mappings;
+    // In non-Edge environments, this implementation intentionally avoids fs to remain Edge-compatible
+    // You can implement Node.js file loading in a separate Node-only environment if needed
+    return new Map();
 
   } catch (error) {
     console.error('❌ Error loading romanizer mappings:', error.message);

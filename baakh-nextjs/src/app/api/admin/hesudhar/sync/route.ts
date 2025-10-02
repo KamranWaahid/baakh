@@ -1,8 +1,7 @@
 export const runtime = 'edge'
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import fs from 'fs';
-import path from 'path';
+// Edge runtime: disable Node fs/path usage
 
 function getSupabaseClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -15,13 +14,13 @@ function getSupabaseClient() {
   return createClient(supabaseUrl, supabaseServiceKey);
 }
 
-const HESUDHAR_FILE_PATH = path.join(process.cwd(), 'hesudhar.txt');
-const SYNC_METADATA_PATH = path.join(process.cwd(), '.hesudhar-sync-metadata.json');
+const HESUDHAR_FILE_PATH = '/dev/null';
+const SYNC_METADATA_PATH = '/dev/null';
 
 async function getLastSyncInfo() {
   try {
-    if (fs.existsSync(SYNC_METADATA_PATH)) {
-      const metadata = JSON.parse(fs.readFileSync(SYNC_METADATA_PATH, 'utf8'));
+    {
+      // Edge: return defaults; persistence is not available
       return {
         lastSyncTime: metadata.lastSyncTime,
         lastEntryId: metadata.lastEntryId,
@@ -47,7 +46,7 @@ async function saveSyncMetadata(lastEntryId: number, totalEntries: number) {
       totalEntries: totalEntries,
       version: '1.0'
     };
-    fs.writeFileSync(SYNC_METADATA_PATH, JSON.stringify(metadata, null, 2));
+    // Edge: skip writing
   } catch (error) {
     console.warn('⚠️ Could not save sync metadata:', error instanceof Error ? error.message : 'Unknown error');
   }
