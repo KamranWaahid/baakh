@@ -2,5 +2,5 @@
 enabled = true
 
 [pages]
-build_output_dir = ".vercel/output"
+build_output_dir = "out"
 

@@ -12,8 +12,9 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  // Ensure proper build output
-  trailingSlash: false,
+  // Enable static export for Cloudflare Pages
+  output: 'export',
+  trailingSlash: true,
   // Configure for generic deployment (no Vercel-specific settings)
   basePath: '',
   assetPrefix: '',

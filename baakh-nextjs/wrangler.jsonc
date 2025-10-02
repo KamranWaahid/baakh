@@ -1,7 +1,7 @@
 {
   "name": "baakh",
   "compatibility_date": "2025-10-02",
-  "pages_build_output_dir": ".vercel/output",
+  "pages_build_output_dir": "out",
   
 }
 
