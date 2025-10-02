@@ -6,7 +6,8 @@
   "scripts": {
     "build": "cd baakh-nextjs && npm run build",
     "dev": "cd baakh-nextjs && npm run dev",
-    "start": "cd baakh-nextjs && npm run start"
+    "start": "cd baakh-nextjs && npm run start",
+    "tsc": "cd baakh-nextjs && npm run -s tsc"
   },
   "workspaces": [
     "baakh-nextjs"

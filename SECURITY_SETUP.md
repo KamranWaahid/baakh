@@ -118,7 +118,7 @@ npm audit
 npx eslint . --ext .ts,.tsx
 
 # Check TypeScript
-npx tsc --noEmit --strict
+npm run tsc --silent --workspaces=false --if-present -- --noEmit --strict
 
 # Run security tests
 npm run test:security

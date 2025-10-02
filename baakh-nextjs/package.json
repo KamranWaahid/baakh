@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "tsc": "tsc",
     "lint:css": "stylelint \"**/*.css\" --fix",
     "test:security": "node scripts/security-test.js",
     "test:zap": "node scripts/zap-test.js",
