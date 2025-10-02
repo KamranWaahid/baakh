@@ -19,9 +19,6 @@ jobs:
           node-version: 20
           cache: 'npm'
 
-      - name: Install deps (root)
-        run: npm ci
-
       - name: Install deps (baakh-nextjs)
         run: |
           cd baakh-nextjs
