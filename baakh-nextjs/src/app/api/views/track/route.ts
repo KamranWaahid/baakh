@@ -1,7 +1,18 @@
 export const runtime = 'edge'
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { createHash } from 'crypto';
+
+// Lightweight non-cryptographic hash for stable fingerprints on Edge
+function djb2Hex(input: string): string {
+  let hash = 5381;
+  for (let i = 0; i < input.length; i++) {
+    hash = ((hash << 5) + hash) + input.charCodeAt(i);
+    hash |= 0;
+  }
+  // Convert to unsigned and hex
+  const unsigned = hash >>> 0;
+  return unsigned.toString(16).padStart(8, '0');
+}
 
 // Create a device fingerprint based on multiple factors
 function createDeviceFingerprint(data: {
@@ -18,8 +29,8 @@ function createDeviceFingerprint(data: {
     data.acceptEncoding
   ].join('|');
   
-  // Create a hash of the combined data
-  const hash = createHash('sha256').update(fingerprintData).digest('hex');
+  // Create a stable hash of the combined data (Edge-safe)
+  const hash = djb2Hex(fingerprintData);
   
   // Return a shorter, more manageable fingerprint
   return `fp_${hash.substring(0, 16)}`;

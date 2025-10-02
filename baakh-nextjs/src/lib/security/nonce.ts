@@ -1,10 +1,13 @@
-import { randomBytes } from 'crypto';
-
 /**
  * Generate a cryptographically secure nonce for CSP
  */
 export function generateNonce(): string {
-  return randomBytes(16).toString('base64');
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  // Base64 encode
+  let binary = '';
+  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+  return btoa(binary);
 }
 
 /**
