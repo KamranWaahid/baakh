@@ -1,7 +1,25 @@
-import fs from 'fs';
-import path from 'path';
+const isEdgeRuntime = typeof EdgeRuntime !== 'undefined';
+let nodeFs = null;
+let nodePath = null;
 
-const HESUDHAR_FILE_PATH = path.join(process.cwd(), 'hesudhar.txt');
+async function ensureNodeModulesLoaded() {
+  if (isEdgeRuntime) return false;
+  if (!nodeFs || !nodePath) {
+    const [{ default: fsMod }, { default: pathMod }] = await Promise.all([
+      import('fs'),
+      import('path')
+    ]);
+    nodeFs = fsMod;
+    nodePath = pathMod;
+  }
+  return true;
+}
+
+async function getHesudharFilePath() {
+  const ok = await ensureNodeModulesLoaded();
+  if (!ok) return null;
+  return nodePath.join(process.cwd(), 'hesudhar.txt');
+}
 
 // Cache for hesudhar corrections
 let hesudharCache = null;
@@ -9,7 +27,7 @@ let lastFileCheck = 0;
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 // Unicode-aware "word" matcher: letters, marks, numbers, underscore, and common word apostrophes/dashes
-const WORD_RE = /[\p{L}\p{M}\p{N}_''--]+/gu;
+const WORD_RE = /[\p{L}\p{M}\p{N}_'\-]+/gu;
 
 /**
  * Normalize text to NFC for stable matching
@@ -42,16 +60,21 @@ function replaceWords(inputText, correctionMap) {
  * Load hesudhar corrections from local file
  * @returns {Map<string, string>} Map of incorrect words to corrected words
  */
-function loadHesudharCorrections() {
+async function loadHesudharCorrections() {
   try {
+    if (isEdgeRuntime) {
+      return new Map();
+    }
+    const filePath = await getHesudharFilePath();
+    if (!filePath) return new Map();
     // Check if file exists
-    if (!fs.existsSync(HESUDHAR_FILE_PATH)) {
+    if (!nodeFs.existsSync(filePath)) {
       console.warn('⚠️ Hesudhar file not found, using empty corrections');
       return new Map();
     }
 
     // Check file modification time for cache invalidation
-    fs.statSync(HESUDHAR_FILE_PATH);
+    nodeFs.statSync(filePath);
     const currentTime = Date.now();
 
     // Return cached data if still valid
@@ -60,7 +83,7 @@ function loadHesudharCorrections() {
     }
 
     // Read and parse file
-    const fileContent = fs.readFileSync(HESUDHAR_FILE_PATH, 'utf8');
+    const fileContent = nodeFs.readFileSync(filePath, 'utf8');
     const corrections = new Map();
 
     // Parse each line

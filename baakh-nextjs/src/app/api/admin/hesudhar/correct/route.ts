@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Use fast local file-based correction
-    const result = correctHesudharFast(text);
+    const result = await correctHesudharFast(text);
 
     return NextResponse.json(result);
 

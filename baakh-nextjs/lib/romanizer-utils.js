@@ -1,7 +1,25 @@
-import fs from 'fs';
-import path from 'path';
+const isEdgeRuntime = typeof EdgeRuntime !== 'undefined';
+let nodeFs = null;
+let nodePath = null;
 
-const ROMANIZER_FILE_PATH = path.join(process.cwd(), 'romanizer.txt');
+async function ensureNodeModulesLoaded() {
+  if (isEdgeRuntime) return false;
+  if (!nodeFs || !nodePath) {
+    const [{ default: fsMod }, { default: pathMod }] = await Promise.all([
+      import('fs'),
+      import('path')
+    ]);
+    nodeFs = fsMod;
+    nodePath = pathMod;
+  }
+  return true;
+}
+
+async function getRomanizerFilePath() {
+  const ok = await ensureNodeModulesLoaded();
+  if (!ok) return null;
+  return nodePath.join(process.cwd(), 'romanizer.txt');
+}
 
 // Cache for romanizer mappings
 let romanizerCache = null;
@@ -99,16 +117,21 @@ function toSlug(text) {
  * Load romanizer mappings from local file
  * @returns {Map<string, string>} Map of Sindhi words to romanized words
  */
-function loadRomanizerMappings() {
+async function loadRomanizerMappings() {
   try {
+    if (isEdgeRuntime) {
+      return new Map();
+    }
+    const filePath = await getRomanizerFilePath();
+    if (!filePath) return new Map();
     // Check if file exists
-    if (!fs.existsSync(ROMANIZER_FILE_PATH)) {
+    if (!nodeFs.existsSync(filePath)) {
       console.warn('⚠️ Romanizer file not found, using empty mappings');
       return new Map();
     }
 
     // Check file modification time for cache invalidation
-    fs.statSync(ROMANIZER_FILE_PATH);
+    nodeFs.statSync(filePath);
     const currentTime = Date.now();
 
     // Return cached data if still valid
@@ -117,7 +140,7 @@ function loadRomanizerMappings() {
     }
 
     // Read and parse file
-    const fileContent = fs.readFileSync(ROMANIZER_FILE_PATH, 'utf8');
+    const fileContent = nodeFs.readFileSync(filePath, 'utf8');
     const mappings = new Map();
 
     // Parse each line

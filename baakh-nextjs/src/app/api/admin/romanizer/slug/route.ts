@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate romanized slug
-    const slug = romanizeTextToSlug(text);
+    const slug = await romanizeTextToSlug(text);
 
     return NextResponse.json({
       success: true,
