@@ -416,7 +416,7 @@ async function runLoadTests() {
   
   if (!BASE_URL || BASE_URL.includes('your-domain')) {
     console.log('\n❌ Please provide a valid production URL:');
-    console.log('   node load-test.js https://your-app.vercel.app');
+    console.log('   node load-test.js https://your-app.example.com');
     console.log('   or set PRODUCTION_URL environment variable');
     process.exit(1);
   }

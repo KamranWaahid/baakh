@@ -9,7 +9,7 @@ const https = require('https');
 const http = require('http');
 
 // Configuration
-const BASE_URL = process.env.PRODUCTION_URL || process.argv[2] || 'https://your-domain.vercel.app';
+const BASE_URL = process.env.PRODUCTION_URL || process.argv[2] || 'https://your-domain.example.com';
 const TIMEOUT = 15000; // 15 seconds for production
 
 // Test results storage
@@ -134,7 +134,7 @@ async function runTests() {
   
   if (!BASE_URL || BASE_URL.includes('your-domain')) {
     console.log('\n❌ Please provide a valid production URL:');
-    console.log('   node test-production-api.js https://your-app.vercel.app');
+    console.log('   node test-production-api.js https://your-app.example.com');
     console.log('   or set PRODUCTION_URL environment variable');
     process.exit(1);
   }

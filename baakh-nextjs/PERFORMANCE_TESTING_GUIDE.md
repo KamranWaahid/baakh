@@ -15,22 +15,22 @@ The performance testing suite includes three main components:
 ### Run All Performance Tests
 ```bash
 # Test against production URL
-npm run test:all-performance https://your-app.vercel.app
+npm run test:all-performance https://your-app.example.com
 
 # Or set environment variable
-PRODUCTION_URL=https://your-app.vercel.app npm run test:all-performance
+PRODUCTION_URL=https://your-app.example.com npm run test:all-performance
 ```
 
 ### Run Individual Tests
 ```bash
 # Performance test only
-npm run test:performance https://your-app.vercel.app
+npm run test:performance https://your-app.example.com
 
 # Load test only
-npm run test:load https://your-app.vercel.app
+npm run test:load https://your-app.example.com
 
 # Memory test only
-npm run test:memory https://your-app.vercel.app
+npm run test:memory https://your-app.example.com
 ```
 
 ## Test Details
@@ -56,7 +56,7 @@ npm run test:memory https://your-app.vercel.app
 **Sample Output**:
 ```
 🚀 Performance Testing: Poets List API
-   URL: https://your-app.vercel.app/api/poets?limit=10
+   URL: https://your-app.example.com/api/poets?limit=10
    Category: critical
    Iterations: 3
    📊 Results: 3/3 successful (100.0%)
@@ -115,7 +115,7 @@ npm run test:memory https://your-app.vercel.app
 **Sample Output**:
 ```
 🧠 Memory Testing: Poets List API
-   URL: https://your-app.vercel.app/api/poets?limit=10
+   URL: https://your-app.example.com/api/poets?limit=10
    Iterations: 20
    📊 Results: 20/20 successful (100.0%)
    📦 Data Size: 2,456 bytes avg (2,100-2,800)

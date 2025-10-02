@@ -17,9 +17,9 @@ const nextConfig = {
   },
   // Ensure proper build output
   trailingSlash: false,
-  // Configure for Vercel deployment
-  basePath: process.env.NODE_ENV === 'production' ? '' : '',
-  assetPrefix: process.env.NODE_ENV === 'production' ? '' : '',
+  // Configure for generic deployment (no Vercel-specific settings)
+  basePath: '',
+  assetPrefix: '',
   // Allow remote images from Supabase storage
   images: {
     remotePatterns: [
@@ -93,19 +93,19 @@ const nextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live https://*.vercel.live",
-              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://vercel.live https://*.vercel.live https://db.onlinewebfonts.com",
-              "img-src 'self' data: https: blob: https://vercel.live https://*.vercel.live",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://db.onlinewebfonts.com",
+              "img-src 'self' data: https: blob:",
               "font-src 'self' data: https://fonts.gstatic.com https://fonts.googleapis.com https://r2cdn.perplexity.ai https://font.sindhsalamat.com https://db.onlinewebfonts.com",
-              "connect-src 'self' https://*.supabase.co https://uhbqcaxwfossrjwusclc.supabase.co https://vercel.live https://*.vercel.live",
+              "connect-src 'self' https://*.supabase.co https://uhbqcaxwfossrjwusclc.supabase.co",
               "frame-ancestors 'none'",
               "base-uri 'self'",
               "form-action 'self'",
               "object-src 'none'",
               "media-src 'self'",
               "worker-src 'self' blob:",
-              "frame-src 'self' https://vercel.live https://*.vercel.live",
-              "child-src 'self' blob: https://vercel.live https://*.vercel.live",
+              "frame-src 'self'",
+              "child-src 'self' blob:",
               "upgrade-insecure-requests"
             ].join('; '),
           },
