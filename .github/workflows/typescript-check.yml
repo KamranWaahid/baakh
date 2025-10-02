@@ -1,0 +1,32 @@
+name: TypeScript Check
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  tsc:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install deps (root)
+        run: npm ci
+
+      - name: Install deps (baakh-nextjs)
+        run: |
+          cd baakh-nextjs
+          npm ci
+
+      - name: Run TypeScript strict check
+        run: npm run tsc -- --noEmit --strict
+
