@@ -24,6 +24,8 @@ jobs:
           cd baakh-nextjs
           npm ci
 
-      - name: Run TypeScript strict check
-        run: npm run tsc -- --noEmit --strict
+      - name: Run TypeScript strict check (workspace)
+        run: |
+          cd baakh-nextjs
+          npm run tsc -- --noEmit --strict
 
