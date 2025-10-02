@@ -17,11 +17,27 @@ jobs:
         with:
           node-version: 20
 
+      - name: Check for Wrangler config
+        id: check-wrangler
+        run: |
+          if [ -f "baakh-nextjs/wrangler.jsonc" ] || [ -f "baakh-nextjs/wrangler.toml" ]; then
+            echo "has_config=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_config=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Skip deploy (no wrangler config found)
+        if: steps.check-wrangler.outputs.has_config == 'false'
+        run: |
+          echo "No wrangler.jsonc or wrangler.toml found in baakh-nextjs; skipping Cloudflare deploy." >> $GITHUB_STEP_SUMMARY
+
       - name: Install deps (baakh-nextjs)
+        if: steps.check-wrangler.outputs.has_config == 'true'
         working-directory: baakh-nextjs
         run: npm install --no-audit --no-fund
 
       - name: Deploy to Cloudflare with Wrangler
+        if: steps.check-wrangler.outputs.has_config == 'true'
         working-directory: baakh-nextjs
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
