@@ -83,5 +83,9 @@
     "tw-animate-css": "^1.3.6",
     "typescript": "^5.9.2",
     "wrangler": "^4.40.3"
+  },
+  "overrides": {
+    "esbuild": "^0.24.2",
+    "cookie": "^0.7.2"
   }
 }
