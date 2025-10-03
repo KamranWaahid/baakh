@@ -1,7 +1,6 @@
 [build]
-  base = "baakh-nextjs"
-  command = "npm run build"
-  publish = ".next"
+  command = "npm run build --workspace baakh-nextjs"
+  publish = "baakh-nextjs/.next"
 
 [build.environment]
   NODE_VERSION = "18"
@@ -9,5 +8,4 @@
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
-
 
