@@ -5,6 +5,9 @@
 [build.environment]
   NODE_VERSION = "18"
   NEXT_TELEMETRY_DISABLED = "1"
+  # Netlify secrets scanning config: allow public NEXT_PUBLIC_* keys and ignore build artifacts
+  SECRETS_SCAN_OMIT_KEYS = "NEXT_PUBLIC_SUPABASE_URL,NEXT_PUBLIC_SUPABASE_ANON_KEY"
+  SECRETS_SCAN_OMIT_PATHS = ".netlify/**,baakh-nextjs/.next/**,**/.next/**,backend/.env"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
