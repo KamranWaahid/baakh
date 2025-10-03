@@ -49,6 +49,3 @@
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
-# Edge functions (if needed)
-[edge_functions]
-  directory = "netlify/edge-functions"
