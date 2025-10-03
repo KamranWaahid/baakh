@@ -1,5 +1,8 @@
 import { MetadataRoute } from 'next'
 
+// Force static generation for sitemap
+export const dynamic = 'force-static'
+
 // Base URL for the site
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://baakh.com'
 

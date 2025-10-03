@@ -12,8 +12,8 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  // Enable static export for Cloudflare Pages
-  output: 'export',
+  // Static export disabled - using regular Next.js deployment
+  // output: 'export',
   trailingSlash: true,
   // Configure for generic deployment (no Vercel-specific settings)
   basePath: '',
