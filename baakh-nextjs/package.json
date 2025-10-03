@@ -63,7 +63,7 @@
   "devDependencies": {
     "@cloudflare/next-on-pages": "^1.13.5",
     "@eslint/eslintrc": "^3",
-    
+    "@netlify/next": "^1.4.9",
     "@tailwindcss/typography": "^0.5.18",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^20.19.11",
