@@ -57,7 +57,7 @@ export default function PoetTagsPage() {
       if (type) params.set("type", type);
       params.set("page", String(page));
       params.set("pageSize", String(pageSize));
-      const res = await fetch(`/api/admin/poet-tags?${params.toString()}`);
+      const res = await fetch(`/api/admin/poet-tags/?${params.toString()}`);
       const json = await res.json();
       if (!res.ok) throw new Error(json?.error || "Failed to load poet tags");
       setTags(json.tags || []);
@@ -78,7 +78,7 @@ export default function PoetTagsPage() {
 
   const handleCreate = async () => {
     try {
-      const res = await fetch("/api/admin/poet-tags", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
+      const res = await fetch('/api/admin/poet-tags/', { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
       const json = await res.json();
       if (!res.ok) throw new Error(json?.error || "Failed to create");
       toast.success("Poet tag created");
@@ -93,7 +93,7 @@ export default function PoetTagsPage() {
   const handleUpdate = async () => {
     if (!selected) return;
     try {
-      const res = await fetch("/api/admin/poet-tags", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: selected.id, ...form }) });
+      const res = await fetch('/api/admin/poet-tags/', { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: selected.id, ...form }) });
       const json = await res.json();
       if (!res.ok) throw new Error(json?.error || "Failed to update");
       toast.success("Poet tag updated");
@@ -109,7 +109,7 @@ export default function PoetTagsPage() {
   const handleDelete = async () => {
     if (!selected) return;
     try {
-      const res = await fetch(`/api/admin/poet-tags?id=${selected.id}`, { method: "DELETE" });
+      const res = await fetch(`/api/admin/poet-tags/?id=${selected.id}`, { method: "DELETE" });
       const json = await res.json();
       if (!res.ok) throw new Error(json?.error || "Failed to delete");
       toast.success("Poet tag deleted");

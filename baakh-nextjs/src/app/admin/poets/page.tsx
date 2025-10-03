@@ -80,7 +80,7 @@ export default function PoetsPage() {
         search: search
       });
 
-      const res = await fetch(`/api/admin/poets?${params}`, { cache: 'no-store' });
+      const res = await fetch(`/api/admin/poets/?${params}`, { cache: 'no-store' });
       const json = await res.json();
       if (!res.ok) throw new Error(json?.error || 'Failed to fetch poets');
       
@@ -127,7 +127,7 @@ export default function PoetsPage() {
 
   const handleToggleFeatured = async (poetId: string) => {
       try {
-        const response = await fetch(`/api/admin/poets/${poetId}`, {
+        const response = await fetch(`/api/admin/poets/${poetId}/`, {
         method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
@@ -151,7 +151,7 @@ export default function PoetsPage() {
 
   const handleToggleHidden = async (poetId: string) => {
       try {
-        const response = await fetch(`/api/admin/poets/${poetId}`, {
+        const response = await fetch(`/api/admin/poets/${poetId}/`, {
         method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
@@ -178,7 +178,7 @@ export default function PoetsPage() {
       return;
     }
       try {
-        const response = await fetch(`/api/admin/poets/${poetId}`, {
+        const response = await fetch(`/api/admin/poets/${poetId}/`, {
           method: 'DELETE',
         });
         if (response.ok) {

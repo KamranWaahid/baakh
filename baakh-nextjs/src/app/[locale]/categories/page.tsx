@@ -103,7 +103,7 @@ export default function CategoriesPage() {
       });
 
       console.log('Categories Page - Fetching with params:', Object.fromEntries(params));
-      const response = await fetch(`/api/categories?${params}`);
+      const response = await fetch(`/api/categories/?${params}`);
       if (response.ok) {
         const data = await response.json();
         console.log('Categories Page - API response:', data);

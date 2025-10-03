@@ -118,7 +118,7 @@ export default function AdminPoetryListPage() {
       const { data: sessionData } = await supabase.auth.getSession();
       const accessToken = sessionData.session?.access_token;
 
-      const response = await fetch(`/api/admin/poetry?${params}`, { 
+      const response = await fetch(`/api/admin/poetry/?${params}`, { 
         cache: 'no-store',
         headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
         credentials: 'include'
@@ -184,7 +184,7 @@ export default function AdminPoetryListPage() {
       const { data: sessionData } = await supabase.auth.getSession();
       const accessToken = sessionData.session?.access_token;
 
-      const response = await fetch(`/api/admin/poetry/${poetryId}`, {
+      const response = await fetch(`/api/admin/poetry/${poetryId}/`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -227,7 +227,7 @@ export default function AdminPoetryListPage() {
       const { data: sessionData } = await supabase.auth.getSession();
       const accessToken = sessionData.session?.access_token;
 
-      const response = await fetch(`/api/admin/poetry/${poetryId}`, {
+      const response = await fetch(`/api/admin/poetry/${poetryId}/`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -271,7 +271,7 @@ export default function AdminPoetryListPage() {
       const { data: sessionData } = await supabase.auth.getSession();
       const accessToken = sessionData.session?.access_token;
 
-      const response = await fetch(`/api/admin/poetry/${poetryId}`, {
+      const response = await fetch(`/api/admin/poetry/${poetryId}/`, {
         method: 'DELETE',
         headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
       });

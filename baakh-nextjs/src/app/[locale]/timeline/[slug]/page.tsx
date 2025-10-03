@@ -218,7 +218,7 @@ export default function SingleTimelinePage() {
         const lang = isSindhi ? 'sd' : 'en';
         
         // Fetch period by slug
-        const periodResponse = await fetch(`/api/timeline/periods?lang=${lang}&search=${slug}`);
+        const periodResponse = await fetch(`/api/timeline/periods/?lang=${lang}&search=${slug}`);
         
         if (!periodResponse.ok) {
           throw new Error(`Failed to fetch timeline period: ${periodResponse.status}`);
@@ -232,7 +232,7 @@ export default function SingleTimelinePage() {
             setTimelinePeriod(period);
             
             // Fetch events for this period
-            const eventsResponse = await fetch(`/api/timeline/events?lang=${lang}&period_id=${period.id}`);
+            const eventsResponse = await fetch(`/api/timeline/events/?lang=${lang}&period_id=${period.id}`);
             if (eventsResponse.ok) {
               const eventsData = await eventsResponse.json();
               if (eventsData.success) {
@@ -251,7 +251,7 @@ export default function SingleTimelinePage() {
               isOngoing: period.is_ongoing
             });
             
-            const poetsResponse = await fetch(`/api/poets?lang=${lang}&start_year=${startYear}&end_year=${endYear}&limit=50`);
+            const poetsResponse = await fetch(`/api/poets/?lang=${lang}&start_year=${startYear}&end_year=${endYear}&limit=50`);
             if (poetsResponse.ok) {
               const poetsData = await poetsResponse.json();
               console.log('Poets API response:', { success: poetsData.success, count: poetsData.poets?.length || 0 });
@@ -275,7 +275,7 @@ export default function SingleTimelinePage() {
             }
 
             // Fetch poetry for this era
-            const poetryResponse = await fetch(`/api/poetry?lang=${lang}&start_year=${period.start_year}&end_year=${period.end_year || new Date().getFullYear()}&limit=50`);
+            const poetryResponse = await fetch(`/api/poetry/?lang=${lang}&start_year=${period.start_year}&end_year=${period.end_year || new Date().getFullYear()}&limit=50`);
             if (poetryResponse.ok) {
               const poetryData = await poetryResponse.json();
               if (poetryData.success) {

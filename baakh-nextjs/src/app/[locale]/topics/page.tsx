@@ -209,7 +209,7 @@ export default function TopicsPage() {
       });
 
       console.log('Fetching with params:', Object.fromEntries(params));
-      const response = await fetch(`/api/tags?${params}`);
+      const response = await fetch(`/api/tags/?${params}`);
       console.log('Response status:', response.status);
       console.log('Response headers:', Object.fromEntries(response.headers.entries()));
       

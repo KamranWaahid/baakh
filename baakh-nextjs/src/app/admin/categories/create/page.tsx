@@ -86,7 +86,7 @@ export default function CreateCategoryPage() {
   const save = async () => {
     if (!canSave()) return;
     try {
-      const res = await fetch("/api/admin/categories", {
+      const res = await fetch('/api/admin/categories/', {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

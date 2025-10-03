@@ -64,7 +64,7 @@ export default function CreateTagPage() {
     
     setLoading(true);
     try {
-      const response = await fetch("/api/admin/tags", {
+      const response = await fetch('/api/admin/tags/', {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

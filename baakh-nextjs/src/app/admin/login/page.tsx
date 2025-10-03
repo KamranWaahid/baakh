@@ -58,7 +58,7 @@ function AdminLoginContent() {
   useEffect(() => {
     const checkLockoutStatus = async () => {
       try {
-        const response = await fetch('/api/auth/lockout-status', {
+        const response = await fetch('/api/auth/lockout-status/', {
           credentials: 'include'
         });
         
@@ -94,7 +94,7 @@ function AdminLoginContent() {
         if (user) {
           // Check if user has admin access
           try {
-            const response = await fetch('/api/auth/me');
+            const response = await fetch('/api/auth/me/');
             if (response.ok) {
               const profileData = await response.json();
               if (profileData.allowed) {
@@ -148,7 +148,7 @@ function AdminLoginContent() {
       console.log('🔍 Verifying admin access...');
 
       // Use service-backed API to verify admin access
-      const resp = await fetch('/api/auth/me', { 
+      const resp = await fetch('/api/auth/me/', { 
         cache: 'no-store',
         credentials: 'include' // Ensure cookies are sent
       });
@@ -184,7 +184,7 @@ function AdminLoginContent() {
       
       // Clear server-side lockout on successful login
       try {
-        await fetch('/api/auth/clear-lockout', {
+        await fetch('/api/auth/clear-lockout/', {
           method: 'POST',
           credentials: 'include'
         });
@@ -201,7 +201,7 @@ function AdminLoginContent() {
       
       // Record failed attempt on server
       try {
-        const response = await fetch('/api/auth/record-failed-attempt', {
+        const response = await fetch('/api/auth/record-failed-attempt/', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

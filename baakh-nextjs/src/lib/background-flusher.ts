@@ -126,7 +126,7 @@ class BackgroundFlusher {
       mutationQueue.markAsProcessed(batch.map(m => m.id));
     } else {
       // Fallback to fetch with keepalive
-      fetch('/api/mutations', {
+      fetch('/api/mutations/', {
         method: 'POST',
         body: data,
         headers: { 'Content-Type': 'application/json' },
@@ -191,7 +191,7 @@ class BackgroundFlusher {
     if (this.abortController?.signal.aborted) return;
 
     try {
-      const response = await fetch('/api/mutations', {
+      const response = await fetch('/api/mutations/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

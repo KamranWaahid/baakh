@@ -183,7 +183,7 @@ export default function AdminPoetryCreatePage() {
     if (!sindhiText.trim()) return;
     
     try {
-      const response = await fetch('/api/admin/romanizer/fast', {
+      const response = await fetch('/api/admin/romanizer/fast/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -294,7 +294,7 @@ export default function AdminPoetryCreatePage() {
         if (!couplet.text.trim()) continue;
 
         // Use the fast romanizer API
-        const response = await fetch('/api/admin/romanizer/fast', {
+        const response = await fetch('/api/admin/romanizer/fast/', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -378,7 +378,7 @@ export default function AdminPoetryCreatePage() {
     }
 
     try {
-      const response = await fetch('/api/admin/tags', {
+      const response = await fetch('/api/admin/tags/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -391,7 +391,7 @@ export default function AdminPoetryCreatePage() {
         toast.success('Tag created successfully!');
         
         // Refresh tags list
-        const tagsResponse = await fetch('/api/admin/tags');
+        const tagsResponse = await fetch('/api/admin/tags/');
         if (tagsResponse.ok) {
           const tagsData = await tagsResponse.json();
           setAvailableTags(tagsData.tags || []);
@@ -448,9 +448,9 @@ export default function AdminPoetryCreatePage() {
   const loadPoetsAndCategories = async () => {
     try {
       const [poetsRes, categoriesRes, tagsRes] = await Promise.all([
-        fetch('/api/poets?limit=100'),
-        fetch('/api/categories?all=true'),
-        fetch('/api/admin/tags')
+        fetch('/api/poets/?limit=100'),
+        fetch('/api/categories/?all=true'),
+        fetch('/api/admin/tags/')
       ]);
       
       if (poetsRes.ok) {
@@ -519,7 +519,7 @@ export default function AdminPoetryCreatePage() {
           setLoading(true);
           try {
             // Sync the romanizer file to include any new words added
-            const syncResponse = await fetch('/api/admin/romanizer/sync', {
+            const syncResponse = await fetch('/api/admin/romanizer/sync/', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -638,7 +638,7 @@ export default function AdminPoetryCreatePage() {
       setHesudharOriginalText(hesudharText);
       
       // First, perform hesudhar correction
-      const correctionResponse = await fetch('/api/admin/hesudhar/correct', {
+      const correctionResponse = await fetch('/api/admin/hesudhar/correct/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -661,7 +661,7 @@ export default function AdminPoetryCreatePage() {
         }
 
         // Also fetch hesudhar dictionary entries for reference
-        const response = await fetch(`/api/admin/romanizer/hesudhar?search=${encodeURIComponent(hesudharText)}&limit=50`);
+        const response = await fetch(`/api/admin/romanizer/hesudhar/?search=${encodeURIComponent(hesudharText)}&limit=50`);
         if (response.ok) {
           const data = await response.json();
           setHesudharResults(data.hesudhars || []);
@@ -683,7 +683,7 @@ export default function AdminPoetryCreatePage() {
   const syncHesudharFile = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/admin/hesudhar/sync', {
+      const response = await fetch('/api/admin/hesudhar/sync/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -718,7 +718,7 @@ export default function AdminPoetryCreatePage() {
     setLoading(true);
     try {
       // Use fast romanization API
-      const response = await fetch('/api/admin/romanizer/fast', {
+      const response = await fetch('/api/admin/romanizer/fast/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -773,7 +773,7 @@ export default function AdminPoetryCreatePage() {
   // Add new romanization to dictionary
   const addNewRomanization = async (sindhiWord: string, romanWord: string) => {
     try {
-      const response = await fetch('/api/admin/romanizer/roman-words', {
+      const response = await fetch('/api/admin/romanizer/roman-words/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -832,7 +832,7 @@ export default function AdminPoetryCreatePage() {
     setSyncError(null); // Clear previous errors
     
     try {
-      const response = await fetch('/api/admin/romanizer/sync', {
+      const response = await fetch('/api/admin/romanizer/sync/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -899,7 +899,7 @@ export default function AdminPoetryCreatePage() {
       }
       
       // First, try to romanize any remaining Sindhi text using the updated romanizer
-      const romanizationResponse = await fetch('/api/admin/romanizer/fast', {
+      const romanizationResponse = await fetch('/api/admin/romanizer/fast/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -1086,7 +1086,7 @@ export default function AdminPoetryCreatePage() {
 
       // Create the main poetry record
       console.log('Sending poetry data:', poetryData);
-      const poetryResponse = await fetch('/api/admin/poetry', {
+      const poetryResponse = await fetch('/api/admin/poetry/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -1148,7 +1148,7 @@ export default function AdminPoetryCreatePage() {
 
       // Create couplets using the couplets API
       console.log('Sending couplets data:', coupletsData);
-      const coupletsResponse = await fetch('/api/admin/poetry/couplets', {
+      const coupletsResponse = await fetch('/api/admin/poetry/couplets/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -1189,7 +1189,7 @@ export default function AdminPoetryCreatePage() {
         }
 
         if (translationsData.length > 0) {
-          const translationsResponse = await fetch('/api/admin/poetry/translations', {
+          const translationsResponse = await fetch('/api/admin/poetry/translations/', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -1246,7 +1246,7 @@ export default function AdminPoetryCreatePage() {
 
       setLoading(true);
       try {
-        const response = await fetch(`/api/poetry?poetId=${poetryDetails.poetId}&categoryId=${poetryDetails.categoryId}`);
+        const response = await fetch(`/api/poetry/?poetId=${poetryDetails.poetId}&categoryId=${poetryDetails.categoryId}`);
         if (response.ok) {
           const data = await response.json();
           setAvailablePoetry(data.poetry || []);
@@ -2130,7 +2130,7 @@ export default function AdminPoetryCreatePage() {
                                     const firstLine = text.split('\n')[0].trim();
                                     if (firstLine) {
                                       // Call the romanizer API to transliterate the first line
-                                      const response = await fetch('/api/admin/romanizer/fast', {
+                                      const response = await fetch('/api/admin/romanizer/fast/', {
                                         method: 'POST',
                                         headers: {
                                           'Content-Type': 'application/json',
@@ -2194,7 +2194,7 @@ export default function AdminPoetryCreatePage() {
                                       const firstLine = couplet.text.split('\n')[0].trim();
                                       if (firstLine) {
                                         // Call the romanizer API to transliterate the first line
-                                        const response = await fetch('/api/admin/romanizer/fast', {
+                                        const response = await fetch('/api/admin/romanizer/fast/', {
                                           method: 'POST',
                                           headers: {
                                             'Content-Type': 'application/json',

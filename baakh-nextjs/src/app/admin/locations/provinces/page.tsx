@@ -54,7 +54,7 @@ export default function ProvincesAdminPage() {
         sortOrder: 'asc'
       });
       
-      const response = await fetch(`/api/admin/locations/provinces?${params}`);
+      const response = await fetch(`/api/admin/locations/provinces/?${params}`);
       if (!response.ok) {
         throw new Error('Failed to fetch provinces');
       }
@@ -79,7 +79,7 @@ export default function ProvincesAdminPage() {
   const handleDelete = async (id: number) => {
     if (confirm("Are you sure you want to delete this province?")) {
       try {
-        const response = await fetch(`/api/admin/locations/provinces/${id}`, {
+        const response = await fetch(`/api/admin/locations/provinces/${id}/`, {
           method: 'DELETE'
         });
         

@@ -51,7 +51,7 @@ export default function CountriesAdminPage() {
         sortOrder: 'asc'
       });
 
-      const response = await fetch(`/api/admin/locations/countries?${params}`);
+      const response = await fetch(`/api/admin/locations/countries/?${params}`);
       if (response.ok) {
         const data = await response.json();
         if (data.success) {
@@ -74,7 +74,7 @@ export default function CountriesAdminPage() {
   const handleDelete = async (id: number) => {
     if (confirm('Are you sure you want to delete this country?')) {
       try {
-        const response = await fetch(`/api/admin/locations/countries/${id}`, {
+        const response = await fetch(`/api/admin/locations/countries/${id}/`, {
           method: 'DELETE'
         });
 

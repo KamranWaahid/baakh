@@ -31,7 +31,7 @@ export default function TestAuthPage() {
         
         // Test 2: Try to call the auth API
         try {
-          const response = await fetch('/api/auth/me', { 
+          const response = await fetch('/api/auth/me/', { 
             credentials: 'include'
           });
           

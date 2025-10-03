@@ -79,7 +79,7 @@ export default function SettingsPage() {
       }
 
       // Call delete account API
-      const response = await fetch('/api/auth/delete-account', {
+      const response = await fetch('/api/auth/delete-account/', {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',

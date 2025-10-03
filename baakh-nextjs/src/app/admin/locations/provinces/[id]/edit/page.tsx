@@ -52,7 +52,7 @@ export default function EditProvincePage() {
   useEffect(() => {
     const fetchProvince = async () => {
       try {
-        const response = await fetch(`/api/admin/locations/provinces/${provinceId}`);
+        const response = await fetch(`/api/admin/locations/provinces/${provinceId}/`);
         if (response.ok) {
           const data = await response.json();
           if (data.success) {
@@ -80,7 +80,7 @@ export default function EditProvincePage() {
   useEffect(() => {
     const fetchCountries = async () => {
       try {
-        const response = await fetch(`/api/admin/locations/countries/list?lang=${formData.lang}`);
+        const response = await fetch(`/api/admin/locations/countries/list/?lang=${formData.lang}`);
         if (response.ok) {
           const data = await response.json();
           if (data.success) {
@@ -108,7 +108,7 @@ export default function EditProvincePage() {
     setLoading(true);
 
     try {
-      const response = await fetch(`/api/admin/locations/provinces/${provinceId}`, {
+      const response = await fetch(`/api/admin/locations/provinces/${provinceId}/`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

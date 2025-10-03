@@ -61,7 +61,7 @@ export default function HomePage() {
         setStats(prev => ({ ...prev, loading: true }));
         
         // Primary: single aggregate endpoint
-        const res = await fetch('/api/poetry/count', { signal: controller.signal, cache: 'no-store' });
+        const res = await fetch('/api/poetry/count/', { signal: controller.signal, cache: 'no-store' });
         if (res.ok) {
           const data = await res.json();
           setStats({
@@ -76,9 +76,9 @@ export default function HomePage() {
         
         // Fallback: fetch individually if aggregate fails
         const [poetsRes, categoriesRes, topicsRes] = await Promise.all([
-          fetch('/api/poets?limit=1&countOnly=true', { signal: controller.signal, cache: 'no-store' }),
-          fetch('/api/categories/count', { signal: controller.signal, cache: 'no-store' }),
-          fetch('/api/topics/count', { signal: controller.signal, cache: 'no-store' })
+          fetch('/api/poets/?limit=1&countOnly=true', { signal: controller.signal, cache: 'no-store' }),
+          fetch('/api/categories/count/', { signal: controller.signal, cache: 'no-store' }),
+          fetch('/api/topics/count/', { signal: controller.signal, cache: 'no-store' })
         ]);
         const [poetsData, categoriesData, topicsData] = await Promise.all([
           poetsRes.ok ? poetsRes.json() : Promise.resolve({}),
@@ -200,7 +200,7 @@ export default function HomePage() {
         // Use traditional timeout approach instead of AbortSignal.timeout
         const timeoutId = setTimeout(() => controller.abort(), 10000);
         const combinedSignal = controller.signal;
-        const res = await fetch(`/api/poets?limit=50&sortBy=is_featured&sortOrder=desc`, { signal: combinedSignal, cache: 'no-store' });
+        const res = await fetch(`/api/poets/?limit=50&sortBy=is_featured&sortOrder=desc`, { signal: combinedSignal, cache: 'no-store' });
         clearTimeout(timeoutId);
         if (!res.ok) throw new Error('failed');
         const json = await res.json();
@@ -282,7 +282,7 @@ export default function HomePage() {
         // Use traditional timeout approach instead of AbortSignal.timeout
         const timeoutId = setTimeout(() => controller.abort(), 10000);
         const combinedSignal = controller.signal;
-        const res = await fetch(`/api/couplets?${params.toString()}`, { signal: combinedSignal, cache: 'no-store' });
+        const res = await fetch(`/api/couplets/?${params.toString()}`, { signal: combinedSignal, cache: 'no-store' });
         clearTimeout(timeoutId);
         if (!res.ok) {
           console.error('API response not ok:', res.status, res.statusText);
@@ -437,7 +437,7 @@ export default function HomePage() {
         // Use traditional timeout approach instead of AbortSignal.timeout
         const timeoutId = setTimeout(() => controller.abort(), 10000);
         const combinedSignal = controller.signal;
-        const res = await fetch(`/api/categories?${params.toString()}`, { signal: combinedSignal, cache: 'no-store' });
+        const res = await fetch(`/api/categories/?${params.toString()}`, { signal: combinedSignal, cache: 'no-store' });
         clearTimeout(timeoutId);
         if (!res.ok) return;
         const json = await res.json();
@@ -482,7 +482,7 @@ export default function HomePage() {
         // Use traditional timeout approach instead of AbortSignal.timeout
         const timeoutId = setTimeout(() => controller.abort(), 10000);
         const combinedSignal = controller.signal;
-        const res = await fetch(`/api/tags?lang=${lang}&type=Topic&limit=18`, { signal: combinedSignal, cache: 'no-store' });
+        const res = await fetch(`/api/tags/?lang=${lang}&type=Topic&limit=18`, { signal: combinedSignal, cache: 'no-store' });
         clearTimeout(timeoutId);
         if (!res.ok) return;
         const json = await res.json();

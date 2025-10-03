@@ -90,7 +90,7 @@ export default function CategoriesPage() {
       setLoading(true);
       setError(null);
       
-      const response = await fetch('/api/admin/categories');
+      const response = await fetch('/api/admin/categories/');
       if (!response.ok) {
         const errorText = await response.text();
         console.error('API Error Response:', errorText);
@@ -153,7 +153,7 @@ export default function CategoriesPage() {
     
     try {
       setLoading(true);
-      const response = await fetch('/api/admin/categories', {
+      const response = await fetch('/api/admin/categories/', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: categoryToDelete.id })
@@ -205,7 +205,7 @@ export default function CategoriesPage() {
   const handleDuplicate = async (category: CategoryRow) => {
     try {
       setLoading(true);
-      const response = await fetch('/api/admin/categories', {
+      const response = await fetch('/api/admin/categories/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

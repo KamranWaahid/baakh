@@ -29,7 +29,7 @@ export function useAnniversary() {
         setIsLoading(true);
         
         // Fetch all poets from the database
-        const response = await fetch('/api/poets?limit=1000');
+        const response = await fetch('/api/poets/?limit=1000');
         if (!response.ok) {
           throw new Error('Failed to fetch poets');
         }

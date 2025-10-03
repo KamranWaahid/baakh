@@ -91,7 +91,7 @@ export default function AdminAnalyticsPage() {
       setLoading(true);
       setError(null);
       
-      const response = await fetch(`/api/admin/analytics?range=${range}`);
+      const response = await fetch(`/api/admin/analytics/?range=${range}`);
       if (!response.ok) {
         throw new Error('Failed to fetch analytics data');
       }
@@ -202,7 +202,7 @@ export default function AdminAnalyticsPage() {
 
   const handleExport = async () => {
     try {
-      const response = await fetch(`/api/admin/analytics/export?range=${range}`);
+      const response = await fetch(`/api/admin/analytics/export/?range=${range}`);
       if (!response.ok) {
         throw new Error('Failed to export analytics data');
       }

@@ -17,7 +17,7 @@ export const useReports = (): UseReportsReturn => {
     setError(null);
 
     try {
-      const response = await fetch('/api/reports/submit', {
+      const response = await fetch('/api/reports/submit/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -115,7 +115,7 @@ export const useAdminReports = (): UseAdminReportsReturn => {
       if (filters?.limit) params.append('limit', filters.limit.toString());
       if (filters?.offset) params.append('offset', filters.offset.toString());
 
-      const response = await fetch(`/api/admin/reports?${params.toString()}`, {
+      const response = await fetch(`/api/admin/reports/?${params.toString()}`, {
         method: 'GET',
         credentials: 'include', // Send authentication cookies
       });
@@ -147,7 +147,7 @@ export const useAdminReports = (): UseAdminReportsReturn => {
     setError(null);
 
     try {
-      const response = await fetch('/api/admin/reports', {
+      const response = await fetch('/api/admin/reports/', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

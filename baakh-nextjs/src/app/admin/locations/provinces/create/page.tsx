@@ -48,7 +48,7 @@ export default function CreateProvincePage() {
   useEffect(() => {
     const fetchCountries = async () => {
       try {
-        const response = await fetch(`/api/admin/locations/countries/list?lang=${formData.lang}`);
+        const response = await fetch(`/api/admin/locations/countries/list/?lang=${formData.lang}`);
         if (response.ok) {
           const data = await response.json();
           if (data.success) {
@@ -76,7 +76,7 @@ export default function CreateProvincePage() {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/admin/locations/provinces', {
+      const response = await fetch('/api/admin/locations/provinces/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

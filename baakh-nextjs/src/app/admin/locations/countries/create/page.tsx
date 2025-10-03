@@ -60,7 +60,7 @@ export default function CreateCountryPage() {
   useEffect(() => {
     const fetchCities = async () => {
       try {
-        const response = await fetch(`/api/admin/locations/cities/list?lang=${formData.lang}`);
+        const response = await fetch(`/api/admin/locations/cities/list/?lang=${formData.lang}`);
         if (response.ok) {
           const data = await response.json();
           if (data.success) {
@@ -82,7 +82,7 @@ export default function CreateCountryPage() {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/admin/locations/countries', {
+      const response = await fetch('/api/admin/locations/countries/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

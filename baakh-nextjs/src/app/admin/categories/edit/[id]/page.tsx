@@ -52,7 +52,7 @@ export default function EditCategoryPage() {
         setLoading(true);
         setError(null);
         
-        const response = await fetch(`/api/admin/categories?id=${categoryId}`);
+        const response = await fetch(`/api/admin/categories/?id=${categoryId}`);
         if (!response.ok) {
           throw new Error('Failed to fetch category');
         }
@@ -110,7 +110,7 @@ export default function EditCategoryPage() {
     
     try {
       setSaving(true);
-      const res = await fetch("/api/admin/categories", {
+      const res = await fetch('/api/admin/categories/', {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

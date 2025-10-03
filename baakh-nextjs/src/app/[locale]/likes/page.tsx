@@ -46,7 +46,7 @@ export default function LikesPage() {
       setIsLoading(true);
       setError(null);
       
-      const response = await fetch(`/api/user/likes?userId=${user?.userId}`);
+      const response = await fetch(`/api/user/likes/?userId=${user?.userId}`);
       const data = await response.json();
       
       if (!response.ok) {

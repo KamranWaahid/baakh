@@ -136,7 +136,7 @@ export default function PoetryDetailPage() {
     try {
       setLoading(true);
       console.log('Fetching poetry with ID:', poetryId);
-      const response = await fetch(`/api/admin/poetry/${poetryId}`);
+      const response = await fetch(`/api/admin/poetry/${poetryId}/`);
       if (!response.ok) {
         throw new Error('Failed to fetch poetry');
       }
@@ -186,7 +186,7 @@ export default function PoetryDetailPage() {
 
   const fetchPoets = async () => {
     try {
-      const response = await fetch('/api/admin/poets');
+      const response = await fetch('/api/admin/poets/');
       if (response.ok) {
         const data = await response.json();
         const rawPoets = Array.isArray(data?.poets) ? data.poets : (Array.isArray(data) ? data : []);
@@ -205,7 +205,7 @@ export default function PoetryDetailPage() {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch('/api/admin/categories');
+      const response = await fetch('/api/admin/categories/');
       if (response.ok) {
         const data = await response.json();
         const rows = Array.isArray(data?.rows) ? data.rows : (Array.isArray(data) ? data : []);
@@ -225,7 +225,7 @@ export default function PoetryDetailPage() {
       setSaving(true);
       
       // Update main poetry
-      const poetryResponse = await fetch(`/api/admin/poetry/${poetryId}`, {
+      const poetryResponse = await fetch(`/api/admin/poetry/${poetryId}/`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -247,7 +247,7 @@ export default function PoetryDetailPage() {
       for (const translation of formData.translations) {
         if (translation.id) {
           // Update existing translation
-          await fetch(`/api/admin/poetry/translations/${translation.id}`, {
+          await fetch(`/api/admin/poetry/translations/${translation.id}/`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -259,7 +259,7 @@ export default function PoetryDetailPage() {
           });
         } else {
           // Create new translation
-          await fetch('/api/admin/poetry/translations', {
+          await fetch('/api/admin/poetry/translations/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -277,7 +277,7 @@ export default function PoetryDetailPage() {
       for (const couplet of formData.couplets) {
         if (couplet.id) {
           // Update existing couplet
-          await fetch(`/api/admin/poetry/couplets/${couplet.id}`, {
+          await fetch(`/api/admin/poetry/couplets/${couplet.id}/`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -289,7 +289,7 @@ export default function PoetryDetailPage() {
           });
         } else {
           // Create new couplet
-          await fetch('/api/admin/poetry/couplets', {
+          await fetch('/api/admin/poetry/couplets/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({

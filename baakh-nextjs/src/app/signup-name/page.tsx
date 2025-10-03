@@ -38,7 +38,7 @@ function SignupNameContent() {
     setError('')
     
     try {
-      const response = await fetch('/api/auth/save-sindhi-name', {
+      const response = await fetch('/api/auth/save-sindhi-name/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

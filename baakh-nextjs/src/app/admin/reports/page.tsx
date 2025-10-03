@@ -60,7 +60,7 @@ export default function AdminReportsPage() {
       if (reasonFilter !== 'all') params.append('reason', reasonFilter);
       params.append('limit', '50');
       
-      const response = await fetch(`/api/admin/reports?${params}`);
+      const response = await fetch(`/api/admin/reports/?${params}`);
       const data = await response.json();
       
       if (data.success) {
@@ -78,7 +78,7 @@ export default function AdminReportsPage() {
   // Update report status
   const updateReportStatus = async (reportId: string, status: string, notes: string) => {
     try {
-      const response = await fetch(`/api/admin/reports/${reportId}`, {
+      const response = await fetch(`/api/admin/reports/${reportId}/`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -109,7 +109,7 @@ export default function AdminReportsPage() {
     if (!confirm('Are you sure you want to delete this report?')) return;
     
     try {
-      const response = await fetch(`/api/admin/reports/${reportId}`, {
+      const response = await fetch(`/api/admin/reports/${reportId}/`, {
         method: 'DELETE',
       });
 

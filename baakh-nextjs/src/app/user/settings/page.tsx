@@ -104,7 +104,7 @@ export default function UserSettingsPage() {
   // Load settings from API
   const loadSettings = async (userId: string) => {
     try {
-      const response = await fetch(`/api/user/settings?userId=${userId}`);
+      const response = await fetch(`/api/user/settings/?userId=${userId}`);
       if (response.ok) {
         const data = await response.json();
         if (data.settings) {
@@ -147,7 +147,7 @@ export default function UserSettingsPage() {
         return;
       }
 
-      const response = await fetch('/api/user/settings', {
+      const response = await fetch('/api/user/settings/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

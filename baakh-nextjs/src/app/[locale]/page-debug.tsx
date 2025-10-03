@@ -29,7 +29,7 @@ export default function DebugHomePage() {
     const controller = new AbortController();
     async function loadStats() {
       try {
-        const response = await fetch('/api/poetry/count', {
+        const response = await fetch('/api/poetry/count/', {
           signal: controller.signal
         });
         const data = await response.json();

@@ -116,7 +116,7 @@ export default function PoetryPage() {
   const fetchCategories = useCallback(async () => {
     try {
       setCategoriesLoading(true);
-      const response = await fetch(`/api/poetry/categories?lang=${isSindhi ? 'sd' : 'en'}`);
+      const response = await fetch(`/api/poetry/categories/?lang=${isSindhi ? 'sd' : 'en'}`);
       if (response.ok) {
         const data = await response.json();
         setCategories(data.categories || []);
@@ -147,7 +147,7 @@ export default function PoetryPage() {
         lang: isSindhi ? 'sd' : 'en'
       });
 
-      const response = await fetch(`/api/poetry?${params}`);
+      const response = await fetch(`/api/poetry/?${params}`);
       if (response.ok) {
         const data: PoetryResponse = await response.json();
         setPoetry(data.poetry || []);

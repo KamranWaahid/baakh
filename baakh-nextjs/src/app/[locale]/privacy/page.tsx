@@ -124,7 +124,7 @@ export default function PrivacyPage() {
           return
         }
 
-        const response = await fetch('/api/auth/user-data', {
+        const response = await fetch('/api/auth/user-data/', {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',

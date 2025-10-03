@@ -28,7 +28,7 @@ export default function LocationsAdminPage() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await fetch('/api/admin/locations');
+        const response = await fetch('/api/admin/locations/');
         if (response.ok) {
           const data = await response.json();
           if (data.success) {

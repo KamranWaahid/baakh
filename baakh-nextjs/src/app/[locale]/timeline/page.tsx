@@ -90,7 +90,7 @@ export default function TimelinePage() {
         setError(null);
         
         const lang = isSindhi ? 'sd' : 'en';
-        const response = await fetch(`/api/timeline/periods?lang=${lang}&limit=100`);
+        const response = await fetch(`/api/timeline/periods/?lang=${lang}&limit=100`);
         
         if (!response.ok) {
           throw new Error(`Failed to fetch timeline data: ${response.status}`);

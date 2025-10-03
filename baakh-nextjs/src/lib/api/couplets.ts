@@ -72,7 +72,7 @@ export async function fetchCoupletsByPoet(params: CoupletsByPoetParams): Promise
     searchParams.append('lang', lang);
   }
 
-  const response = await fetch(`/api/couplets/by-poet/${poetId}?${searchParams.toString()}`);
+  const response = await fetch(`/api/couplets/by-poet/${poetId}/?${searchParams.toString()}`);
 
   if (!response.ok) {
     if (response.status === 404) {

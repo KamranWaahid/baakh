@@ -23,7 +23,7 @@ export default function AdminPoetryEditPage() {
 
   const fetchPoetry = async (id: string) => {
     try {
-      const response = await fetch(`/api/admin/poetry/${id}`);
+      const response = await fetch(`/api/admin/poetry/${id}/`);
       if (response.ok) {
         const data = await response.json();
         setPoetry(data.poetry);

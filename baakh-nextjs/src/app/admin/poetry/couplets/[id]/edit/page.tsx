@@ -213,7 +213,7 @@ export default function AdminCoupletEditPage() {
 
   const fetchPoets = async () => {
     try {
-      const response = await fetch('/api/admin/poets');
+      const response = await fetch('/api/admin/poets/');
       if (response.ok) {
         const data = await response.json();
         setPoets(data.poets || []);
@@ -233,7 +233,7 @@ export default function AdminCoupletEditPage() {
       setSaving(true);
       
       // Save Sindhi couplet
-      const response = await fetch(`/api/admin/poetry/couplets/${coupletId}`, {
+      const response = await fetch(`/api/admin/poetry/couplets/${coupletId}/`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -256,7 +256,7 @@ export default function AdminCoupletEditPage() {
           couplet_slug: formData.couplet_slug // Ensure both use the same slug
         };
         
-        const englishResponse = await fetch(`/api/admin/poetry/couplets/${couplet.english_couplet.id}`, {
+        const englishResponse = await fetch(`/api/admin/poetry/couplets/${couplet.english_couplet.id}/`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -347,7 +347,7 @@ export default function AdminCoupletEditPage() {
 
     try {
       setTagSearchLoading(true);
-      const response = await fetch(`/api/admin/tags/search?q=${encodeURIComponent(query)}&limit=10`);
+      const response = await fetch(`/api/admin/tags/search/?q=${encodeURIComponent(query)}&limit=10`);
       if (response.ok) {
         const data = await response.json();
         setAvailableTags(data.tags || []);
@@ -377,7 +377,7 @@ export default function AdminCoupletEditPage() {
 
   const createNewTag = async () => {
     try {
-      const response = await fetch('/api/admin/tags', {
+      const response = await fetch('/api/admin/tags/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newTagData)

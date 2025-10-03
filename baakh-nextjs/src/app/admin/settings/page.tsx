@@ -127,7 +127,7 @@ export default function AdminSettingsPage() {
     const loadUserAndSettings = async () => {
       try {
         // Get current user
-        const userResponse = await fetch('/api/auth/me');
+        const userResponse = await fetch('/api/auth/me/');
         if (userResponse.ok) {
           const userData = await userResponse.json();
           setUserId(userData.user?.id || "");
@@ -152,7 +152,7 @@ export default function AdminSettingsPage() {
   const checkDatabaseStatusAndLoadSettings = async (userId: string) => {
     try {
       // Check if production database is ready
-      const statusResponse = await fetch('/api/admin/settings/status');
+      const statusResponse = await fetch('/api/admin/settings/status/');
       const statusData = await statusResponse.json();
       
       if (statusData.production_ready) {
@@ -174,7 +174,7 @@ export default function AdminSettingsPage() {
   const loadSettings = async (userId: string, mode: 'test' | 'admin' = 'test') => {
     try {
       const endpoint = mode === 'admin' ? 'admin' : 'test';
-      const response = await fetch(`/api/admin/settings/${endpoint}?userId=${userId}`);
+      const response = await fetch(`/api/admin/settings/${endpoint}/?userId=${userId}`);
       if (response.ok) {
         const data = await response.json();
         if (data.settings) {
@@ -256,7 +256,7 @@ export default function AdminSettingsPage() {
       }
 
       // Try admin endpoint first, fallback to test
-      let response = await fetch('/api/admin/settings/admin', {
+      let response = await fetch('/api/admin/settings/admin/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -271,7 +271,7 @@ export default function AdminSettingsPage() {
       // If admin endpoint fails, try test endpoint
       if (!response.ok) {
         console.log('Admin endpoint failed, trying test endpoint');
-        response = await fetch('/api/admin/settings/test', {
+        response = await fetch('/api/admin/settings/test/', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -314,7 +314,7 @@ export default function AdminSettingsPage() {
         return;
       }
 
-      const response = await fetch('/api/admin/settings/password', {
+      const response = await fetch('/api/admin/settings/password/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

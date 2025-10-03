@@ -67,7 +67,7 @@ export default function EditCityPage() {
   useEffect(() => {
     const fetchCity = async () => {
       try {
-        const response = await fetch(`/api/admin/locations/cities/${cityId}`);
+        const response = await fetch(`/api/admin/locations/cities/${cityId}/`);
         if (response.ok) {
           const data = await response.json();
           if (data.success) {
@@ -98,7 +98,7 @@ export default function EditCityPage() {
   useEffect(() => {
     const fetchCountries = async () => {
       try {
-        const response = await fetch(`/api/admin/locations/countries/list?lang=${formData.lang}`);
+        const response = await fetch(`/api/admin/locations/countries/list/?lang=${formData.lang}`);
         if (response.ok) {
           const data = await response.json();
           if (data.success) {
@@ -124,7 +124,7 @@ export default function EditCityPage() {
       }
 
       try {
-        const response = await fetch(`/api/admin/locations/provinces/list?lang=${formData.lang}&country_id=${selectedCountryId}`);
+        const response = await fetch(`/api/admin/locations/provinces/list/?lang=${formData.lang}&country_id=${selectedCountryId}`);
         if (response.ok) {
           const data = await response.json();
           if (data.success) {
@@ -150,7 +150,7 @@ export default function EditCityPage() {
     setLoading(true);
 
     try {
-      const response = await fetch(`/api/admin/locations/cities/${cityId}`, {
+      const response = await fetch(`/api/admin/locations/cities/${cityId}/`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

@@ -46,7 +46,7 @@ export default function BookmarksPage() {
       setIsLoading(true);
       setError(null);
       
-      const response = await fetch(`/api/user/bookmarks?userId=${user?.userId}`);
+      const response = await fetch(`/api/user/bookmarks/?userId=${user?.userId}`);
       const data = await response.json();
       
       if (!response.ok) {

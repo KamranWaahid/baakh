@@ -149,7 +149,7 @@ export default function SearchInterface() {
       const params = new URLSearchParams({ q: searchQuery, lang: currentLang });
       console.log('Searching with params:', params.toString());
       
-      const res = await fetch(`/api/search?${params.toString()}`, { cache: 'no-store' });
+      const res = await fetch(`/api/search/?${params.toString()}`, { cache: 'no-store' });
       const json = await res.json();
       
       console.log('Search response:', json);

@@ -168,7 +168,7 @@ export default function AdminCoupletCreatePage() {
   
   const checkSystemSetup = useCallback(async () => {
     try {
-      const response = await fetch('/api/admin/poetry/couplets/setup');
+      const response = await fetch('/api/admin/poetry/couplets/setup/');
       const data = await response.json();
       if (response.ok && data.exists) {
         setSystemSetupStatus('ready');
@@ -191,8 +191,8 @@ export default function AdminCoupletCreatePage() {
     try {
       setDataLoading(true);
       const [poetsRes, tagsRes] = await Promise.all([
-        fetch('/api/admin/poets?limit=100'),
-        fetch('/api/poetry/couplets/create')
+        fetch('/api/admin/poets/?limit=100'),
+        fetch('/api/poetry/couplets/create/')
       ]);
       
       let poetsLoaded = false;
@@ -289,7 +289,7 @@ export default function AdminCoupletCreatePage() {
           const firstLine = hesudharText.split('\n')[0].trim();
           if (firstLine) {
             // Generate slug from first line
-            const slugResponse = await fetch('/api/admin/romanizer/fast', {
+            const slugResponse = await fetch('/api/admin/romanizer/fast/', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -310,7 +310,7 @@ export default function AdminCoupletCreatePage() {
           }
           
           // Translate the complete couplet text
-          const fullTextResponse = await fetch('/api/admin/romanizer/fast', {
+          const fullTextResponse = await fetch('/api/admin/romanizer/fast/', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -346,7 +346,7 @@ export default function AdminCoupletCreatePage() {
         toast.info('Syncing romanizer file to include new words...');
         setLoading(true);
         try {
-          const syncResponse = await fetch('/api/admin/romanizer/sync', {
+          const syncResponse = await fetch('/api/admin/romanizer/sync/', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -394,7 +394,7 @@ export default function AdminCoupletCreatePage() {
     try {
       setHesudharOriginalText(hesudharText);
       
-      const correctionResponse = await fetch('/api/admin/hesudhar/correct', {
+      const correctionResponse = await fetch('/api/admin/hesudhar/correct/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -414,7 +414,7 @@ export default function AdminCoupletCreatePage() {
           toast.success('No hesudhar corrections needed!');
         }
 
-        const response = await fetch(`/api/admin/romanizer/hesudhar?search=${encodeURIComponent(hesudharText)}&limit=50`);
+        const response = await fetch(`/api/admin/romanizer/hesudhar/?search=${encodeURIComponent(hesudharText)}&limit=50`);
         if (response.ok) {
           const data = await response.json();
           setHesudharResults(data.hesudhars || []);
@@ -441,7 +441,7 @@ export default function AdminCoupletCreatePage() {
     
     setLoading(true);
     try {
-      const response = await fetch('/api/admin/romanizer/fast', {
+      const response = await fetch('/api/admin/romanizer/fast/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -490,7 +490,7 @@ export default function AdminCoupletCreatePage() {
   // Add new romanization to dictionary
   const addNewRomanization = async (sindhiWord: string, romanWord: string) => {
     try {
-      const response = await fetch('/api/admin/romanizer/roman-words', {
+      const response = await fetch('/api/admin/romanizer/roman-words/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -600,7 +600,7 @@ export default function AdminCoupletCreatePage() {
       
       // Create Sindhi couplet
       console.log('Sending request to /api/admin/poetry/couplets');
-      const coupletResponse = await fetch('/api/admin/poetry/couplets', {
+      const coupletResponse = await fetch('/api/admin/poetry/couplets/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -625,7 +625,7 @@ export default function AdminCoupletCreatePage() {
           lang: 'en'
         };
 
-        const englishResponse = await fetch('/api/admin/poetry/couplets', {
+        const englishResponse = await fetch('/api/admin/poetry/couplets/', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -1042,7 +1042,7 @@ if (!dataLoading && (poets.length === 0 || availableTags.length === 0)) {
                               try {
                                 const firstLine = coupletDetails.coupletSindhi.split('\n')[0].trim();
                                 if (firstLine) {
-                                  const response = await fetch('/api/admin/romanizer/fast', {
+                                  const response = await fetch('/api/admin/romanizer/fast/', {
                                     method: 'POST',
                                     headers: {
                                       'Content-Type': 'application/json',
@@ -1336,7 +1336,7 @@ if (!dataLoading && (poets.length === 0 || availableTags.length === 0)) {
                               const firstLine = text.split('\n')[0].trim();
                               if (firstLine) {
                                 // Call the romanizer API to transliterate the first line for slug generation
-                                const response = await fetch('/api/admin/romanizer/fast', {
+                                const response = await fetch('/api/admin/romanizer/fast/', {
                                   method: 'POST',
                                   headers: {
                                     'Content-Type': 'application/json',
@@ -1373,7 +1373,7 @@ if (!dataLoading && (poets.length === 0 || availableTags.length === 0)) {
                               
                               // Now translate the complete couplet text (all lines)
                               if (text.trim()) {
-                                const fullTextResponse = await fetch('/api/admin/romanizer/fast', {
+                                const fullTextResponse = await fetch('/api/admin/romanizer/fast/', {
                                   method: 'POST',
                                   headers: {
                                     'Content-Type': 'application/json',
@@ -1419,7 +1419,7 @@ if (!dataLoading && (poets.length === 0 || availableTags.length === 0)) {
                                 // First, generate slug from first line
                                 const firstLine = coupletDetails.coupletSindhi.split('\n')[0].trim();
                                 if (firstLine) {
-                                  const slugResponse = await fetch('/api/admin/romanizer/fast', {
+                                  const slugResponse = await fetch('/api/admin/romanizer/fast/', {
                                     method: 'POST',
                                     headers: {
                                       'Content-Type': 'application/json',
@@ -1440,7 +1440,7 @@ if (!dataLoading && (poets.length === 0 || availableTags.length === 0)) {
                                 }
                                 
                                 // Then, translate the complete couplet text
-                                const fullTextResponse = await fetch('/api/admin/romanizer/fast', {
+                                const fullTextResponse = await fetch('/api/admin/romanizer/fast/', {
                                   method: 'POST',
                                   headers: {
                                     'Content-Type': 'application/json',
@@ -1538,7 +1538,7 @@ if (!dataLoading && (poets.length === 0 || availableTags.length === 0)) {
                 <Button
                   onClick={async () => {
                     try {
-                      const response = await fetch('/api/admin/poetry/couplets/test', {
+                      const response = await fetch('/api/admin/poetry/couplets/test/', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ test: true })
@@ -1566,7 +1566,7 @@ if (!dataLoading && (poets.length === 0 || availableTags.length === 0)) {
                   onClick={async () => {
                     try {
                       toast.info('Setting up system for standalone couplets...');
-                      const response = await fetch('/api/admin/poetry/couplets/setup', {
+                      const response = await fetch('/api/admin/poetry/couplets/setup/', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' }
                       });

@@ -353,7 +353,7 @@ export default function PoetryPage() {
     
     try {
       setLoadingOtherPoetry(true);
-      const response = await fetch(`/api/poets/${poetId}/direct?lang=${currentLang}`);
+      const response = await fetch(`/api/poets/${poetId}/direct/?lang=${currentLang}`);
       if (!response.ok) {
         const errorData = await response.json();
         console.error('Failed to fetch other poetry:', errorData);

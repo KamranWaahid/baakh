@@ -123,7 +123,7 @@ export default function AdminCoupletsListPage() {
         sortOrder: sortOrder
       });
 
-      const response = await fetch(`/api/admin/poetry/couplets?${params}`);
+      const response = await fetch(`/api/admin/poetry/couplets/?${params}`);
       
       if (!response.ok) {
         throw new Error('Failed to fetch couplets');
@@ -189,7 +189,7 @@ export default function AdminCoupletsListPage() {
 
   const handleToggleVisibility = async (poetryId: string) => {
     try {
-      const response = await fetch(`/api/admin/poetry/${poetryId}`, {
+      const response = await fetch(`/api/admin/poetry/${poetryId}/`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -210,7 +210,7 @@ export default function AdminCoupletsListPage() {
 
   const handleToggleFeatured = async (poetryId: string) => {
     try {
-      const response = await fetch(`/api/admin/poetry/${poetryId}`, {
+      const response = await fetch(`/api/admin/poetry/${poetryId}/`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

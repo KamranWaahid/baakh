@@ -36,7 +36,7 @@ export default function FeaturedPoets({ isSindhi }: FeaturedPoetsProps) {
         });
         const timeoutSignal = AbortSignal.timeout(10000);
         const combinedSignal = (AbortSignal as unknown as { any?: (signals: AbortSignal[]) => AbortSignal }).any ? (AbortSignal as unknown as { any: (signals: AbortSignal[]) => AbortSignal }).any([controller.signal, timeoutSignal]) : timeoutSignal;
-        const res = await fetch(`/api/poets?${params.toString()}`, { signal: combinedSignal, cache: 'no-store' });
+        const res = await fetch(`/api/poets/?${params.toString()}`, { signal: combinedSignal, cache: 'no-store' });
         if (!res.ok) return;
         const json = await res.json();
         if (json?.poets) {

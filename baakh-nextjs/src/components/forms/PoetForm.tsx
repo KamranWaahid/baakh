@@ -172,7 +172,7 @@ export default function PoetForm({ mode, initialData }: PoetFormProps) {
     setTagsLoading(true);
     try {
       console.log('Fetching tags from /api/admin/poet-tags...');
-      const response = await fetch('/api/admin/poet-tags?pageSize=100'); // Get all poet tags
+      const response = await fetch('/api/admin/poet-tags/?pageSize=100'); // Get all poet tags
       console.log('Response status:', response.status);
       if (response.ok) {
         const data = await response.json();
@@ -318,7 +318,7 @@ export default function PoetForm({ mode, initialData }: PoetFormProps) {
     setAutoSaveStatus('saving');
     try {
       const formData = form.getValues();
-      const response = await fetch(`/api/admin/poets/${initialData.id}`, {
+      const response = await fetch(`/api/admin/poets/${initialData.id}/`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -456,7 +456,7 @@ export default function PoetForm({ mode, initialData }: PoetFormProps) {
         formPayload.append('file', selectedFile);
         formPayload.append('filename', `${data.poet_slug}.webp`);
 
-        const uploadRes = await fetch('/api/admin/poets/upload', {
+        const uploadRes = await fetch('/api/admin/poets/upload/', {
           method: 'POST',
           body: formPayload,
         });
@@ -485,7 +485,7 @@ export default function PoetForm({ mode, initialData }: PoetFormProps) {
 
       if (mode === 'create') {
         console.log('Creating new poet...');
-        const response = await fetch('/api/admin/poets', {
+        const response = await fetch('/api/admin/poets/', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -506,7 +506,7 @@ export default function PoetForm({ mode, initialData }: PoetFormProps) {
         router.push("/admin/poets");
       } else {
         console.log('Updating existing poet...');
-        const response = await fetch(`/api/admin/poets/${initialData.id}`, {
+        const response = await fetch(`/api/admin/poets/${initialData.id}/`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',

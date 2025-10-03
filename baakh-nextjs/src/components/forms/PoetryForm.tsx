@@ -270,7 +270,7 @@ export default function PoetryForm({ poetry, mode }: PoetryFormProps) {
 
   const fetchPoets = async () => {
     try {
-      const response = await fetch('/api/poets');
+      const response = await fetch('/api/poets/');
       if (response.ok) {
         const data = await response.json();
         setPoets(data.poets || []);
@@ -282,7 +282,7 @@ export default function PoetryForm({ poetry, mode }: PoetryFormProps) {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch('/api/categories');
+      const response = await fetch('/api/categories/');
       if (response.ok) {
         const data = await response.json();
         setCategories(data.categories || []);
@@ -356,7 +356,7 @@ export default function PoetryForm({ poetry, mode }: PoetryFormProps) {
           }
           
           try {
-            const response = await fetch('/api/admin/romanizer', {
+            const response = await fetch('/api/admin/romanizer/', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
@@ -406,7 +406,7 @@ export default function PoetryForm({ poetry, mode }: PoetryFormProps) {
     if (!sindhiCouplet?.text) return;
     
     try {
-      const response = await fetch('/api/admin/romanizer', {
+      const response = await fetch('/api/admin/romanizer/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -447,7 +447,7 @@ export default function PoetryForm({ poetry, mode }: PoetryFormProps) {
     setLoading(true);
     try {
       // Call the romanizer API to convert Sindhi title to roman
-      const response = await fetch('/api/admin/romanizer', {
+      const response = await fetch('/api/admin/romanizer/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -492,7 +492,7 @@ export default function PoetryForm({ poetry, mode }: PoetryFormProps) {
     setLoading(true);
     try {
       // Call the romanizer API to convert Sindhi title to roman
-      const response = await fetch('/api/admin/romanizer', {
+      const response = await fetch('/api/admin/romanizer/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

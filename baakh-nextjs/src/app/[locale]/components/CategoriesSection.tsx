@@ -68,7 +68,7 @@ export default function CategoriesSection({ isSindhi, categories: categoriesProp
       try {
         const timeoutSignal = AbortSignal.timeout(10000);
         const combinedSignal = (AbortSignal as unknown as { any?: (signals: AbortSignal[]) => AbortSignal }).any ? (AbortSignal as unknown as { any: (signals: AbortSignal[]) => AbortSignal }).any([controller.signal, timeoutSignal]) : timeoutSignal;
-        const res = await fetch(`/api/categories?limit=1000`, { signal: combinedSignal, cache: 'no-store' });
+        const res = await fetch(`/api/categories/?limit=1000`, { signal: combinedSignal, cache: 'no-store' });
         if (!res.ok) return;
         const json = await res.json();
         if (json?.items) {

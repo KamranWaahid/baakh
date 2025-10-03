@@ -145,7 +145,7 @@ export function useE2EEAuth() {
         kdfParams: { iterations: 100000, hash: 'SHA-256' }
       };
       
-      const response = await fetch('/api/auth/signup', {
+      const response = await fetch('/api/auth/signup/', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -220,7 +220,7 @@ export function useE2EEAuth() {
     try {
       console.log('🔐 Starting login process for username:', username);
       
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch('/api/auth/login/', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',

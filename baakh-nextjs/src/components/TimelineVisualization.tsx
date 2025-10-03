@@ -90,7 +90,7 @@ export default function TimelineVisualization({
       setLoading(true);
       
       // Fetch periods
-      const periodsResponse = await fetch(`/api/timeline/periods?lang=${lang}&featured=true&limit=${maxPeriods}`);
+      const periodsResponse = await fetch(`/api/timeline/periods/?lang=${lang}&featured=true&limit=${maxPeriods}`);
       const periodsData = await periodsResponse.json();
       
       if (periodsData.success) {
@@ -99,7 +99,7 @@ export default function TimelineVisualization({
 
       // Fetch events if needed
       if (showEvents) {
-        const eventsResponse = await fetch(`/api/timeline/events?lang=${lang}&featured=true&limit=20`);
+        const eventsResponse = await fetch(`/api/timeline/events/?lang=${lang}&featured=true&limit=20`);
         const eventsData = await eventsResponse.json();
         
         if (eventsData.success) {

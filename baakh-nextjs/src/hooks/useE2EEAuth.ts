@@ -115,7 +115,7 @@ export function useE2EEAuth() {
         kdfParams: { iterations: 100000, hash: 'SHA-256' }
       };
       
-      const response = await fetch('/api/auth/signup', {
+      const response = await fetch('/api/auth/signup/', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -150,7 +150,7 @@ export function useE2EEAuth() {
 
   const login = useCallback(async (username: string, password: string) => {
     try {
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch('/api/auth/login/', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -337,7 +337,7 @@ export function useE2EEAuth() {
         'like:v1'
       );
       
-      const response = await fetch('/api/user/like', {
+      const response = await fetch('/api/user/like/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -384,7 +384,7 @@ export function useE2EEAuth() {
         'bookmark:v1'
       );
       
-      const response = await fetch('/api/user/bookmark', {
+      const response = await fetch('/api/user/bookmark/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

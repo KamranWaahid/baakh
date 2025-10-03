@@ -63,7 +63,7 @@ export default function FeedbackCard({ className }: FeedbackCardProps) {
 
       // Then check with server for accuracy
       try {
-        const response = await fetch('/api/feedback?check_submitted=true');
+        const response = await fetch('/api/feedback/?check_submitted=true');
         if (response.ok) {
           const result = await response.json();
           if (result.hasSubmitted) {
@@ -91,7 +91,7 @@ export default function FeedbackCard({ className }: FeedbackCardProps) {
     setIsSubmitting(true);
     
     try {
-      const response = await fetch('/api/feedback', {
+      const response = await fetch('/api/feedback/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

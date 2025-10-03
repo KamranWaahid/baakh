@@ -68,7 +68,7 @@ export default function CategoryDetailPage() {
     let ignore = false;
     (async () => {
       try {
-        const res = await fetch(`/api/categories/${encodeURIComponent(params.slug)}`, { cache: 'no-store' });
+        const res = await fetch(`/api/categories/${encodeURIComponent(params.slug)}/`, { cache: 'no-store' });
         const json = await res.json();
         if (!ignore && res.ok) setCategory(json.category as Cat);
       } finally {
@@ -83,7 +83,7 @@ export default function CategoryDetailPage() {
     setLoading(true);
     try {
       const offset = (page - 1) * perPage;
-      const res = await fetch(`/api/categories/${encodeURIComponent(String(params.slug))}/poetry?limit=${perPage}&offset=${offset}&lang=${currentLocale}`, { cache: 'no-store' });
+      const res = await fetch(`/api/categories/${encodeURIComponent(String(params.slug))}/poetry/?limit=${perPage}&offset=${offset}&lang=${currentLocale}`, { cache: 'no-store' });
       const json = await res.json();
       if (res.ok) {
         const next = (json.items || []) as Poem[];

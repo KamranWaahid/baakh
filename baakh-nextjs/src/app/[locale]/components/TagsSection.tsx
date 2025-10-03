@@ -165,7 +165,7 @@ export default function TagsSection({ isSindhi, tags }: TagsSectionProps) {
         // Use traditional timeout approach for better compatibility
         const timeoutId = setTimeout(() => controller.abort(), 10000);
         
-        const res = await fetch(`/api/tags?lang=${lang}&type=Topic&limit=18`, { 
+        const res = await fetch(`/api/tags/?lang=${lang}&type=Topic&limit=18`, { 
           signal: controller.signal, 
           cache: 'no-store' 
         });

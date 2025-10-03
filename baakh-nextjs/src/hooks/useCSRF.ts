@@ -16,7 +16,7 @@ export function useCSRF() {
         setLoading(true);
         setError(null);
         
-        const response = await fetch('/api/csrf', {
+        const response = await fetch('/api/csrf/', {
           credentials: 'include'
         });
         
@@ -42,7 +42,7 @@ export function useCSRF() {
       setLoading(true);
       setError(null);
       
-      const response = await fetch('/api/csrf', {
+      const response = await fetch('/api/csrf/', {
         credentials: 'include'
       });
       

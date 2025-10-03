@@ -160,9 +160,9 @@ export default function AddPeriodPopup({ isOpen, onClose, onSubmit, mode = 'crea
     setLoading(true);
     try {
       const [poetsRes, categoriesRes, themesRes] = await Promise.all([
-        fetch('/api/poets?limit=100'),
-        fetch('/api/poetry/categories'),
-        fetch('/api/tags?type=Theme')
+        fetch('/api/poets/?limit=100'),
+        fetch('/api/poetry/categories/'),
+        fetch('/api/tags/?type=Theme')
       ]);
 
       if (poetsRes.ok) {

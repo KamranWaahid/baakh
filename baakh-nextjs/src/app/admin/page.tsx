@@ -116,12 +116,12 @@ export default function AdminDashboard() {
   // Load admin profile data
   const loadAdminProfile = useCallback(async () => {
     try {
-      const response = await fetch('/api/auth/me');
+      const response = await fetch('/api/auth/me/');
       if (response.ok) {
         const userData = await response.json();
         if (userData.user?.id) {
           // Get profile data from profiles table
-          const profileResponse = await fetch(`/api/admin/settings/admin?userId=${userData.user.id}`);
+          const profileResponse = await fetch(`/api/admin/settings/admin/?userId=${userData.user.id}`);
           if (profileResponse.ok) {
             const profileData = await profileResponse.json();
             if (profileData.settings?.profile) {
@@ -163,7 +163,7 @@ export default function AdminDashboard() {
       setLoading(true);
       setError(null);
       
-      const response = await fetch('/api/admin/stats', {
+      const response = await fetch('/api/admin/stats/', {
         cache: 'no-store'
       });
       
@@ -217,7 +217,7 @@ export default function AdminDashboard() {
     loadAdminProfile();
     fetchStats();
     // Fetch system status (non-blocking)
-    fetch('/api/admin/system-status', { cache: 'no-store' })
+    fetch('/api/admin/system-status/', { cache: 'no-store' })
       .then((res) => res.ok ? res.json() : Promise.reject(new Error('status fetch failed')))
       .then((data) => setSystemStatus(data))
       .catch(() => setSystemStatus(null));
@@ -247,7 +247,7 @@ export default function AdminDashboard() {
         return;
       }
       try {
-        const res = await fetch(`/api/admin/search?q=${encodeURIComponent(q)}`, { cache: 'no-store' });
+        const res = await fetch(`/api/admin/search/?q=${encodeURIComponent(q)}`, { cache: 'no-store' });
         if (!res.ok) {
           setSearchResults([]);
           return;

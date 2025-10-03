@@ -225,7 +225,7 @@ export default function PoetsPage() {
   const handleViewClick = async (poet: Poet) => {
     // Track the view
     try {
-      await fetch(`/api/poets/${poet.id}/view`, { method: 'POST' });
+      await fetch(`/api/poets/${poet.id}/view/`, { method: 'POST' });
     } catch (error) {
       console.error('Failed to track view:', error);
     }
@@ -295,7 +295,7 @@ export default function PoetsPage() {
   // Fetch poet statistics (views and poetry count)
   const fetchPoetStats = useCallback(async (poetIds: string[]) => {
     try {
-      const response = await fetch(`/api/poets/stats?poetIds=${poetIds.join(',')}`);
+      const response = await fetch(`/api/poets/stats/?poetIds=${poetIds.join(',')}`);
       if (response.ok) {
         const data = await response.json();
         const statsMap: {[key: string]: {views: number, poetryCount: number}} = {};
@@ -339,7 +339,7 @@ export default function PoetsPage() {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
       
-      const response = await fetch(`/api/poets?${params}`, {
+      const response = await fetch(`/api/poets/?${params}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

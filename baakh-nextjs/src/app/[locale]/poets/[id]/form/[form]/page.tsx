@@ -130,7 +130,7 @@ export default function PoetFormPage() {
   const fetchFormData = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/poets/${poetId}?lang=${isSindhi ? 'sd' : 'en'}`);
+      const response = await fetch(`/api/poets/${poetId}/?lang=${isSindhi ? 'sd' : 'en'}`);
       if (!response.ok) throw new Error('Failed to fetch poet data');
       
       const data = await response.json();

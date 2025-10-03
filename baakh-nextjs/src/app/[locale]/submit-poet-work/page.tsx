@@ -80,7 +80,7 @@ export default function SubmitPoetWorkPage() {
       return;
     }
     try {
-      const res = await fetch('/api/submissions', {
+      const res = await fetch('/api/submissions/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -113,7 +113,7 @@ export default function SubmitPoetWorkPage() {
     (async () => {
       try {
         setCategoriesLoading(true);
-        const res = await fetch(`/api/categories?lang=${lang}&all=true`, { signal: controller.signal, cache: 'no-store' });
+        const res = await fetch(`/api/categories/?lang=${lang}&all=true`, { signal: controller.signal, cache: 'no-store' });
         if (!res.ok) return;
         const json = await res.json();
         const items = Array.isArray(json?.items) ? json.items : [];

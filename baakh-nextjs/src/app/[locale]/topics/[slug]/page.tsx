@@ -216,7 +216,7 @@ export default function TopicPage() {
         limit: '24'
       });
 
-      const response = await fetch(`/api/topics/${topicSlug}?${params}`);
+      const response = await fetch(`/api/topics/${topicSlug}/?${params}`);
       if (response.ok) {
         const data = await response.json();
         console.log('Topic data received:', data);

@@ -64,7 +64,7 @@ export function useAuth() {
         console.log('🔍 useAuth: Getting user profile...');
 
         // Get user profile
-        const response = await fetch('/api/auth/me', { 
+        const response = await fetch('/api/auth/me/', { 
           credentials: 'include',
           cache: 'no-store'
         });
@@ -158,7 +158,7 @@ export function useAuth() {
         // If refresh fails, try to get current user
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
-          const response = await fetch('/api/auth/me');
+          const response = await fetch('/api/auth/me/');
           if (response.ok) {
             const profileData = await response.json();
             if (profileData.allowed) {
@@ -177,7 +177,7 @@ export function useAuth() {
 
       // If session refresh succeeded, get user profile
       if (session?.user) {
-        const response = await fetch('/api/auth/me');
+        const response = await fetch('/api/auth/me/');
         if (response.ok) {
           const profileData = await response.json();
           if (profileData.allowed) {

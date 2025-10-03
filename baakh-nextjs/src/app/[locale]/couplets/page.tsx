@@ -247,7 +247,7 @@ export default function CoupletsPage() {
         // Always pass through a single `poet` param; backend accepts id-or-slug
         params.append('poet', poetFilter);
       }
-      const response = await fetch(`/api/couplets?${params}`);
+      const response = await fetch(`/api/couplets/?${params}`);
       if (response.ok) {
         const data = await response.json();
         const allCouplets: Couplet[] = data.couplets || [];

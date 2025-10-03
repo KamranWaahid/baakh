@@ -174,7 +174,7 @@ export default function TimelineAdminPage() {
       // Fetch full raw fields for editing
       (async () => {
         try {
-          const res = await fetch(`/api/timeline/periods/${selectedPeriod.id}?lang=en`);
+          const res = await fetch(`/api/timeline/periods/${selectedPeriod.id}/?lang=en`);
           // Safely parse JSON to avoid "Unexpected end of JSON input"
           let data: any = {};
           const text = await res.text();
@@ -240,7 +240,7 @@ export default function TimelineAdminPage() {
     e.preventDefault();
     try {
       if (selectedPeriod) {
-        const response = await fetch(`/api/timeline/periods/${selectedPeriod.id}`, {
+        const response = await fetch(`/api/timeline/periods/${selectedPeriod.id}/`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -268,7 +268,7 @@ export default function TimelineAdminPage() {
           await fetchTimelineData();
         }
       } else if (selectedEvent) {
-        const response = await fetch(`/api/timeline/events/${selectedEvent.id}`, {
+        const response = await fetch(`/api/timeline/events/${selectedEvent.id}/`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -312,7 +312,7 @@ export default function TimelineAdminPage() {
       setLoading(true);
       
       // Fetch periods
-      const periodsResponse = await fetch('/api/timeline/periods?limit=100');
+      const periodsResponse = await fetch('/api/timeline/periods/?limit=100');
       const periodsData = await periodsResponse.json();
       
       if (periodsData.success) {
@@ -320,7 +320,7 @@ export default function TimelineAdminPage() {
       }
 
       // Fetch events
-      const eventsResponse = await fetch('/api/timeline/events?limit=100');
+      const eventsResponse = await fetch('/api/timeline/events/?limit=100');
       const eventsData = await eventsResponse.json();
       
       if (eventsData.success) {
@@ -416,7 +416,7 @@ export default function TimelineAdminPage() {
     
     try {
       if (activeTab === "periods") {
-        const response = await fetch('/api/timeline/periods', {
+        const response = await fetch('/api/timeline/periods/', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -443,7 +443,7 @@ export default function TimelineAdminPage() {
           await fetchTimelineData();
         }
       } else {
-        const response = await fetch('/api/timeline/events', {
+        const response = await fetch('/api/timeline/events/', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -527,7 +527,7 @@ export default function TimelineAdminPage() {
     if (!deleteItem) return;
 
     try {
-      const response = await fetch(`/api/timeline/${deleteItem.type}s/${deleteItem.id}`, {
+      const response = await fetch(`/api/timeline/${deleteItem.type}s/${deleteItem.id}/`, {
         method: 'DELETE'
       });
 
@@ -563,7 +563,7 @@ export default function TimelineAdminPage() {
       
       console.log('Payload being sent to API:', JSON.stringify(payload, null, 2));
       
-      const response = await fetch('/api/timeline/periods', {
+      const response = await fetch('/api/timeline/periods/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -617,7 +617,7 @@ export default function TimelineAdminPage() {
         is_featured: data.is_featured || false,
         sort_order: data.sort_order || 0
       };
-      const response = await fetch(`/api/timeline/periods/${selectedPeriod.id}`, {
+      const response = await fetch(`/api/timeline/periods/${selectedPeriod.id}/`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)

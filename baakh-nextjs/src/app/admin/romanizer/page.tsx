@@ -74,7 +74,7 @@ export default function RomanizerAdminPage() {
           limit: ENTRIES_PER_PAGE.toString(),
           search: hesudharSearch,
         });
-        const response = await fetch(`/api/admin/romanizer/hesudhar?${params.toString()}`);
+        const response = await fetch(`/api/admin/romanizer/hesudhar/?${params.toString()}`);
         if (!response.ok) throw new Error('Failed to fetch hesudhar entries');
         const data = await response.json();
         
@@ -122,7 +122,7 @@ export default function RomanizerAdminPage() {
               limit: ENTRIES_PER_PAGE.toString(),
               search: hesudharSearch,
             });
-            const response = await fetch(`/api/admin/romanizer/hesudhar?${params.toString()}`);
+            const response = await fetch(`/api/admin/romanizer/hesudhar/?${params.toString()}`);
             if (!response.ok) throw new Error('Failed to fetch hesudhar entries');
             const data = await response.json();
             
@@ -166,7 +166,7 @@ export default function RomanizerAdminPage() {
           limit: ENTRIES_PER_PAGE.toString(),
           search: romanWordSearch,
         });
-        const response = await fetch(`/api/admin/romanizer/roman-words?${params.toString()}`);
+        const response = await fetch(`/api/admin/romanizer/roman-words/?${params.toString()}`);
         if (!response.ok) throw new Error('Failed to fetch roman words entries');
         const data = await response.json();
         
@@ -214,7 +214,7 @@ export default function RomanizerAdminPage() {
               limit: ENTRIES_PER_PAGE.toString(),
               search: romanWordSearch,
             });
-            const response = await fetch(`/api/admin/romanizer/roman-words?${params.toString()}`);
+            const response = await fetch(`/api/admin/romanizer/roman-words/?${params.toString()}`);
             if (!response.ok) throw new Error('Failed to fetch roman words entries');
             const data = await response.json();
             
@@ -257,7 +257,7 @@ export default function RomanizerAdminPage() {
 
     setHesudharIsSubmitting(true);
     try {
-      const response = await fetch('/api/admin/romanizer/hesudhar', {
+      const response = await fetch('/api/admin/romanizer/hesudhar/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -297,7 +297,7 @@ export default function RomanizerAdminPage() {
 
     setHesudharIsSubmitting(true);
     try {
-      const response = await fetch(`/api/admin/romanizer/hesudhar`, {
+      const response = await fetch(`/api/admin/romanizer/hesudhar/`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -329,7 +329,7 @@ export default function RomanizerAdminPage() {
     if (!confirm("Are you sure you want to delete this entry?")) return;
 
     try {
-      const response = await fetch(`/api/admin/romanizer/hesudhar`, {
+      const response = await fetch(`/api/admin/romanizer/hesudhar/`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id })
@@ -357,7 +357,7 @@ export default function RomanizerAdminPage() {
 
     setRomanWordIsSubmitting(true);
     try {
-      const response = await fetch('/api/admin/romanizer/roman-words', {
+      const response = await fetch('/api/admin/romanizer/roman-words/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -397,7 +397,7 @@ export default function RomanizerAdminPage() {
 
     setRomanWordIsSubmitting(true);
     try {
-      const response = await fetch(`/api/admin/romanizer/roman-words`, {
+      const response = await fetch(`/api/admin/romanizer/roman-words/`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -429,7 +429,7 @@ export default function RomanizerAdminPage() {
     if (!confirm("Are you sure you want to delete this entry?")) return;
 
     try {
-      const response = await fetch(`/api/admin/romanizer/roman-words`, {
+      const response = await fetch(`/api/admin/romanizer/roman-words/`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id })

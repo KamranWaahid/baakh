@@ -55,7 +55,7 @@ export default function PoetryTagsPage() {
   const loadTags = async () => {
     try {
       setLoading(true);
-      const response = await fetch("/api/admin/tags");
+      const response = await fetch('/api/admin/tags/');
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || "Failed to fetch tags");
@@ -89,7 +89,7 @@ export default function PoetryTagsPage() {
 
   const handleCreate = async () => {
     try {
-      const response = await fetch("/api/admin/tags", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(formData) });
+      const response = await fetch('/api/admin/tags/', { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(formData) });
       const json = await response.json();
       if (!response.ok) throw new Error(json.error || "Failed to create tag");
       toast.success("Tag created successfully");
@@ -108,7 +108,7 @@ export default function PoetryTagsPage() {
   const handleUpdate = async () => {
     if (!selectedTag) return;
     try {
-      const response = await fetch("/api/admin/tags", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(formData) });
+      const response = await fetch('/api/admin/tags/', { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(formData) });
       const json = await response.json();
       if (!response.ok) throw new Error(json.error || "Failed to update tag");
       toast.success("Tag updated successfully");
@@ -128,7 +128,7 @@ export default function PoetryTagsPage() {
   const handleDelete = async () => {
     if (!selectedTag) return;
     try {
-      const response = await fetch(`/api/admin/tags?id=${selectedTag.id}`, { method: "DELETE" });
+      const response = await fetch(`/api/admin/tags/?id=${selectedTag.id}`, { method: "DELETE" });
       const json = await response.json();
       if (!response.ok) throw new Error(json.error || "Failed to delete tag");
       toast.success("Tag deleted successfully");

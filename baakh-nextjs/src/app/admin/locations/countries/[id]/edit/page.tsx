@@ -55,7 +55,7 @@ export default function EditCountryPage() {
   useEffect(() => {
     const loadCountry = async () => {
       try {
-        const response = await fetch(`/api/admin/locations/countries/${countryId}`);
+        const response = await fetch(`/api/admin/locations/countries/${countryId}/`);
         if (response.ok) {
           const data = await response.json();
           if (data.success) {
@@ -86,7 +86,7 @@ export default function EditCountryPage() {
     setLoading(true);
 
     try {
-      const response = await fetch(`/api/admin/locations/countries/${countryId}`, {
+      const response = await fetch(`/api/admin/locations/countries/${countryId}/`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

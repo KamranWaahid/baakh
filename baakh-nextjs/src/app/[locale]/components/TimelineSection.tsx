@@ -34,7 +34,7 @@ export default function TimelineSection({ isSindhi }: TimelineSectionProps) {
   const fetchTimelineData = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/timeline/periods?lang=${isSindhi ? 'sd' : 'en'}&featured=true&limit=3`);
+      const response = await fetch(`/api/timeline/periods/?lang=${isSindhi ? 'sd' : 'en'}&featured=true&limit=3`);
       const data = await response.json();
       
       if (data.success) {

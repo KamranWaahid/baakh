@@ -45,7 +45,7 @@ export default function CitySearchDropdown({
         
         console.log('Fetching cities from API...');
         
-        const response = await fetch('/api/locations/cities?lang=en');
+        const response = await fetch('/api/locations/cities/?lang=en');
         
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);

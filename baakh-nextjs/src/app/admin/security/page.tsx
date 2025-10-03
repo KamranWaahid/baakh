@@ -119,9 +119,9 @@ export default function SecurityDashboard() {
       setLoading(true);
       
       const [metricsRes, whitelistRes, patternsRes] = await Promise.all([
-        fetch(`/api/admin/security/metrics?hours=${timeRange}`),
-        fetch('/api/admin/security/whitelist'),
-        fetch('/api/admin/security/threat-patterns')
+        fetch(`/api/admin/security/metrics/?hours=${timeRange}`),
+        fetch('/api/admin/security/whitelist/'),
+        fetch('/api/admin/security/threat-patterns/')
       ]);
 
       if (metricsRes.ok) {
@@ -389,7 +389,7 @@ export default function SecurityDashboard() {
     try {
       setPatternLoading(true);
       
-      const response = await fetch(`/api/admin/security/threat-patterns/${patternId}`, {
+      const response = await fetch(`/api/admin/security/threat-patterns/${patternId}/`, {
         method: 'DELETE',
       });
 
@@ -423,7 +423,7 @@ export default function SecurityDashboard() {
       );
 
       try {
-        const response = await fetch(`/api/admin/security/threat-patterns/${pattern.id}`, {
+        const response = await fetch(`/api/admin/security/threat-patterns/${pattern.id}/`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -566,7 +566,7 @@ export default function SecurityDashboard() {
       setWhitelistLoading(true);
       
       try {
-        const response = await fetch(`/api/admin/security/whitelist/${entryId}`, {
+        const response = await fetch(`/api/admin/security/whitelist/${entryId}/`, {
           method: 'DELETE',
         });
 
@@ -606,7 +606,7 @@ export default function SecurityDashboard() {
       );
 
       try {
-        const response = await fetch(`/api/admin/security/whitelist/${entry.id}`, {
+        const response = await fetch(`/api/admin/security/whitelist/${entry.id}/`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -695,7 +695,7 @@ export default function SecurityDashboard() {
       }
 
       try {
-        const response = await fetch(`/api/admin/security/threats/${threatId}`, {
+        const response = await fetch(`/api/admin/security/threats/${threatId}/`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',

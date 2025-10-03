@@ -54,7 +54,7 @@ export default function CitiesAdminPage() {
         sortOrder: 'asc'
       });
       
-      const response = await fetch(`/api/admin/locations/cities?${params}`);
+      const response = await fetch(`/api/admin/locations/cities/?${params}`);
       if (!response.ok) {
         throw new Error('Failed to fetch cities');
       }
@@ -79,7 +79,7 @@ export default function CitiesAdminPage() {
   const handleDelete = async (id: number) => {
     if (confirm("Are you sure you want to delete this city?")) {
       try {
-        const response = await fetch(`/api/admin/locations/cities/${id}`, {
+        const response = await fetch(`/api/admin/locations/cities/${id}/`, {
           method: 'DELETE'
         });
         

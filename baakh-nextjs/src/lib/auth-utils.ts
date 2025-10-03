@@ -135,7 +135,7 @@ export async function checkUserPermissions(requiredPermissions: string[] = []) {
   }
 
   try {
-    const response = await fetch('/api/auth/me');
+    const response = await fetch('/api/auth/me/');
     if (!response.ok) {
       return { allowed: false, reason: 'profile-fetch-failed' };
     }

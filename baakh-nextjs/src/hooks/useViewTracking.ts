@@ -78,7 +78,7 @@ export function useViewTracking({
           }
         } catch {}
         
-        await fetch('/api/views/track', {
+        await fetch('/api/views/track/', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

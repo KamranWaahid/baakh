@@ -47,7 +47,7 @@ export default function EditPoetPage() {
     const fetchPoet = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`/api/admin/poets/${id}`);
+        const response = await fetch(`/api/admin/poets/${id}/`);
         
         if (!response.ok) {
           throw new Error('Failed to fetch poet');
