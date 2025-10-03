@@ -10,7 +10,7 @@
     "lint": "next lint",
     "tsc": "tsc",
     "lint:css": "stylelint \"**/*.css\" --fix",
-    "deploy:cf": "wrangler deploy",
+    "deploy:cf": "npm run build:pages && wrangler pages deploy",
     "test:security": "node scripts/security-test.js",
     "test:zap": "node scripts/zap-test.js",
     "test:performance": "node performance-test.js",
@@ -61,8 +61,9 @@
     "zod": "^4.0.15"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3",
     "@cloudflare/next-on-pages": "^1.13.5",
+    "@eslint/eslintrc": "^3",
+    "@netlify/plugin-nextjs": "^5.13.4",
     "@tailwindcss/typography": "^0.5.18",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^20.19.11",
